@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -39,11 +38,11 @@ export const useJudoSessions = (userId?: string) => {
       
       console.log('Fetching judo sessions for user:', userId);
       
+      // Buscar todas las sesiones de entrenamiento del usuario, no solo las de "Judo"
       const { data: trainingSessions, error: sessionsError } = await supabase
         .from('training_sessions')
         .select('*')
         .eq('user_id', userId)
-        .eq('session_type', 'Judo')
         .order('created_at', { ascending: false });
 
       if (sessionsError) {
@@ -52,6 +51,7 @@ export const useJudoSessions = (userId?: string) => {
       }
 
       console.log('Training sessions found:', trainingSessions?.length || 0);
+      console.log('Training sessions data:', trainingSessions);
 
       const { data: randoriSessions, error: randoriError } = await supabase
         .from('randori_sessions')
@@ -149,9 +149,9 @@ export const useJudoSessions = (userId?: string) => {
       return session;
     },
     onSuccess: () => {
-      console.log('Session created successfully, invalidating cache');
+      console.log('Session created successfully, invalidating cache and refetching');
       queryClient.invalidateQueries({ queryKey: ['judo-sessions', userId] });
-      // Also force a refetch to ensure immediate update
+      // Forzar un refetch inmediato
       refetch();
       toast({
         title: "Éxito",
