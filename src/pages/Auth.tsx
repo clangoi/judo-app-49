@@ -89,13 +89,13 @@ const Auth = () => {
             {!isLogin && (
               <>
                 <div className="space-y-2">
-                  <Label htmlFor="fullName" className="text-[#1A1A1A]">Nombre Completo</Label>
+                  <Label htmlFor="fullName" className="text-[#1A1A1A]">Nombre</Label>
                   <div className="relative">
                     <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#575757] h-4 w-4" />
                     <Input
                       id="fullName"
                       type="text"
-                      placeholder="Tu nombre completo"
+                      placeholder="Tu nombre"
                       value={fullName}
                       onChange={(e) => setFullName(e.target.value)}
                       className="pl-10 border-[#C5A46C] focus:border-[#C5A46C]"
@@ -111,8 +111,9 @@ const Auth = () => {
                       <SelectValue placeholder="Selecciona el tratamiento" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="masculino">Masculino (Bienvenido)</SelectItem>
-                      <SelectItem value="femenino">Femenino (Bienvenida)</SelectItem>
+                      <SelectItem value="masculino">Masculino</SelectItem>
+                      <SelectItem value="femenino">Femenino</SelectItem>
+                      <SelectItem value="neutro">Neutro</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>

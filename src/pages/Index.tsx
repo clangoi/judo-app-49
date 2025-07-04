@@ -29,6 +29,8 @@ const Index = () => {
     const genderPreference = profile?.gender_preference;
     if (genderPreference === 'femenino') {
       return 'Bienvenida';
+    } else if (genderPreference ==='neutro'){
+      return 'Bienvenide'
     }
     return 'Bienvenido';
   };
