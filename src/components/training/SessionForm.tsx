@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -39,6 +38,7 @@ interface SessionFormProps {
   ejercicios: Exercise[];
   nivelesIntensidad: number[];
   isSubmitting: boolean;
+  isEditing?: boolean;
   onSubmit: () => void;
   onCancel: () => void;
   onAgregarEjercicio: () => void;
@@ -54,6 +54,7 @@ const SessionForm = ({
   ejercicios,
   nivelesIntensidad,
   isSubmitting,
+  isEditing = false,
   onSubmit,
   onCancel,
   onAgregarEjercicio,
@@ -64,7 +65,9 @@ const SessionForm = ({
   return (
     <Card className="mb-6 bg-white border-[#C5A46C]">
       <CardHeader>
-        <CardTitle className="text-[#1A1A1A]">Nueva Sesión de Preparación</CardTitle>
+        <CardTitle className="text-[#1A1A1A]">
+          {isEditing ? "Editar Sesión de Preparación" : "Nueva Sesión de Preparación"}
+        </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <div>
@@ -114,42 +117,44 @@ const SessionForm = ({
           </Select>
         </div>
 
-        <div className="space-y-4">
-          <div className="flex justify-between items-center">
-            <Label className="text-[#1A1A1A]">Ejercicios Realizados</Label>
-            <Button
-              type="button"
-              onClick={onAgregarEjercicio}
-              className="bg-[#575757] hover:bg-[#4A4A4A] text-white"
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Agregar Ejercicio
-            </Button>
-          </div>
-
-          {ejerciciosRealizados.map((ejercicio, index) => (
-            <div key={index}>
-              {ejercicio.saved ? (
-                <SavedExerciseCard
-                  ejercicio={ejercicio}
-                  index={index}
-                  ejercicios={ejercicios}
-                  onEdit={(idx) => onActualizarEjercicio(idx, 'saved', false)}
-                  onDelete={onEliminarEjercicio}
-                />
-              ) : (
-                <ExerciseForm
-                  ejercicio={ejercicio}
-                  index={index}
-                  ejercicios={ejercicios}
-                  onUpdate={onActualizarEjercicio}
-                  onSave={onGuardarEjercicio}
-                  onDelete={onEliminarEjercicio}
-                />
-              )}
+        {!isEditing && (
+          <div className="space-y-4">
+            <div className="flex justify-between items-center">
+              <Label className="text-[#1A1A1A]">Ejercicios Realizados</Label>
+              <Button
+                type="button"
+                onClick={onAgregarEjercicio}
+                className="bg-[#575757] hover:bg-[#4A4A4A] text-white"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Agregar Ejercicio
+              </Button>
             </div>
-          ))}
-        </div>
+
+            {ejerciciosRealizados.map((ejercicio, index) => (
+              <div key={index}>
+                {ejercicio.saved ? (
+                  <SavedExerciseCard
+                    ejercicio={ejercicio}
+                    index={index}
+                    ejercicios={ejercicios}
+                    onEdit={(idx) => onActualizarEjercicio(idx, 'saved', false)}
+                    onDelete={onEliminarEjercicio}
+                  />
+                ) : (
+                  <ExerciseForm
+                    ejercicio={ejercicio}
+                    index={index}
+                    ejercicios={ejercicios}
+                    onUpdate={onActualizarEjercicio}
+                    onSave={onGuardarEjercicio}
+                    onDelete={onEliminarEjercicio}
+                  />
+                )}
+              </div>
+            ))}
+          </div>
+        )}
 
         <div>
           <Label htmlFor="notes" className="text-[#1A1A1A]">Notas</Label>
@@ -170,10 +175,10 @@ const SessionForm = ({
             {isSubmitting ? (
               <>
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                Guardando...
+                {isEditing ? "Actualizando..." : "Guardando..."}
               </>
             ) : (
-              "Guardar"
+              isEditing ? "Actualizar" : "Guardar"
             )}
           </Button>
           <Button 

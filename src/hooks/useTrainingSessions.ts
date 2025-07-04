@@ -112,10 +112,101 @@ export const useTrainingSessions = (userId: string | undefined) => {
     }
   });
 
+  const updateSessionMutation = useMutation({
+    mutationFn: async ({ id, sesion }: { 
+      id: string, 
+      sesion: Omit<SesionPreparacion, 'id'> 
+    }) => {
+      const { data, error } = await supabase
+        .from('training_sessions')
+        .update(sesion)
+        .eq('id', id)
+        .select()
+        .single();
+      
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['training_sessions'] });
+      toast({
+        title: "Sesión actualizada",
+        description: "La sesión ha sido actualizada exitosamente.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "No se pudo actualizar la sesión.",
+        variant: "destructive",
+      });
+    }
+  });
+
+  const deleteSessionMutation = useMutation({
+    mutationFn: async (id: string) => {
+      // First delete exercise records
+      const { error: recordsError } = await supabase
+        .from('exercise_records')
+        .delete()
+        .eq('training_session_id', id);
+      
+      if (recordsError) throw recordsError;
+
+      // Then delete the session
+      const { error } = await supabase
+        .from('training_sessions')
+        .delete()
+        .eq('id', id);
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['training_sessions'] });
+      toast({
+        title: "Sesión eliminada",
+        description: "La sesión ha sido eliminada exitosamente.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "No se pudo eliminar la sesión.",
+        variant: "destructive",
+      });
+    }
+  });
+
+  // Query para obtener los registros de ejercicios de una sesión específica
+  const getSessionExercises = (sessionId: string) => {
+    return useQuery({
+      queryKey: ['session_exercises', sessionId],
+      queryFn: async () => {
+        const { data, error } = await supabase
+          .from('exercise_records')
+          .select(`
+            *,
+            exercises (
+              id,
+              name
+            )
+          `)
+          .eq('training_session_id', sessionId);
+        
+        if (error) throw error;
+        return data;
+      },
+      enabled: !!sessionId,
+    });
+  };
+
   return {
     sesiones,
     ejercicios,
     isLoading,
-    createSessionMutation
+    createSessionMutation,
+    updateSessionMutation,
+    deleteSessionMutation,
+    getSessionExercises
   };
 };

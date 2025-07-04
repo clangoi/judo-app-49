@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useTrainingSessions } from "@/hooks/useTrainingSessions";
@@ -6,10 +5,20 @@ import NavHeader from "@/components/NavHeader";
 import CreateExerciseModal from "@/components/CreateExerciseModal";
 import SessionForm from "@/components/training/SessionForm";
 import SessionCard from "@/components/training/SessionCard";
+import SessionDetailsModal from "@/components/training/SessionDetailsModal";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Plus, Activity, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+
+interface SesionPreparacion {
+  id: string;
+  date: string;
+  session_type: string;
+  duration_minutes: number;
+  notes: string;
+  intensity: number;
+}
 
 interface ExerciseRecord {
   exercise_id: string;
@@ -24,9 +33,18 @@ interface ExerciseRecord {
 const SesionesPreparacion = () => {
   const { user } = useAuth();
   const { toast } = useToast();
-  const { sesiones, ejercicios, isLoading, createSessionMutation } = useTrainingSessions(user?.id);
+  const { 
+    sesiones, 
+    ejercicios, 
+    isLoading, 
+    createSessionMutation, 
+    updateSessionMutation, 
+    deleteSessionMutation 
+  } = useTrainingSessions(user?.id);
   
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
+  const [sesionAEditar, setSesionAEditar] = useState<SesionPreparacion | null>(null);
+  const [sesionAVer, setSesionAVer] = useState<SesionPreparacion | null>(null);
   const [nuevaSesion, setNuevaSesion] = useState({
     date: new Date().toISOString().split('T')[0],
     session_type: "",
@@ -38,6 +56,18 @@ const SesionesPreparacion = () => {
 
   const nivelesIntensidad = [1, 2, 3, 5, 8, 13, 21, 34];
 
+  const resetForm = () => {
+    setNuevaSesion({ 
+      date: new Date().toISOString().split('T')[0],
+      session_type: "", 
+      duration_minutes: "", 
+      notes: "", 
+      intensity: 1
+    });
+    setEjerciciosRealizados([]);
+    setSesionAEditar(null);
+  };
+
   const agregarSesion = () => {
     if (!nuevaSesion.session_type || !nuevaSesion.duration_minutes) {
       toast({
@@ -48,29 +78,63 @@ const SesionesPreparacion = () => {
       return;
     }
 
-    createSessionMutation.mutate({
-      sesion: {
-        date: nuevaSesion.date,
-        session_type: nuevaSesion.session_type,
-        duration_minutes: parseInt(nuevaSesion.duration_minutes),
-        notes: nuevaSesion.notes,
-        intensity: nuevaSesion.intensity
-      },
-      ejerciciosRealizados
-    });
+    const sesionData = {
+      date: nuevaSesion.date,
+      session_type: nuevaSesion.session_type,
+      duration_minutes: parseInt(nuevaSesion.duration_minutes),
+      notes: nuevaSesion.notes,
+      intensity: nuevaSesion.intensity
+    };
 
-    // Reset form after successful submission
-    if (createSessionMutation.isSuccess) {
-      setNuevaSesion({ 
-        date: new Date().toISOString().split('T')[0],
-        session_type: "", 
-        duration_minutes: "", 
-        notes: "", 
-        intensity: 1
-      });
-      setEjerciciosRealizados([]);
-      setMostrarFormulario(false);
+    if (sesionAEditar) {
+      updateSessionMutation.mutate(
+        { id: sesionAEditar.id, sesion: sesionData },
+        {
+          onSuccess: () => {
+            resetForm();
+            setMostrarFormulario(false);
+          }
+        }
+      );
+    } else {
+      createSessionMutation.mutate(
+        { sesion: sesionData, ejerciciosRealizados },
+        {
+          onSuccess: () => {
+            resetForm();
+            setMostrarFormulario(false);
+          }
+        }
+      );
     }
+  };
+
+  const handleEditSesion = (sesion: SesionPreparacion) => {
+    setSesionAEditar(sesion);
+    setNuevaSesion({
+      date: sesion.date,
+      session_type: sesion.session_type,
+      duration_minutes: sesion.duration_minutes.toString(),
+      notes: sesion.notes,
+      intensity: sesion.intensity
+    });
+    setEjerciciosRealizados([]);
+    setMostrarFormulario(true);
+    setSesionAVer(null);
+  };
+
+  const handleDeleteSesion = (id: string) => {
+    deleteSessionMutation.mutate(id);
+  };
+
+  const handleNuevaSesion = () => {
+    resetForm();
+    setMostrarFormulario(true);
+  };
+
+  const handleCancelar = () => {
+    resetForm();
+    setMostrarFormulario(false);
   };
 
   const agregarEjercicio = () => {
@@ -134,7 +198,7 @@ const SesionesPreparacion = () => {
       <div className="max-w-4xl mx-auto p-4">
         <div className="flex gap-2 mb-6">
           <Button 
-            onClick={() => setMostrarFormulario(!mostrarFormulario)}
+            onClick={handleNuevaSesion}
             className="bg-[#C5A46C] hover:bg-[#B8956A] text-white"
           >
             <Plus className="h-4 w-4 mr-2" />
@@ -150,13 +214,14 @@ const SesionesPreparacion = () => {
             ejerciciosRealizados={ejerciciosRealizados}
             ejercicios={ejercicios}
             nivelesIntensidad={nivelesIntensidad}
-            isSubmitting={createSessionMutation.isPending}
+            isSubmitting={createSessionMutation.isPending || updateSessionMutation.isPending}
             onSubmit={agregarSesion}
-            onCancel={() => setMostrarFormulario(false)}
+            onCancel={handleCancelar}
             onAgregarEjercicio={agregarEjercicio}
             onActualizarEjercicio={actualizarEjercicio}
             onGuardarEjercicio={guardarEjercicio}
             onEliminarEjercicio={eliminarEjercicio}
+            isEditing={!!sesionAEditar}
           />
         )}
 
@@ -171,10 +236,24 @@ const SesionesPreparacion = () => {
             </Card>
           ) : (
             sesiones.map((sesion) => (
-              <SessionCard key={sesion.id} sesion={sesion} />
+              <SessionCard 
+                key={sesion.id} 
+                sesion={sesion}
+                onView={setSesionAVer}
+                onEdit={handleEditSesion}
+                onDelete={handleDeleteSesion}
+              />
             ))
           )}
         </div>
+
+        <SessionDetailsModal
+          sesion={sesionAVer}
+          isOpen={!!sesionAVer}
+          onClose={() => setSesionAVer(null)}
+          onEdit={handleEditSesion}
+          onDelete={handleDeleteSesion}
+        />
       </div>
     </div>
   );
