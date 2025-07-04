@@ -96,7 +96,7 @@ const EntrenamientosJudo = () => {
   return (
     <div className="min-h-screen bg-slate-50">
       <NavHeader 
-        title="Entrenamientos de Judo" 
+        title="Entrenamientos" 
         subtitle="Registro y análisis de entrenamientos"
       />
       

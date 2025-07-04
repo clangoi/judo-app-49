@@ -111,7 +111,7 @@ const TecnicasJudo = () => {
   return (
     <div className="min-h-screen bg-slate-50">
       <NavHeader 
-        title="Técnicas de Judo" 
+        title="Técnicas" 
         subtitle="Notas y guías de técnicas"
       />
       
