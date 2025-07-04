@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { useAuth } from "@/hooks/useAuth";
+import { useJudoSessions } from "@/hooks/useJudoSessions";
 import NavHeader from "@/components/NavHeader";
 import VideoUpload from "@/components/VideoUpload";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -6,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, Target, CheckCircle, XCircle, Users, Eye, Edit, Trash2 } from "lucide-react";
+import { Plus, Target, CheckCircle, XCircle, Users, Eye, Edit, Trash2, Loader2 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 interface RandoryInfo {
@@ -31,7 +33,9 @@ interface EntrenamientoJudo {
 }
 
 const EntrenamientosJudo = () => {
-  const [entrenamientos, setEntrenamientos] = useState<EntrenamientoJudo[]>([]);
+  const { user } = useAuth();
+  const { sessions, isLoading, createSessionMutation, updateSessionMutation, deleteSessionMutation } = useJudoSessions(user?.id);
+  
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
   const [incluirRandory, setIncluirRandory] = useState(false);
   const [editandoEntrenamiento, setEditandoEntrenamiento] = useState<EntrenamientoJudo | null>(null);
@@ -103,41 +107,44 @@ const EntrenamientosJudo = () => {
 
   const handleEliminar = (entrenamiento: EntrenamientoJudo) => {
     if (window.confirm("¿Estás seguro de que quieres eliminar este entrenamiento? Esta acción no se puede deshacer.")) {
-      setEntrenamientos(entrenamientos.filter(e => e.id !== entrenamiento.id));
+      deleteSessionMutation.mutate(entrenamiento.id);
     }
   };
 
   const agregarEntrenamiento = () => {
+    const entrenamientoData = {
+      fecha: new Date().toISOString().split('T')[0],
+      tipo: nuevoEntrenamiento.tipo,
+      duracion: parseInt(nuevoEntrenamiento.duracion),
+      tecnicasPracticadas: nuevoEntrenamiento.tecnicasPracticadas,
+      queFunciono: nuevoEntrenamiento.queFunciono,
+      queNoFunciono: nuevoEntrenamiento.queNoFunciono,
+      comentarios: nuevoEntrenamiento.comentarios,
+      randory: incluirRandory ? randoryData : undefined,
+      videoUrl: nuevoEntrenamiento.videoUrl || undefined
+    };
+
     if (editandoEntrenamiento) {
-      const entrenamientoActualizado: EntrenamientoJudo = {
-        ...editandoEntrenamiento,
-        tipo: nuevoEntrenamiento.tipo,
-        duracion: parseInt(nuevoEntrenamiento.duracion),
-        tecnicasPracticadas: nuevoEntrenamiento.tecnicasPracticadas,
-        queFunciono: nuevoEntrenamiento.queFunciono,
-        queNoFunciono: nuevoEntrenamiento.queNoFunciono,
-        comentarios: nuevoEntrenamiento.comentarios,
-        randory: incluirRandory ? randoryData : undefined,
-        videoUrl: nuevoEntrenamiento.videoUrl || undefined
-      };
-      setEntrenamientos(entrenamientos.map(e => e.id === editandoEntrenamiento.id ? entrenamientoActualizado : e));
+      updateSessionMutation.mutate({
+        id: editandoEntrenamiento.id,
+        entrenamiento: entrenamientoData
+      }, {
+        onSuccess: () => resetForm()
+      });
     } else {
-      const entrenamiento: EntrenamientoJudo = {
-        id: Date.now().toString(),
-        fecha: new Date().toLocaleDateString(),
-        tipo: nuevoEntrenamiento.tipo,
-        duracion: parseInt(nuevoEntrenamiento.duracion),
-        tecnicasPracticadas: nuevoEntrenamiento.tecnicasPracticadas,
-        queFunciono: nuevoEntrenamiento.queFunciono,
-        queNoFunciono: nuevoEntrenamiento.queNoFunciono,
-        comentarios: nuevoEntrenamiento.comentarios,
-        randory: incluirRandory ? randoryData : undefined,
-        videoUrl: nuevoEntrenamiento.videoUrl || undefined
-      };
-      setEntrenamientos([entrenamiento, ...entrenamientos]);
+      createSessionMutation.mutate(entrenamientoData, {
+        onSuccess: () => resetForm()
+      });
     }
-    resetForm();
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-slate-400" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -292,8 +299,15 @@ const EntrenamientosJudo = () => {
               </div>
               
               <div className="flex gap-2">
-                <Button onClick={agregarEntrenamiento}>
-                  {editandoEntrenamiento ? "Actualizar" : "Guardar"}
+                <Button 
+                  onClick={agregarEntrenamiento}
+                  disabled={createSessionMutation.isPending || updateSessionMutation.isPending}
+                >
+                  {createSessionMutation.isPending || updateSessionMutation.isPending ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    editandoEntrenamiento ? "Actualizar" : "Guardar"
+                  )}
                 </Button>
                 <Button variant="outline" onClick={resetForm}>
                   Cancelar
@@ -304,7 +318,7 @@ const EntrenamientosJudo = () => {
         )}
 
         <div className="space-y-4">
-          {entrenamientos.length === 0 ? (
+          {sessions.length === 0 ? (
             <Card>
               <CardContent className="p-8 text-center">
                 <Target className="h-12 w-12 mx-auto text-slate-400 mb-4" />
@@ -313,7 +327,7 @@ const EntrenamientosJudo = () => {
               </CardContent>
             </Card>
           ) : (
-            entrenamientos.map((entrenamiento) => (
+            sessions.map((entrenamiento) => (
               <Card key={entrenamiento.id}>
                 <CardHeader>
                   <div className="flex justify-between items-start">
@@ -348,6 +362,7 @@ const EntrenamientosJudo = () => {
                           onClick={() => handleEliminar(entrenamiento)}
                           variant="destructive"
                           size="sm"
+                          disabled={deleteSessionMutation.isPending}
                         >
                           <Trash2 className="h-4 w-4 mr-2" />
                           Eliminar
@@ -434,7 +449,6 @@ const EntrenamientosJudo = () => {
           )}
         </div>
 
-        {/* Modal de detalles */}
         <Dialog open={!!entrenamientoDetalle} onOpenChange={() => setEntrenamientoDetalle(null)}>
           <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
             <DialogHeader>

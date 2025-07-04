@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { useAuth } from "@/hooks/useAuth";
+import { useTechniques } from "@/hooks/useTechniques";
 import NavHeader from "@/components/NavHeader";
 import VideoUpload from "@/components/VideoUpload";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -6,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, BookOpen, Search, Camera, Youtube, Eye, Edit, Trash2 } from "lucide-react";
+import { Plus, BookOpen, Search, Camera, Youtube, Eye, Edit, Trash2, Loader2 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 interface TecnicaJudo {
@@ -23,7 +25,9 @@ interface TecnicaJudo {
 }
 
 const TecnicasJudo = () => {
-  const [tecnicas, setTecnicas] = useState<TecnicaJudo[]>([]);
+  const { user } = useAuth();
+  const { techniques, isLoading, createTechniqueMutation, updateTechniqueMutation, deleteTechniqueMutation } = useTechniques(user?.id);
+  
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
   const [busqueda, setBusqueda] = useState("");
   const [editandoTecnica, setEditandoTecnica] = useState<TecnicaJudo | null>(null);
@@ -108,28 +112,29 @@ const TecnicasJudo = () => {
 
   const handleEliminar = (tecnica: TecnicaJudo) => {
     if (window.confirm("¿Estás seguro de que quieres eliminar esta técnica? Esta acción no se puede deshacer.")) {
-      setTecnicas(tecnicas.filter(t => t.id !== tecnica.id));
+      deleteTechniqueMutation.mutate(tecnica.id);
     }
   };
 
   const agregarTecnica = () => {
     if (editandoTecnica) {
-      const tecnicaActualizada: TecnicaJudo = {
-        ...editandoTecnica,
-        nombre: nuevaTecnica.nombre,
-        categoria: nuevaTecnica.categoria,
-        descripcion: nuevaTecnica.descripcion,
-        puntosClaves: nuevaTecnica.puntosClaves,
-        erroresComunes: nuevaTecnica.erroresComunes,
-        fotos: nuevaTecnica.fotos.length > 0 ? nuevaTecnica.fotos : undefined,
-        videoYoutube: nuevaTecnica.videoYoutube || undefined,
-        videoUrl: nuevaTecnica.videoUrl || undefined
-      };
-      setTecnicas(tecnicas.map(t => t.id === editandoTecnica.id ? tecnicaActualizada : t));
+      updateTechniqueMutation.mutate({
+        id: editandoTecnica.id,
+        tecnica: {
+          nombre: nuevaTecnica.nombre,
+          categoria: nuevaTecnica.categoria,
+          descripcion: nuevaTecnica.descripcion,
+          puntosClaves: nuevaTecnica.puntosClaves,
+          erroresComunes: nuevaTecnica.erroresComunes,
+          fotos: nuevaTecnica.fotos.length > 0 ? nuevaTecnica.fotos : undefined,
+          videoYoutube: nuevaTecnica.videoYoutube || undefined,
+          videoUrl: nuevaTecnica.videoUrl || undefined
+        }
+      }, {
+        onSuccess: () => resetForm()
+      });
     } else {
-      const tecnica: TecnicaJudo = {
-        id: Date.now().toString(),
-        fechaCreacion: new Date().toLocaleDateString(),
+      createTechniqueMutation.mutate({
         nombre: nuevaTecnica.nombre,
         categoria: nuevaTecnica.categoria,
         descripcion: nuevaTecnica.descripcion,
@@ -138,18 +143,26 @@ const TecnicasJudo = () => {
         fotos: nuevaTecnica.fotos.length > 0 ? nuevaTecnica.fotos : undefined,
         videoYoutube: nuevaTecnica.videoYoutube || undefined,
         videoUrl: nuevaTecnica.videoUrl || undefined
-      };
-      setTecnicas([tecnica, ...tecnicas]);
+      }, {
+        onSuccess: () => resetForm()
+      });
     }
-    resetForm();
   };
 
-  const tecnicasFiltradas = tecnicas.filter(tecnica =>
+  const tecnicasFiltradas = techniques.filter(tecnica =>
     tecnica.nombre.toLowerCase().includes(busqueda.toLowerCase()) ||
     tecnica.categoria.toLowerCase().includes(busqueda.toLowerCase())
   );
 
-  const categorias = [...new Set(tecnicas.map(t => t.categoria))];
+  const categorias = [...new Set(techniques.map(t => t.categoria))];
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-slate-400" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -284,8 +297,15 @@ const TecnicasJudo = () => {
               </div>
               
               <div className="flex gap-2">
-                <Button onClick={agregarTecnica}>
-                  {editandoTecnica ? "Actualizar" : "Guardar"}
+                <Button 
+                  onClick={agregarTecnica}
+                  disabled={createTechniqueMutation.isPending || updateTechniqueMutation.isPending}
+                >
+                  {createTechniqueMutation.isPending || updateTechniqueMutation.isPending ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    editandoTecnica ? "Actualizar" : "Guardar"
+                  )}
                 </Button>
                 <Button variant="outline" onClick={resetForm}>
                   Cancelar
@@ -314,7 +334,7 @@ const TecnicasJudo = () => {
         )}
 
         <div className="space-y-4">
-          {tecnicasFiltradas.length === 0 && tecnicas.length === 0 ? (
+          {tecnicasFiltradas.length === 0 && techniques.length === 0 ? (
             <Card>
               <CardContent className="p-8 text-center">
                 <BookOpen className="h-12 w-12 mx-auto text-slate-400 mb-4" />
@@ -365,6 +385,7 @@ const TecnicasJudo = () => {
                           onClick={() => handleEliminar(tecnica)}
                           variant="destructive"
                           size="sm"
+                          disabled={deleteTechniqueMutation.isPending}
                         >
                           <Trash2 className="h-4 w-4 mr-2" />
                           Eliminar
@@ -431,7 +452,6 @@ const TecnicasJudo = () => {
         </div>
       </div>
 
-      {/* Modal de detalles */}
       <Dialog open={!!tecnicaDetalle} onOpenChange={() => setTecnicaDetalle(null)}>
         <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>

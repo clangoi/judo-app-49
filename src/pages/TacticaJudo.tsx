@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { useAuth } from "@/hooks/useAuth";
+import { useTacticaNotes } from "@/hooks/useTacticaNotes";
 import NavHeader from "@/components/NavHeader";
 import VideoUpload from "@/components/VideoUpload";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -6,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, FileText, Target, Users, Camera, Eye, Edit, Trash2 } from "lucide-react";
+import { Plus, FileText, Target, Users, Camera, Eye, Edit, Trash2, Loader2 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 interface PlanTactico {
@@ -24,7 +26,9 @@ interface PlanTactico {
 }
 
 const TacticaJudo = () => {
-  const [planes, setPlanes] = useState<PlanTactico[]>([]);
+  const { user } = useAuth();
+  const { tacticalNotes, isLoading, createNoteMutation, updateNoteMutation, deleteNoteMutation } = useTacticaNotes(user?.id);
+  
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
   const [editandoPlan, setEditandoPlan] = useState<PlanTactico | null>(null);
   const [planDetalle, setPlanDetalle] = useState<PlanTactico | null>(null);
@@ -105,29 +109,30 @@ const TacticaJudo = () => {
 
   const handleEliminar = (plan: PlanTactico) => {
     if (window.confirm("¿Estás seguro de que quieres eliminar este plan táctico? Esta acción no se puede deshacer.")) {
-      setPlanes(planes.filter(p => p.id !== plan.id));
+      deleteNoteMutation.mutate(plan.id);
     }
   };
 
   const agregarPlan = () => {
     if (editandoPlan) {
-      const planActualizado: PlanTactico = {
-        ...editandoPlan,
-        nombre: nuevoPlan.nombre,
-        oponente: nuevoPlan.oponente,
-        objetivo: nuevoPlan.objetivo,
-        estrategia: nuevoPlan.estrategia,
-        tecnicasClaves: nuevoPlan.tecnicasClaves,
-        contraataques: nuevoPlan.contraataques,
-        notas: nuevoPlan.notas,
-        fotos: nuevoPlan.fotos.length > 0 ? nuevoPlan.fotos : undefined,
-        videoUrl: nuevoPlan.videoUrl || undefined
-      };
-      setPlanes(planes.map(p => p.id === editandoPlan.id ? planActualizado : p));
+      updateNoteMutation.mutate({
+        id: editandoPlan.id,
+        plan: {
+          nombre: nuevoPlan.nombre,
+          oponente: nuevoPlan.oponente,
+          objetivo: nuevoPlan.objetivo,
+          estrategia: nuevoPlan.estrategia,
+          tecnicasClaves: nuevoPlan.tecnicasClaves,
+          contraataques: nuevoPlan.contraataques,
+          notas: nuevoPlan.notas,
+          fotos: nuevoPlan.fotos.length > 0 ? nuevoPlan.fotos : undefined,
+          videoUrl: nuevoPlan.videoUrl || undefined
+        }
+      }, {
+        onSuccess: () => resetForm()
+      });
     } else {
-      const plan: PlanTactico = {
-        id: Date.now().toString(),
-        fechaCreacion: new Date().toLocaleDateString(),
+      createNoteMutation.mutate({
         nombre: nuevoPlan.nombre,
         oponente: nuevoPlan.oponente,
         objetivo: nuevoPlan.objetivo,
@@ -137,11 +142,19 @@ const TacticaJudo = () => {
         notas: nuevoPlan.notas,
         fotos: nuevoPlan.fotos.length > 0 ? nuevoPlan.fotos : undefined,
         videoUrl: nuevoPlan.videoUrl || undefined
-      };
-      setPlanes([plan, ...planes]);
+      }, {
+        onSuccess: () => resetForm()
+      });
     }
-    resetForm();
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-slate-400" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -268,8 +281,15 @@ const TacticaJudo = () => {
               />
               
               <div className="flex gap-2">
-                <Button onClick={agregarPlan}>
-                  {editandoPlan ? "Actualizar" : "Guardar"}
+                <Button 
+                  onClick={agregarPlan}
+                  disabled={createNoteMutation.isPending || updateNoteMutation.isPending}
+                >
+                  {createNoteMutation.isPending || updateNoteMutation.isPending ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    editandoPlan ? "Actualizar" : "Guardar"
+                  )}
                 </Button>
                 <Button variant="outline" onClick={resetForm}>
                   Cancelar
@@ -280,7 +300,7 @@ const TacticaJudo = () => {
         )}
 
         <div className="space-y-4">
-          {planes.length === 0 ? (
+          {tacticalNotes.length === 0 ? (
             <Card>
               <CardContent className="p-8 text-center">
                 <FileText className="h-12 w-12 mx-auto text-slate-400 mb-4" />
@@ -289,7 +309,7 @@ const TacticaJudo = () => {
               </CardContent>
             </Card>
           ) : (
-            planes.map((plan) => (
+            tacticalNotes.map((plan) => (
               <Card key={plan.id}>
                 <CardHeader>
                   <div className="flex justify-between items-start">
@@ -331,6 +351,7 @@ const TacticaJudo = () => {
                           onClick={() => handleEliminar(plan)}
                           variant="destructive"
                           size="sm"
+                          disabled={deleteNoteMutation.isPending}
                         >
                           <Trash2 className="h-4 w-4 mr-2" />
                           Eliminar
@@ -398,7 +419,6 @@ const TacticaJudo = () => {
         </div>
       </div>
 
-      {/* Modal de detalles */}
       <Dialog open={!!planDetalle} onOpenChange={() => setPlanDetalle(null)}>
         <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
