@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, BookOpen, Search, Camera, Youtube } from "lucide-react";
+import { Plus, BookOpen, Search, Camera, Youtube, Eye, Edit, Trash2 } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 interface TecnicaJudo {
   id: string;
@@ -25,6 +26,8 @@ const TecnicasJudo = () => {
   const [tecnicas, setTecnicas] = useState<TecnicaJudo[]>([]);
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
   const [busqueda, setBusqueda] = useState("");
+  const [editandoTecnica, setEditandoTecnica] = useState<TecnicaJudo | null>(null);
+  const [tecnicaDetalle, setTecnicaDetalle] = useState<TecnicaJudo | null>(null);
   const [nuevaTecnica, setNuevaTecnica] = useState({
     nombre: "",
     categoria: "",
@@ -73,21 +76,7 @@ const TecnicasJudo = () => {
     setNuevaTecnica({...nuevaTecnica, videoUrl: ""});
   };
 
-  const agregarTecnica = () => {
-    const tecnica: TecnicaJudo = {
-      id: Date.now().toString(),
-      fechaCreacion: new Date().toLocaleDateString(),
-      nombre: nuevaTecnica.nombre,
-      categoria: nuevaTecnica.categoria,
-      descripcion: nuevaTecnica.descripcion,
-      puntosClaves: nuevaTecnica.puntosClaves,
-      erroresComunes: nuevaTecnica.erroresComunes,
-      fotos: nuevaTecnica.fotos.length > 0 ? nuevaTecnica.fotos : undefined,
-      videoYoutube: nuevaTecnica.videoYoutube || undefined,
-      videoUrl: nuevaTecnica.videoUrl || undefined
-    };
-
-    setTecnicas([tecnica, ...tecnicas]);
+  const resetForm = () => {
     setNuevaTecnica({ 
       nombre: "", 
       categoria: "", 
@@ -99,6 +88,60 @@ const TecnicasJudo = () => {
       fotos: []
     });
     setMostrarFormulario(false);
+    setEditandoTecnica(null);
+  };
+
+  const iniciarEdicion = (tecnica: TecnicaJudo) => {
+    setEditandoTecnica(tecnica);
+    setNuevaTecnica({
+      nombre: tecnica.nombre,
+      categoria: tecnica.categoria,
+      descripcion: tecnica.descripcion,
+      puntosClaves: tecnica.puntosClaves,
+      erroresComunes: tecnica.erroresComunes,
+      videoYoutube: tecnica.videoYoutube || "",
+      videoUrl: tecnica.videoUrl || "",
+      fotos: tecnica.fotos || []
+    });
+    setMostrarFormulario(true);
+  };
+
+  const handleEliminar = (tecnica: TecnicaJudo) => {
+    if (window.confirm("¿Estás seguro de que quieres eliminar esta técnica? Esta acción no se puede deshacer.")) {
+      setTecnicas(tecnicas.filter(t => t.id !== tecnica.id));
+    }
+  };
+
+  const agregarTecnica = () => {
+    if (editandoTecnica) {
+      const tecnicaActualizada: TecnicaJudo = {
+        ...editandoTecnica,
+        nombre: nuevaTecnica.nombre,
+        categoria: nuevaTecnica.categoria,
+        descripcion: nuevaTecnica.descripcion,
+        puntosClaves: nuevaTecnica.puntosClaves,
+        erroresComunes: nuevaTecnica.erroresComunes,
+        fotos: nuevaTecnica.fotos.length > 0 ? nuevaTecnica.fotos : undefined,
+        videoYoutube: nuevaTecnica.videoYoutube || undefined,
+        videoUrl: nuevaTecnica.videoUrl || undefined
+      };
+      setTecnicas(tecnicas.map(t => t.id === editandoTecnica.id ? tecnicaActualizada : t));
+    } else {
+      const tecnica: TecnicaJudo = {
+        id: Date.now().toString(),
+        fechaCreacion: new Date().toLocaleDateString(),
+        nombre: nuevaTecnica.nombre,
+        categoria: nuevaTecnica.categoria,
+        descripcion: nuevaTecnica.descripcion,
+        puntosClaves: nuevaTecnica.puntosClaves,
+        erroresComunes: nuevaTecnica.erroresComunes,
+        fotos: nuevaTecnica.fotos.length > 0 ? nuevaTecnica.fotos : undefined,
+        videoYoutube: nuevaTecnica.videoYoutube || undefined,
+        videoUrl: nuevaTecnica.videoUrl || undefined
+      };
+      setTecnicas([tecnica, ...tecnicas]);
+    }
+    resetForm();
   };
 
   const tecnicasFiltradas = tecnicas.filter(tecnica =>
@@ -139,7 +182,9 @@ const TecnicasJudo = () => {
         {mostrarFormulario && (
           <Card className="mb-6">
             <CardHeader>
-              <CardTitle>Nueva Técnica de Judo</CardTitle>
+              <CardTitle>
+                {editandoTecnica ? "Editar Técnica de Judo" : "Nueva Técnica de Judo"}
+              </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
@@ -239,8 +284,10 @@ const TecnicasJudo = () => {
               </div>
               
               <div className="flex gap-2">
-                <Button onClick={agregarTecnica}>Guardar</Button>
-                <Button variant="outline" onClick={() => setMostrarFormulario(false)}>
+                <Button onClick={agregarTecnica}>
+                  {editandoTecnica ? "Actualizar" : "Guardar"}
+                </Button>
+                <Button variant="outline" onClick={resetForm}>
                   Cancelar
                 </Button>
               </div>
@@ -291,8 +338,38 @@ const TecnicasJudo = () => {
                       <CardTitle className="text-lg">{tecnica.nombre}</CardTitle>
                       <p className="text-sm text-slate-600">{tecnica.categoria}</p>
                     </div>
-                    <div className="text-xs text-slate-500">
-                      {tecnica.fechaCreacion}
+                    <div className="flex items-center gap-2">
+                      <div className="text-xs text-slate-500">
+                        {tecnica.fechaCreacion}
+                      </div>
+                      <div className="flex gap-2">
+                        <Button
+                          onClick={() => setTecnicaDetalle(tecnica)}
+                          variant="outline"
+                          size="sm"
+                          className="border-blue-500 text-blue-600 hover:bg-blue-50"
+                        >
+                          <Eye className="h-4 w-4 mr-2" />
+                          Ver
+                        </Button>
+                        <Button
+                          onClick={() => iniciarEdicion(tecnica)}
+                          variant="outline"
+                          size="sm"
+                          className="border-orange-500 text-orange-600 hover:bg-orange-50"
+                        >
+                          <Edit className="h-4 w-4 mr-2" />
+                          Editar
+                        </Button>
+                        <Button
+                          onClick={() => handleEliminar(tecnica)}
+                          variant="destructive"
+                          size="sm"
+                        >
+                          <Trash2 className="h-4 w-4 mr-2" />
+                          Eliminar
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 </CardHeader>
@@ -353,6 +430,87 @@ const TecnicasJudo = () => {
           )}
         </div>
       </div>
+
+      {/* Modal de detalles */}
+      <Dialog open={!!tecnicaDetalle} onOpenChange={() => setTecnicaDetalle(null)}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold text-slate-800">
+              Detalles de la Técnica
+            </DialogTitle>
+          </DialogHeader>
+          {tecnicaDetalle && (
+            <div className="space-y-4">
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex justify-between items-start mb-4">
+                    <div>
+                      <h3 className="text-2xl font-bold text-slate-800 mb-2">
+                        {tecnicaDetalle.nombre}
+                      </h3>
+                      <p className="text-slate-600">{tecnicaDetalle.categoria}</p>
+                    </div>
+                    <div className="text-sm text-slate-500">
+                      {tecnicaDetalle.fechaCreacion}
+                    </div>
+                  </div>
+                  
+                  {tecnicaDetalle.fotos && tecnicaDetalle.fotos.length > 0 && (
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mb-4">
+                      {tecnicaDetalle.fotos.map((foto, index) => (
+                        <img key={index} src={foto} alt={`${tecnicaDetalle.nombre} ${index + 1}`} className="w-full h-32 object-cover rounded" />
+                      ))}
+                    </div>
+                  )}
+                  
+                  {tecnicaDetalle.videoUrl && (
+                    <div className="bg-black rounded-lg overflow-hidden mb-4">
+                      <video 
+                        controls 
+                        className="w-full h-64 object-contain"
+                        preload="metadata"
+                      >
+                        <source src={tecnicaDetalle.videoUrl} type="video/mp4" />
+                        Tu navegador no soporta videos HTML5.
+                      </video>
+                    </div>
+                  )}
+                  
+                  {tecnicaDetalle.videoYoutube && getYouTubeEmbedUrl(tecnicaDetalle.videoYoutube) && (
+                    <div className="aspect-video mb-4">
+                      <iframe
+                        src={getYouTubeEmbedUrl(tecnicaDetalle.videoYoutube)!}
+                        title={`Video de ${tecnicaDetalle.nombre}`}
+                        className="w-full h-full rounded"
+                        frameBorder="0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                      />
+                    </div>
+                  )}
+                  
+                  <div className="space-y-4">
+                    <div>
+                      <h4 className="font-medium text-slate-700 mb-2">Descripción:</h4>
+                      <p className="text-slate-600">{tecnicaDetalle.descripcion}</p>
+                    </div>
+                    
+                    <div className="bg-blue-50 p-3 rounded-lg">
+                      <h4 className="font-medium text-blue-800 mb-2">Puntos Clave:</h4>
+                      <p className="text-blue-700 text-sm">{tecnicaDetalle.puntosClaves}</p>
+                    </div>
+                    
+                    <div className="bg-orange-50 p-3 rounded-lg">
+                      <h4 className="font-medium text-orange-800 mb-2">Errores Comunes:</h4>
+                      <p className="text-orange-700 text-sm">{tecnicaDetalle.erroresComunes}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

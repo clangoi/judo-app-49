@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, Target, CheckCircle, XCircle, Users } from "lucide-react";
+import { Plus, Target, CheckCircle, XCircle, Users, Eye, Edit, Trash2 } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 interface RandoryInfo {
   oponente: string;
@@ -33,6 +34,8 @@ const EntrenamientosJudo = () => {
   const [entrenamientos, setEntrenamientos] = useState<EntrenamientoJudo[]>([]);
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
   const [incluirRandory, setIncluirRandory] = useState(false);
+  const [editandoEntrenamiento, setEditandoEntrenamiento] = useState<EntrenamientoJudo | null>(null);
+  const [entrenamientoDetalle, setEntrenamientoDetalle] = useState<EntrenamientoJudo | null>(null);
   const [nuevoEntrenamiento, setNuevoEntrenamiento] = useState({
     tipo: "",
     duracion: "",
@@ -58,21 +61,7 @@ const EntrenamientosJudo = () => {
     setNuevoEntrenamiento({...nuevoEntrenamiento, videoUrl: ""});
   };
 
-  const agregarEntrenamiento = () => {
-    const entrenamiento: EntrenamientoJudo = {
-      id: Date.now().toString(),
-      fecha: new Date().toLocaleDateString(),
-      tipo: nuevoEntrenamiento.tipo,
-      duracion: parseInt(nuevoEntrenamiento.duracion),
-      tecnicasPracticadas: nuevoEntrenamiento.tecnicasPracticadas,
-      queFunciono: nuevoEntrenamiento.queFunciono,
-      queNoFunciono: nuevoEntrenamiento.queNoFunciono,
-      comentarios: nuevoEntrenamiento.comentarios,
-      randory: incluirRandory ? randoryData : undefined,
-      videoUrl: nuevoEntrenamiento.videoUrl || undefined
-    };
-
-    setEntrenamientos([entrenamiento, ...entrenamientos]);
+  const resetForm = () => {
     setNuevoEntrenamiento({ 
       tipo: "", 
       duracion: "", 
@@ -91,6 +80,63 @@ const EntrenamientosJudo = () => {
     });
     setIncluirRandory(false);
     setMostrarFormulario(false);
+    setEditandoEntrenamiento(null);
+  };
+
+  const iniciarEdicion = (entrenamiento: EntrenamientoJudo) => {
+    setEditandoEntrenamiento(entrenamiento);
+    setNuevoEntrenamiento({
+      tipo: entrenamiento.tipo,
+      duracion: entrenamiento.duracion.toString(),
+      tecnicasPracticadas: entrenamiento.tecnicasPracticadas,
+      queFunciono: entrenamiento.queFunciono,
+      queNoFunciono: entrenamiento.queNoFunciono,
+      comentarios: entrenamiento.comentarios || "",
+      videoUrl: entrenamiento.videoUrl || ""
+    });
+    if (entrenamiento.randory) {
+      setIncluirRandory(true);
+      setRandoryData(entrenamiento.randory);
+    }
+    setMostrarFormulario(true);
+  };
+
+  const handleEliminar = (entrenamiento: EntrenamientoJudo) => {
+    if (window.confirm("¿Estás seguro de que quieres eliminar este entrenamiento? Esta acción no se puede deshacer.")) {
+      setEntrenamientos(entrenamientos.filter(e => e.id !== entrenamiento.id));
+    }
+  };
+
+  const agregarEntrenamiento = () => {
+    if (editandoEntrenamiento) {
+      const entrenamientoActualizado: EntrenamientoJudo = {
+        ...editandoEntrenamiento,
+        tipo: nuevoEntrenamiento.tipo,
+        duracion: parseInt(nuevoEntrenamiento.duracion),
+        tecnicasPracticadas: nuevoEntrenamiento.tecnicasPracticadas,
+        queFunciono: nuevoEntrenamiento.queFunciono,
+        queNoFunciono: nuevoEntrenamiento.queNoFunciono,
+        comentarios: nuevoEntrenamiento.comentarios,
+        randory: incluirRandory ? randoryData : undefined,
+        videoUrl: nuevoEntrenamiento.videoUrl || undefined
+      };
+      setEntrenamientos(entrenamientos.map(e => e.id === editandoEntrenamiento.id ? entrenamientoActualizado : e));
+    } else {
+      const entrenamiento: EntrenamientoJudo = {
+        id: Date.now().toString(),
+        fecha: new Date().toLocaleDateString(),
+        tipo: nuevoEntrenamiento.tipo,
+        duracion: parseInt(nuevoEntrenamiento.duracion),
+        tecnicasPracticadas: nuevoEntrenamiento.tecnicasPracticadas,
+        queFunciono: nuevoEntrenamiento.queFunciono,
+        queNoFunciono: nuevoEntrenamiento.queNoFunciono,
+        comentarios: nuevoEntrenamiento.comentarios,
+        randory: incluirRandory ? randoryData : undefined,
+        videoUrl: nuevoEntrenamiento.videoUrl || undefined
+      };
+      setEntrenamientos([entrenamiento, ...entrenamientos]);
+    }
+    resetForm();
   };
 
   return (
@@ -112,7 +158,9 @@ const EntrenamientosJudo = () => {
         {mostrarFormulario && (
           <Card className="mb-6">
             <CardHeader>
-              <CardTitle>Nuevo Entrenamiento de Judo</CardTitle>
+              <CardTitle>
+                {editandoEntrenamiento ? "Editar Entrenamiento de Judo" : "Nuevo Entrenamiento de Judo"}
+              </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
@@ -244,8 +292,10 @@ const EntrenamientosJudo = () => {
               </div>
               
               <div className="flex gap-2">
-                <Button onClick={agregarEntrenamiento}>Guardar</Button>
-                <Button variant="outline" onClick={() => setMostrarFormulario(false)}>
+                <Button onClick={agregarEntrenamiento}>
+                  {editandoEntrenamiento ? "Actualizar" : "Guardar"}
+                </Button>
+                <Button variant="outline" onClick={resetForm}>
                   Cancelar
                 </Button>
               </div>
@@ -271,8 +321,38 @@ const EntrenamientosJudo = () => {
                       <CardTitle className="text-lg">{entrenamiento.tipo}</CardTitle>
                       <p className="text-sm text-slate-600">{entrenamiento.fecha}</p>
                     </div>
-                    <div className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-sm">
-                      {entrenamiento.duracion} min
+                    <div className="flex items-center gap-2">
+                      <div className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-sm">
+                        {entrenamiento.duracion} min
+                      </div>
+                      <div className="flex gap-2">
+                        <Button
+                          onClick={() => setEntrenamientoDetalle(entrenamiento)}
+                          variant="outline"
+                          size="sm"
+                          className="border-blue-500 text-blue-600 hover:bg-blue-50"
+                        >
+                          <Eye className="h-4 w-4 mr-2" />
+                          Ver
+                        </Button>
+                        <Button
+                          onClick={() => iniciarEdicion(entrenamiento)}
+                          variant="outline"
+                          size="sm"
+                          className="border-orange-500 text-orange-600 hover:bg-orange-50"
+                        >
+                          <Edit className="h-4 w-4 mr-2" />
+                          Editar
+                        </Button>
+                        <Button
+                          onClick={() => handleEliminar(entrenamiento)}
+                          variant="destructive"
+                          size="sm"
+                        >
+                          <Trash2 className="h-4 w-4 mr-2" />
+                          Eliminar
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 </CardHeader>
@@ -353,6 +433,101 @@ const EntrenamientosJudo = () => {
             ))
           )}
         </div>
+
+        {/* Modal de detalles */}
+        <Dialog open={!!entrenamientoDetalle} onOpenChange={() => setEntrenamientoDetalle(null)}>
+          <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="text-xl font-bold text-slate-800">
+                Detalles del Entrenamiento
+              </DialogTitle>
+            </DialogHeader>
+            {entrenamientoDetalle && (
+              <div className="space-y-4">
+                <Card>
+                  <CardContent className="p-4">
+                    <div className="flex justify-between items-start mb-4">
+                      <div>
+                        <h3 className="text-2xl font-bold text-slate-800 mb-2">
+                          {entrenamientoDetalle.tipo}
+                        </h3>
+                        <p className="text-slate-600">{entrenamientoDetalle.fecha}</p>
+                      </div>
+                      <div className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full">
+                        {entrenamientoDetalle.duracion} min
+                      </div>
+                    </div>
+                    
+                    {entrenamientoDetalle.videoUrl && (
+                      <div className="bg-black rounded-lg overflow-hidden mb-4">
+                        <video 
+                          controls 
+                          className="w-full h-64 object-contain"
+                          preload="metadata"
+                        >
+                          <source src={entrenamientoDetalle.videoUrl} type="video/mp4" />
+                          Tu navegador no soporta videos HTML5.
+                        </video>
+                      </div>
+                    )}
+                    
+                    <div className="space-y-4">
+                      <div>
+                        <h4 className="font-medium text-slate-700 mb-2">Técnicas Practicadas:</h4>
+                        <p className="text-slate-600">{entrenamientoDetalle.tecnicasPracticadas}</p>
+                      </div>
+                      
+                      <div className="grid md:grid-cols-2 gap-4">
+                        <div className="bg-green-50 p-3 rounded-lg">
+                          <h4 className="font-medium text-green-800 mb-2">Qué funcionó:</h4>
+                          <p className="text-green-700 text-sm">{entrenamientoDetalle.queFunciono}</p>
+                        </div>
+                        
+                        <div className="bg-red-50 p-3 rounded-lg">
+                          <h4 className="font-medium text-red-800 mb-2">A mejorar:</h4>
+                          <p className="text-red-700 text-sm">{entrenamientoDetalle.queNoFunciono}</p>
+                        </div>
+                      </div>
+                      
+                      {entrenamientoDetalle.randory && (
+                        <div className="bg-blue-50 p-4 rounded-lg">
+                          <h4 className="font-medium text-blue-800 mb-3">
+                            Randory vs {entrenamientoDetalle.randory.oponente}
+                          </h4>
+                          <div className="grid md:grid-cols-2 gap-3 text-sm">
+                            <div>
+                              <span className="font-medium text-blue-700">Técnicas intentadas:</span>
+                              <p className="text-blue-600">{entrenamientoDetalle.randory.tecnicasIntentadas}</p>
+                            </div>
+                            <div>
+                              <span className="font-medium text-green-700">Funcionaron:</span>
+                              <p className="text-green-600">{entrenamientoDetalle.randory.tecnicasFuncionaron}</p>
+                            </div>
+                            <div>
+                              <span className="font-medium text-red-700">No funcionaron:</span>
+                              <p className="text-red-600">{entrenamientoDetalle.randory.tecnicasNoFuncionaron}</p>
+                            </div>
+                            <div>
+                              <span className="font-medium text-orange-700">Me hicieron:</span>
+                              <p className="text-orange-600">{entrenamientoDetalle.randory.tecnicasQueRecibio}</p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                      
+                      {entrenamientoDetalle.comentarios && (
+                        <div>
+                          <h4 className="font-medium text-slate-700 mb-2">Comentarios:</h4>
+                          <p className="text-slate-600">{entrenamientoDetalle.comentarios}</p>
+                        </div>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );

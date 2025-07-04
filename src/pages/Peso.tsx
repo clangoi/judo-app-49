@@ -8,8 +8,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Plus, Weight, TrendingUp, TrendingDown, Loader2 } from "lucide-react";
+import { Plus, Weight, TrendingUp, TrendingDown, Loader2, Eye, Edit, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 interface RegistroPeso {
   id: string;
@@ -22,6 +23,8 @@ const Peso = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
+  const [editandoRegistro, setEditandoRegistro] = useState<RegistroPeso | null>(null);
+  const [registroDetalle, setRegistroDetalle] = useState<RegistroPeso | null>(null);
   const [nuevoRegistro, setNuevoRegistro] = useState({
     date: new Date().toISOString().split('T')[0],
     weight: ""
@@ -62,11 +65,7 @@ const Peso = () => {
         title: "Registro guardado",
         description: "Tu peso ha sido registrado exitosamente.",
       });
-      setNuevoRegistro({ 
-        date: new Date().toISOString().split('T')[0],
-        weight: ""
-      });
-      setMostrarFormulario(false);
+      resetForm();
     },
     onError: (error: any) => {
       toast({
@@ -77,7 +76,88 @@ const Peso = () => {
     }
   });
 
-  const agregarRegistro = () => {
+  const updateMutation = useMutation({
+    mutationFn: async ({ id, registro }: { id: string, registro: Omit<RegistroPeso, 'id'> }) => {
+      const { data, error } = await supabase
+        .from('weight_entries')
+        .update({
+          date: registro.date,
+          weight: parseFloat(registro.weight.toString())
+        })
+        .eq('id', id)
+        .select()
+        .single();
+      
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['weight_entries'] });
+      toast({
+        title: "Registro actualizado",
+        description: "El registro ha sido actualizado exitosamente.",
+      });
+      resetForm();
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "No se pudo actualizar el registro.",
+        variant: "destructive",
+      });
+    }
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from('weight_entries')
+        .delete()
+        .eq('id', id);
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['weight_entries'] });
+      toast({
+        title: "Registro eliminado",
+        description: "El registro ha sido eliminado exitosamente.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "No se pudo eliminar el registro.",
+        variant: "destructive",
+      });
+    }
+  });
+
+  const resetForm = () => {
+    setNuevoRegistro({ 
+      date: new Date().toISOString().split('T')[0],
+      weight: ""
+    });
+    setMostrarFormulario(false);
+    setEditandoRegistro(null);
+  };
+
+  const iniciarEdicion = (registro: RegistroPeso) => {
+    setEditandoRegistro(registro);
+    setNuevoRegistro({
+      date: registro.date,
+      weight: registro.weight.toString()
+    });
+    setMostrarFormulario(true);
+  };
+
+  const handleEliminar = (registro: RegistroPeso) => {
+    if (window.confirm("¿Estás seguro de que quieres eliminar este registro? Esta acción no se puede deshacer.")) {
+      deleteMutation.mutate(registro.id);
+    }
+  };
+
+  const guardarRegistro = () => {
     if (!nuevoRegistro.weight) {
       toast({
         title: "Error",
@@ -87,10 +167,20 @@ const Peso = () => {
       return;
     }
 
-    createMutation.mutate({
-      date: nuevoRegistro.date,
-      weight: parseFloat(nuevoRegistro.weight)
-    });
+    if (editandoRegistro) {
+      updateMutation.mutate({
+        id: editandoRegistro.id,
+        registro: {
+          date: nuevoRegistro.date,
+          weight: parseFloat(nuevoRegistro.weight)
+        }
+      });
+    } else {
+      createMutation.mutate({
+        date: nuevoRegistro.date,
+        weight: parseFloat(nuevoRegistro.weight)
+      });
+    }
   };
 
   const calcularTendencia = (index: number) => {
@@ -127,7 +217,9 @@ const Peso = () => {
         {mostrarFormulario && (
           <Card className="mb-6 bg-white border-[#C5A46C]">
             <CardHeader>
-              <CardTitle className="text-[#1A1A1A]">Nuevo Registro de Peso</CardTitle>
+              <CardTitle className="text-[#1A1A1A]">
+                {editandoRegistro ? "Editar Registro de Peso" : "Nuevo Registro de Peso"}
+              </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
@@ -154,22 +246,22 @@ const Peso = () => {
               </div>
               <div className="flex gap-2">
                 <Button 
-                  onClick={agregarRegistro}
-                  disabled={createMutation.isPending}
+                  onClick={guardarRegistro}
+                  disabled={createMutation.isPending || updateMutation.isPending}
                   className="bg-[#C5A46C] hover:bg-[#B8956A] text-white"
                 >
-                  {createMutation.isPending ? (
+                  {createMutation.isPending || updateMutation.isPending ? (
                     <>
                       <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      Guardando...
+                      {editandoRegistro ? "Actualizando..." : "Guardando..."}
                     </>
                   ) : (
-                    "Guardar"
+                    editandoRegistro ? "Actualizar" : "Guardar"
                   )}
                 </Button>
                 <Button 
                   variant="outline" 
-                  onClick={() => setMostrarFormulario(false)}
+                  onClick={resetForm}
                   className="border-[#C5A46C] text-[#C5A46C] hover:bg-[#C5A46C] hover:text-white"
                 >
                   Cancelar
@@ -201,22 +293,52 @@ const Peso = () => {
                         </CardTitle>
                         <p className="text-sm text-[#575757]">{registro.date}</p>
                       </div>
-                      {tendencia !== null && (
-                        <div className={`flex items-center gap-1 px-2 py-1 rounded-full text-sm ${
-                          tendencia > 0 
-                            ? 'bg-red-100 text-red-800' 
-                            : tendencia < 0 
-                            ? 'bg-green-100 text-green-800'
-                            : 'bg-gray-100 text-gray-800'
-                        }`}>
-                          {tendencia > 0 ? (
-                            <TrendingUp className="h-3 w-3" />
-                          ) : tendencia < 0 ? (
-                            <TrendingDown className="h-3 w-3" />
-                          ) : null}
-                          {tendencia > 0 ? '+' : ''}{tendencia.toFixed(1)} kg
+                      <div className="flex items-center gap-2">
+                        {tendencia !== null && (
+                          <div className={`flex items-center gap-1 px-2 py-1 rounded-full text-sm ${
+                            tendencia > 0 
+                              ? 'bg-red-100 text-red-800' 
+                              : tendencia < 0 
+                              ? 'bg-green-100 text-green-800'
+                              : 'bg-gray-100 text-gray-800'
+                          }`}>
+                            {tendencia > 0 ? (
+                              <TrendingUp className="h-3 w-3" />
+                            ) : tendencia < 0 ? (
+                              <TrendingDown className="h-3 w-3" />
+                            ) : null}
+                            {tendencia > 0 ? '+' : ''}{tendencia.toFixed(1)} kg
+                          </div>
+                        )}
+                        <div className="flex gap-2">
+                          <Button
+                            onClick={() => setRegistroDetalle(registro)}
+                            variant="outline"
+                            size="sm"
+                            className="border-blue-500 text-blue-600 hover:bg-blue-50"
+                          >
+                            <Eye className="h-4 w-4 mr-2" />
+                            Ver
+                          </Button>
+                          <Button
+                            onClick={() => iniciarEdicion(registro)}
+                            variant="outline"
+                            size="sm"
+                            className="border-[#C5A46C] text-[#C5A46C] hover:bg-[#C5A46C] hover:text-white"
+                          >
+                            <Edit className="h-4 w-4 mr-2" />
+                            Editar
+                          </Button>
+                          <Button
+                            onClick={() => handleEliminar(registro)}
+                            variant="destructive"
+                            size="sm"
+                          >
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            Eliminar
+                          </Button>
                         </div>
-                      )}
+                      </div>
                     </div>
                   </CardHeader>
                 </Card>
@@ -225,6 +347,31 @@ const Peso = () => {
           )}
         </div>
       </div>
+
+      {/* Modal de detalles */}
+      <Dialog open={!!registroDetalle} onOpenChange={() => setRegistroDetalle(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold text-[#1A1A1A]">
+              Detalles del Registro
+            </DialogTitle>
+          </DialogHeader>
+          {registroDetalle && (
+            <div className="space-y-4">
+              <Card>
+                <CardContent className="p-4">
+                  <div className="text-center">
+                    <h3 className="text-3xl font-bold text-[#1A1A1A] mb-2">
+                      {registroDetalle.weight} kg
+                    </h3>
+                    <p className="text-[#575757]">{registroDetalle.date}</p>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, FileText, Target, Users, Camera } from "lucide-react";
+import { Plus, FileText, Target, Users, Camera, Eye, Edit, Trash2 } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 interface PlanTactico {
   id: string;
@@ -25,6 +26,8 @@ interface PlanTactico {
 const TacticaJudo = () => {
   const [planes, setPlanes] = useState<PlanTactico[]>([]);
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
+  const [editandoPlan, setEditandoPlan] = useState<PlanTactico | null>(null);
+  const [planDetalle, setPlanDetalle] = useState<PlanTactico | null>(null);
   const [nuevoPlan, setNuevoPlan] = useState({
     nombre: "",
     oponente: "",
@@ -68,22 +71,7 @@ const TacticaJudo = () => {
     setNuevoPlan({...nuevoPlan, videoUrl: ""});
   };
 
-  const agregarPlan = () => {
-    const plan: PlanTactico = {
-      id: Date.now().toString(),
-      fechaCreacion: new Date().toLocaleDateString(),
-      nombre: nuevoPlan.nombre,
-      oponente: nuevoPlan.oponente,
-      objetivo: nuevoPlan.objetivo,
-      estrategia: nuevoPlan.estrategia,
-      tecnicasClaves: nuevoPlan.tecnicasClaves,
-      contraataques: nuevoPlan.contraataques,
-      notas: nuevoPlan.notas,
-      fotos: nuevoPlan.fotos.length > 0 ? nuevoPlan.fotos : undefined,
-      videoUrl: nuevoPlan.videoUrl || undefined
-    };
-
-    setPlanes([plan, ...planes]);
+  const resetForm = () => {
     setNuevoPlan({ 
       nombre: "", 
       oponente: "", 
@@ -96,6 +84,63 @@ const TacticaJudo = () => {
       videoUrl: ""
     });
     setMostrarFormulario(false);
+    setEditandoPlan(null);
+  };
+
+  const iniciarEdicion = (plan: PlanTactico) => {
+    setEditandoPlan(plan);
+    setNuevoPlan({
+      nombre: plan.nombre,
+      oponente: plan.oponente || "",
+      objetivo: plan.objetivo,
+      estrategia: plan.estrategia,
+      tecnicasClaves: plan.tecnicasClaves,
+      contraataques: plan.contraataques,
+      notas: plan.notas || "",
+      fotos: plan.fotos || [],
+      videoUrl: plan.videoUrl || ""
+    });
+    setMostrarFormulario(true);
+  };
+
+  const handleEliminar = (plan: PlanTactico) => {
+    if (window.confirm("¿Estás seguro de que quieres eliminar este plan táctico? Esta acción no se puede deshacer.")) {
+      setPlanes(planes.filter(p => p.id !== plan.id));
+    }
+  };
+
+  const agregarPlan = () => {
+    if (editandoPlan) {
+      const planActualizado: PlanTactico = {
+        ...editandoPlan,
+        nombre: nuevoPlan.nombre,
+        oponente: nuevoPlan.oponente,
+        objetivo: nuevoPlan.objetivo,
+        estrategia: nuevoPlan.estrategia,
+        tecnicasClaves: nuevoPlan.tecnicasClaves,
+        contraataques: nuevoPlan.contraataques,
+        notas: nuevoPlan.notas,
+        fotos: nuevoPlan.fotos.length > 0 ? nuevoPlan.fotos : undefined,
+        videoUrl: nuevoPlan.videoUrl || undefined
+      };
+      setPlanes(planes.map(p => p.id === editandoPlan.id ? planActualizado : p));
+    } else {
+      const plan: PlanTactico = {
+        id: Date.now().toString(),
+        fechaCreacion: new Date().toLocaleDateString(),
+        nombre: nuevoPlan.nombre,
+        oponente: nuevoPlan.oponente,
+        objetivo: nuevoPlan.objetivo,
+        estrategia: nuevoPlan.estrategia,
+        tecnicasClaves: nuevoPlan.tecnicasClaves,
+        contraataques: nuevoPlan.contraataques,
+        notas: nuevoPlan.notas,
+        fotos: nuevoPlan.fotos.length > 0 ? nuevoPlan.fotos : undefined,
+        videoUrl: nuevoPlan.videoUrl || undefined
+      };
+      setPlanes([plan, ...planes]);
+    }
+    resetForm();
   };
 
   return (
@@ -117,7 +162,9 @@ const TacticaJudo = () => {
         {mostrarFormulario && (
           <Card className="mb-6">
             <CardHeader>
-              <CardTitle>Nuevo Plan Táctico</CardTitle>
+              <CardTitle>
+                {editandoPlan ? "Editar Plan Táctico" : "Nuevo Plan Táctico"}
+              </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
@@ -221,8 +268,10 @@ const TacticaJudo = () => {
               />
               
               <div className="flex gap-2">
-                <Button onClick={agregarPlan}>Guardar</Button>
-                <Button variant="outline" onClick={() => setMostrarFormulario(false)}>
+                <Button onClick={agregarPlan}>
+                  {editandoPlan ? "Actualizar" : "Guardar"}
+                </Button>
+                <Button variant="outline" onClick={resetForm}>
                   Cancelar
                 </Button>
               </div>
@@ -254,9 +303,39 @@ const TacticaJudo = () => {
                       )}
                       <p className="text-xs text-slate-500 mt-1">{plan.fechaCreacion}</p>
                     </div>
-                    <div className="bg-indigo-100 text-indigo-800 px-2 py-1 rounded-full text-sm flex items-center gap-1">
-                      <Target className="h-3 w-3" />
-                      Plan
+                    <div className="flex items-center gap-2">
+                      <div className="bg-indigo-100 text-indigo-800 px-2 py-1 rounded-full text-sm flex items-center gap-1">
+                        <Target className="h-3 w-3" />
+                        Plan
+                      </div>
+                      <div className="flex gap-2">
+                        <Button
+                          onClick={() => setPlanDetalle(plan)}
+                          variant="outline"
+                          size="sm"
+                          className="border-blue-500 text-blue-600 hover:bg-blue-50"
+                        >
+                          <Eye className="h-4 w-4 mr-2" />
+                          Ver
+                        </Button>
+                        <Button
+                          onClick={() => iniciarEdicion(plan)}
+                          variant="outline"
+                          size="sm"
+                          className="border-orange-500 text-orange-600 hover:bg-orange-50"
+                        >
+                          <Edit className="h-4 w-4 mr-2" />
+                          Editar
+                        </Button>
+                        <Button
+                          onClick={() => handleEliminar(plan)}
+                          variant="destructive"
+                          size="sm"
+                        >
+                          <Trash2 className="h-4 w-4 mr-2" />
+                          Eliminar
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 </CardHeader>
@@ -318,6 +397,90 @@ const TacticaJudo = () => {
           )}
         </div>
       </div>
+
+      {/* Modal de detalles */}
+      <Dialog open={!!planDetalle} onOpenChange={() => setPlanDetalle(null)}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold text-slate-800">
+              Detalles del Plan Táctico
+            </DialogTitle>
+          </DialogHeader>
+          {planDetalle && (
+            <div className="space-y-4">
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex justify-between items-start mb-4">
+                    <div>
+                      <h3 className="text-2xl font-bold text-slate-800 mb-2">
+                        {planDetalle.nombre}
+                      </h3>
+                      {planDetalle.oponente && (
+                        <p className="text-slate-600">vs {planDetalle.oponente}</p>
+                      )}
+                    </div>
+                    <div className="text-sm text-slate-500">
+                      {planDetalle.fechaCreacion}
+                    </div>
+                  </div>
+                  
+                  {planDetalle.fotos && planDetalle.fotos.length > 0 && (
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mb-4">
+                      {planDetalle.fotos.map((foto, index) => (
+                        <img key={index} src={foto} alt={`${planDetalle.nombre} ${index + 1}`} className="w-full h-32 object-cover rounded" />
+                      ))}
+                    </div>
+                  )}
+                  
+                  {planDetalle.videoUrl && (
+                    <div className="bg-black rounded-lg overflow-hidden mb-4">
+                      <video 
+                        controls 
+                        className="w-full h-64 object-contain"
+                        preload="metadata"
+                      >
+                        <source src={planDetalle.videoUrl} type="video/mp4" />
+                        Tu navegador no soporta videos HTML5.
+                      </video>
+                    </div>
+                  )}
+                  
+                  <div className="space-y-4">
+                    <div className="bg-blue-50 p-3 rounded-lg">
+                      <h4 className="font-medium text-blue-800 mb-2">Objetivo:</h4>
+                      <p className="text-blue-700">{planDetalle.objetivo}</p>
+                    </div>
+                    
+                    <div>
+                      <h4 className="font-medium text-slate-700 mb-2">Estrategia General:</h4>
+                      <p className="text-slate-600">{planDetalle.estrategia}</p>
+                    </div>
+                    
+                    <div className="grid md:grid-cols-2 gap-4">
+                      <div className="bg-green-50 p-3 rounded-lg">
+                        <h4 className="font-medium text-green-800 mb-2">Técnicas Clave:</h4>
+                        <p className="text-green-700">{planDetalle.tecnicasClaves}</p>
+                      </div>
+                      
+                      <div className="bg-orange-50 p-3 rounded-lg">
+                        <h4 className="font-medium text-orange-800 mb-2">Contraataques:</h4>
+                        <p className="text-orange-700">{planDetalle.contraataques}</p>
+                      </div>
+                    </div>
+                    
+                    {planDetalle.notas && (
+                      <div>
+                        <h4 className="font-medium text-slate-700 mb-2">Notas:</h4>
+                        <p className="text-slate-600">{planDetalle.notas}</p>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
