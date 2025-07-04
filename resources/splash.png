@@ -1,0 +1,5 @@
+
+<!-- Placeholder for splash screen image -->
+<!-- Replace this with an actual 2732x2732 PNG image for the splash screen -->
+<!-- The image should have your app logo/branding centered -->
+<!-- Background color should match the backgroundColor in capacitor.config.ts (#1A1A1A) -->
