@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,6 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, Loader2 } from "lucide-react";
 import ExerciseForm from "./ExerciseForm";
+import SavedExerciseCard from "./SavedExerciseCard";
 
 interface Exercise {
   id: string;
@@ -20,6 +20,7 @@ interface ExerciseRecord {
   weight_kg?: number;
   duration_minutes?: number;
   notes?: string;
+  saved?: boolean;
 }
 
 interface NuevaSesion {
@@ -43,6 +44,8 @@ interface SessionFormProps {
   onAgregarEjercicio: () => void;
   onActualizarEjercicio: (index: number, campo: string, valor: any) => void;
   onEliminarEjercicio: (index: number) => void;
+  onGuardarEjercicio?: (index: number) => void;
+  onEditarEjercicio?: (index: number) => void;
 }
 
 const SessionForm = ({
@@ -57,7 +60,9 @@ const SessionForm = ({
   onCancel,
   onAgregarEjercicio,
   onActualizarEjercicio,
-  onEliminarEjercicio
+  onEliminarEjercicio,
+  onGuardarEjercicio,
+  onEditarEjercicio
 }: SessionFormProps) => {
   return (
     <Card className="mb-6 bg-white border-[#C5A46C]">
@@ -128,14 +133,26 @@ const SessionForm = ({
           </div>
 
           {ejerciciosRealizados.map((ejercicio, index) => (
-            <ExerciseForm
-              key={index}
-              ejercicio={ejercicio}
-              index={index}
-              ejercicios={ejercicios}
-              onUpdate={onActualizarEjercicio}
-              onDelete={onEliminarEjercicio}
-            />
+            ejercicio.saved ? (
+              <SavedExerciseCard
+                key={index}
+                ejercicio={ejercicio}
+                index={index}
+                ejercicios={ejercicios}
+                onEdit={onEditarEjercicio || (() => {})}
+                onDelete={onEliminarEjercicio}
+              />
+            ) : (
+              <ExerciseForm
+                key={index}
+                ejercicio={ejercicio}
+                index={index}
+                ejercicios={ejercicios}
+                onUpdate={onActualizarEjercicio}
+                onDelete={onEliminarEjercicio}
+                onSave={onGuardarEjercicio}
+              />
+            )
           ))}
         </div>
 

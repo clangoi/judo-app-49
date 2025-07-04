@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useTrainingSessions } from "@/hooks/useTrainingSessions";
@@ -28,6 +27,7 @@ interface ExerciseRecord {
   weight_kg?: number;
   duration_minutes?: number;
   notes?: string;
+  saved?: boolean;
 }
 
 const SesionesPreparacion = () => {
@@ -89,12 +89,14 @@ const SesionesPreparacion = () => {
       intensity: nuevaSesion.intensity
     };
 
+    const ejerciciosParaGuardar = ejerciciosRealizados.map(({ saved, ...ejercicio }) => ejercicio);
+
     if (sesionAEditar) {
       updateSessionMutation.mutate(
         { 
           id: sesionAEditar.id, 
           sesion: sesionData, 
-          ejerciciosRealizados: ejerciciosRealizados 
+          ejerciciosRealizados: ejerciciosParaGuardar 
         },
         {
           onSuccess: () => {
@@ -105,7 +107,7 @@ const SesionesPreparacion = () => {
       );
     } else {
       createSessionMutation.mutate(
-        { sesion: sesionData, ejerciciosRealizados },
+        { sesion: sesionData, ejerciciosRealizados: ejerciciosParaGuardar },
         {
           onSuccess: () => {
             resetForm();
@@ -126,7 +128,6 @@ const SesionesPreparacion = () => {
       intensity: sesion.intensity
     });
     
-    // Cargar ejercicios existentes para edición
     const { data: existingExercises } = getSessionExercises(sesion.id);
     if (existingExercises && existingExercises.length > 0) {
       const exerciseRecords = existingExercises.map((record: any) => ({
@@ -135,7 +136,8 @@ const SesionesPreparacion = () => {
         reps: record.reps,
         weight_kg: record.weight_kg,
         duration_minutes: record.duration_minutes,
-        notes: record.notes
+        notes: record.notes,
+        saved: true
       }));
       setEjerciciosRealizados(exerciseRecords);
       setEjerciciosExistentes(exerciseRecords);
@@ -169,7 +171,8 @@ const SesionesPreparacion = () => {
       reps: 0,
       weight_kg: 0,
       duration_minutes: 0,
-      notes: ""
+      notes: "",
+      saved: false
     }]);
   };
 
@@ -181,6 +184,26 @@ const SesionesPreparacion = () => {
 
   const eliminarEjercicio = (index: number) => {
     setEjerciciosRealizados(ejerciciosRealizados.filter((_, i) => i !== index));
+  };
+
+  const guardarEjercicio = (index: number) => {
+    const nuevosEjercicios = [...ejerciciosRealizados];
+    if (nuevosEjercicios[index].exercise_id) {
+      nuevosEjercicios[index].saved = true;
+      setEjerciciosRealizados(nuevosEjercicios);
+    } else {
+      toast({
+        title: "Error",
+        description: "Debes seleccionar un ejercicio antes de guardarlo.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const editarEjercicio = (index: number) => {
+    const nuevosEjercicios = [...ejerciciosRealizados];
+    nuevosEjercicios[index].saved = false;
+    setEjerciciosRealizados(nuevosEjercicios);
   };
 
   if (isLoading) {
@@ -223,6 +246,8 @@ const SesionesPreparacion = () => {
             onAgregarEjercicio={agregarEjercicio}
             onActualizarEjercicio={actualizarEjercicio}
             onEliminarEjercicio={eliminarEjercicio}
+            onGuardarEjercicio={guardarEjercicio}
+            onEditarEjercicio={editarEjercicio}
             isEditing={!!sesionAEditar}
           />
         )}

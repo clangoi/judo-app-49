@@ -5,7 +5,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Trash2 } from "lucide-react";
+import { Trash2, Save } from "lucide-react";
 
 interface Exercise {
   id: string;
@@ -19,6 +19,7 @@ interface ExerciseRecord {
   weight_kg?: number;
   duration_minutes?: number;
   notes?: string;
+  saved?: boolean;
 }
 
 interface ExerciseFormProps {
@@ -27,9 +28,18 @@ interface ExerciseFormProps {
   ejercicios: Exercise[];
   onUpdate: (index: number, campo: string, valor: any) => void;
   onDelete: (index: number) => void;
+  onSave?: (index: number) => void;
 }
 
-const ExerciseForm = ({ ejercicio, index, ejercicios, onUpdate, onDelete }: ExerciseFormProps) => {
+const ExerciseForm = ({ ejercicio, index, ejercicios, onUpdate, onDelete, onSave }: ExerciseFormProps) => {
+  const isNewExercise = !ejercicio.saved;
+
+  const handleSave = () => {
+    if (onSave) {
+      onSave(index);
+    }
+  };
+
   return (
     <Card className="border-[#C5A46C]">
       <CardContent className="p-4 space-y-4">
@@ -98,7 +108,18 @@ const ExerciseForm = ({ ejercicio, index, ejercicios, onUpdate, onDelete }: Exer
             className="border-[#C5A46C]"
           />
         </div>
-        <div className="flex justify-end">
+        <div className="flex justify-end gap-2">
+          {isNewExercise && (
+            <Button
+              type="button"
+              onClick={handleSave}
+              className="bg-green-600 hover:bg-green-700 text-white"
+              size="sm"
+            >
+              <Save className="h-4 w-4 mr-2" />
+              Guardar
+            </Button>
+          )}
           <Button
             type="button"
             onClick={() => onDelete(index)}
