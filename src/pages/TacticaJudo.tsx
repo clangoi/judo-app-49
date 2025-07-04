@@ -1,5 +1,6 @@
 import { useState } from "react";
 import NavHeader from "@/components/NavHeader";
+import VideoUpload from "@/components/VideoUpload";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,6 +19,7 @@ interface PlanTactico {
   notas?: string;
   fechaCreacion: string;
   fotos?: string[];
+  videoUrl?: string;
 }
 
 const TacticaJudo = () => {
@@ -31,7 +33,8 @@ const TacticaJudo = () => {
     tecnicasClaves: "",
     contraataques: "",
     notas: "",
-    fotos: [] as string[]
+    fotos: [] as string[],
+    videoUrl: ""
   });
 
   const handleFotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -57,6 +60,14 @@ const TacticaJudo = () => {
     setNuevoPlan({...nuevoPlan, fotos: nuevasFotos});
   };
 
+  const handleVideoUploaded = (videoUrl: string) => {
+    setNuevoPlan({...nuevoPlan, videoUrl});
+  };
+
+  const handleRemoveVideo = () => {
+    setNuevoPlan({...nuevoPlan, videoUrl: ""});
+  };
+
   const agregarPlan = () => {
     const plan: PlanTactico = {
       id: Date.now().toString(),
@@ -68,7 +79,8 @@ const TacticaJudo = () => {
       tecnicasClaves: nuevoPlan.tecnicasClaves,
       contraataques: nuevoPlan.contraataques,
       notas: nuevoPlan.notas,
-      fotos: nuevoPlan.fotos.length > 0 ? nuevoPlan.fotos : undefined
+      fotos: nuevoPlan.fotos.length > 0 ? nuevoPlan.fotos : undefined,
+      videoUrl: nuevoPlan.videoUrl || undefined
     };
 
     setPlanes([plan, ...planes]);
@@ -80,7 +92,8 @@ const TacticaJudo = () => {
       tecnicasClaves: "", 
       contraataques: "", 
       notas: "",
-      fotos: []
+      fotos: [],
+      videoUrl: ""
     });
     setMostrarFormulario(false);
   };
@@ -201,6 +214,12 @@ const TacticaJudo = () => {
                 )}
               </div>
               
+              <VideoUpload
+                onVideoUploaded={handleVideoUploaded}
+                currentVideoUrl={nuevoPlan.videoUrl}
+                onRemoveVideo={handleRemoveVideo}
+              />
+              
               <div className="flex gap-2">
                 <Button onClick={agregarPlan}>Guardar</Button>
                 <Button variant="outline" onClick={() => setMostrarFormulario(false)}>
@@ -248,6 +267,19 @@ const TacticaJudo = () => {
                         {plan.fotos.map((foto, index) => (
                           <img key={index} src={foto} alt={`${plan.nombre} ${index + 1}`} className="w-full h-32 object-cover rounded" />
                         ))}
+                      </div>
+                    )}
+                    
+                    {plan.videoUrl && (
+                      <div className="bg-black rounded-lg overflow-hidden">
+                        <video 
+                          controls 
+                          className="w-full h-64 object-contain"
+                          preload="metadata"
+                        >
+                          <source src={plan.videoUrl} type="video/mp4" />
+                          Tu navegador no soporta videos HTML5.
+                        </video>
                       </div>
                     )}
                     

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import NavHeader from "@/components/NavHeader";
+import VideoUpload from "@/components/VideoUpload";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,6 +18,7 @@ interface TecnicaJudo {
   fechaCreacion: string;
   fotos?: string[];
   videoYoutube?: string;
+  videoUrl?: string;
 }
 
 const TecnicasJudo = () => {
@@ -30,6 +32,7 @@ const TecnicasJudo = () => {
     puntosClaves: "",
     erroresComunes: "",
     videoYoutube: "",
+    videoUrl: "",
     fotos: [] as string[]
   });
 
@@ -62,6 +65,14 @@ const TecnicasJudo = () => {
     return match ? `https://www.youtube.com/embed/${match[1]}` : null;
   };
 
+  const handleVideoUploaded = (videoUrl: string) => {
+    setNuevaTecnica({...nuevaTecnica, videoUrl});
+  };
+
+  const handleRemoveVideo = () => {
+    setNuevaTecnica({...nuevaTecnica, videoUrl: ""});
+  };
+
   const agregarTecnica = () => {
     const tecnica: TecnicaJudo = {
       id: Date.now().toString(),
@@ -72,7 +83,8 @@ const TecnicasJudo = () => {
       puntosClaves: nuevaTecnica.puntosClaves,
       erroresComunes: nuevaTecnica.erroresComunes,
       fotos: nuevaTecnica.fotos.length > 0 ? nuevaTecnica.fotos : undefined,
-      videoYoutube: nuevaTecnica.videoYoutube || undefined
+      videoYoutube: nuevaTecnica.videoYoutube || undefined,
+      videoUrl: nuevaTecnica.videoUrl || undefined
     };
 
     setTecnicas([tecnica, ...tecnicas]);
@@ -83,6 +95,7 @@ const TecnicasJudo = () => {
       puntosClaves: "", 
       erroresComunes: "",
       videoYoutube: "",
+      videoUrl: "",
       fotos: []
     });
     setMostrarFormulario(false);
@@ -205,6 +218,12 @@ const TecnicasJudo = () => {
                 )}
               </div>
               
+              <VideoUpload
+                onVideoUploaded={handleVideoUploaded}
+                currentVideoUrl={nuevaTecnica.videoUrl}
+                onRemoveVideo={handleRemoveVideo}
+              />
+              
               <div>
                 <Label htmlFor="video">Video de YouTube (opcional)</Label>
                 <div className="flex items-center gap-2">
@@ -284,6 +303,19 @@ const TecnicasJudo = () => {
                         {tecnica.fotos.map((foto, index) => (
                           <img key={index} src={foto} alt={`${tecnica.nombre} ${index + 1}`} className="w-full h-32 object-cover rounded" />
                         ))}
+                      </div>
+                    )}
+                    
+                    {tecnica.videoUrl && (
+                      <div className="bg-black rounded-lg overflow-hidden">
+                        <video 
+                          controls 
+                          className="w-full h-64 object-contain"
+                          preload="metadata"
+                        >
+                          <source src={tecnica.videoUrl} type="video/mp4" />
+                          Tu navegador no soporta videos HTML5.
+                        </video>
                       </div>
                     )}
                     

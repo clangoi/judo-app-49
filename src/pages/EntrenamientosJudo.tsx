@@ -1,5 +1,6 @@
 import { useState } from "react";
 import NavHeader from "@/components/NavHeader";
+import VideoUpload from "@/components/VideoUpload";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,6 +26,7 @@ interface EntrenamientoJudo {
   queNoFunciono: string;
   comentarios?: string;
   randory?: RandoryInfo;
+  videoUrl?: string;
 }
 
 const EntrenamientosJudo = () => {
@@ -37,7 +39,8 @@ const EntrenamientosJudo = () => {
     tecnicasPracticadas: "",
     queFunciono: "",
     queNoFunciono: "",
-    comentarios: ""
+    comentarios: "",
+    videoUrl: ""
   });
   const [randoryData, setRandoryData] = useState({
     oponente: "",
@@ -46,6 +49,14 @@ const EntrenamientosJudo = () => {
     tecnicasNoFuncionaron: "",
     tecnicasQueRecibio: ""
   });
+
+  const handleVideoUploaded = (videoUrl: string) => {
+    setNuevoEntrenamiento({...nuevoEntrenamiento, videoUrl});
+  };
+
+  const handleRemoveVideo = () => {
+    setNuevoEntrenamiento({...nuevoEntrenamiento, videoUrl: ""});
+  };
 
   const agregarEntrenamiento = () => {
     const entrenamiento: EntrenamientoJudo = {
@@ -57,7 +68,8 @@ const EntrenamientosJudo = () => {
       queFunciono: nuevoEntrenamiento.queFunciono,
       queNoFunciono: nuevoEntrenamiento.queNoFunciono,
       comentarios: nuevoEntrenamiento.comentarios,
-      randory: incluirRandory ? randoryData : undefined
+      randory: incluirRandory ? randoryData : undefined,
+      videoUrl: nuevoEntrenamiento.videoUrl || undefined
     };
 
     setEntrenamientos([entrenamiento, ...entrenamientos]);
@@ -67,7 +79,8 @@ const EntrenamientosJudo = () => {
       tecnicasPracticadas: "", 
       queFunciono: "", 
       queNoFunciono: "", 
-      comentarios: "" 
+      comentarios: "",
+      videoUrl: ""
     });
     setRandoryData({
       oponente: "",
@@ -157,6 +170,12 @@ const EntrenamientosJudo = () => {
                   onChange={(e) => setNuevoEntrenamiento({...nuevoEntrenamiento, comentarios: e.target.value})}
                 />
               </div>
+              
+              <VideoUpload
+                onVideoUploaded={handleVideoUploaded}
+                currentVideoUrl={nuevoEntrenamiento.videoUrl}
+                onRemoveVideo={handleRemoveVideo}
+              />
               
               <div className="border-t pt-4">
                 <div className="flex items-center space-x-2 mb-4">
@@ -259,6 +278,19 @@ const EntrenamientosJudo = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
+                    {entrenamiento.videoUrl && (
+                      <div className="bg-black rounded-lg overflow-hidden">
+                        <video 
+                          controls 
+                          className="w-full h-64 object-contain"
+                          preload="metadata"
+                        >
+                          <source src={entrenamiento.videoUrl} type="video/mp4" />
+                          Tu navegador no soporta videos HTML5.
+                        </video>
+                      </div>
+                    )}
+                    
                     <div>
                       <h4 className="font-medium text-sm text-slate-700 mb-1">Técnicas Practicadas:</h4>
                       <p className="text-slate-600">{entrenamiento.tecnicasPracticadas}</p>
