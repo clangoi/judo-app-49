@@ -38,11 +38,12 @@ export const useJudoSessions = (userId?: string) => {
       
       console.log('Fetching judo sessions for user:', userId);
       
-      // Buscar todas las sesiones de entrenamiento del usuario, no solo las de "Judo"
+      // Filtrar solo sesiones de entrenamiento que sean específicamente de Judo
       const { data: trainingSessions, error: sessionsError } = await supabase
         .from('training_sessions')
         .select('*')
         .eq('user_id', userId)
+        .ilike('session_type', '%judo%')
         .order('created_at', { ascending: false });
 
       if (sessionsError) {
@@ -50,8 +51,8 @@ export const useJudoSessions = (userId?: string) => {
         throw sessionsError;
       }
 
-      console.log('Training sessions found:', trainingSessions?.length || 0);
-      console.log('Training sessions data:', trainingSessions);
+      console.log('Judo training sessions found:', trainingSessions?.length || 0);
+      console.log('Judo training sessions data:', trainingSessions);
 
       const { data: randoriSessions, error: randoriError } = await supabase
         .from('randori_sessions')
@@ -87,11 +88,11 @@ export const useJudoSessions = (userId?: string) => {
           videoUrl: undefined
         } as EntrenamientoJudo;
         
-        console.log('Mapped session:', mapped);
+        console.log('Mapped judo session:', mapped);
         return mapped;
       });
 
-      console.log('Final mapped sessions:', mappedSessions);
+      console.log('Final mapped judo sessions:', mappedSessions);
       return mappedSessions;
     },
     enabled: !!userId,

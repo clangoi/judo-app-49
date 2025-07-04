@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -30,10 +29,12 @@ export const useTrainingSessions = (userId: string | undefined) => {
     queryFn: async () => {
       if (!userId) throw new Error('Usuario no autenticado');
       
+      // Filtrar solo sesiones de preparación física (excluyendo las de Judo)
       const { data, error } = await supabase
         .from('training_sessions')
         .select('*')
         .eq('user_id', userId)
+        .not('session_type', 'ilike', '%judo%')
         .order('date', { ascending: false });
       
       if (error) throw error;
