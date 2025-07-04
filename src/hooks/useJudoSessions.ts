@@ -29,10 +29,15 @@ export const useJudoSessions = (userId?: string) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const { data: sessions = [], isLoading } = useQuery({
+  const { data: sessions = [], isLoading, refetch } = useQuery({
     queryKey: ['judo-sessions', userId],
     queryFn: async () => {
-      if (!userId) return [];
+      if (!userId) {
+        console.log('No userId provided');
+        return [];
+      }
+      
+      console.log('Fetching judo sessions for user:', userId);
       
       const { data: trainingSessions, error: sessionsError } = await supabase
         .from('training_sessions')
@@ -41,26 +46,36 @@ export const useJudoSessions = (userId?: string) => {
         .eq('session_type', 'Judo')
         .order('created_at', { ascending: false });
 
-      if (sessionsError) throw sessionsError;
+      if (sessionsError) {
+        console.error('Error fetching training sessions:', sessionsError);
+        throw sessionsError;
+      }
+
+      console.log('Training sessions found:', trainingSessions?.length || 0);
 
       const { data: randoriSessions, error: randoriError } = await supabase
         .from('randori_sessions')
         .select('*')
         .eq('user_id', userId);
 
-      if (randoriError) throw randoriError;
+      if (randoriError) {
+        console.error('Error fetching randori sessions:', randoriError);
+        throw randoriError;
+      }
 
-      return trainingSessions.map(session => {
+      console.log('Randori sessions found:', randoriSessions?.length || 0);
+
+      const mappedSessions = trainingSessions.map(session => {
         const randori = randoriSessions.find(r => r.training_session_id === session.id);
         
-        return {
+        const mapped = {
           id: session.id,
           fecha: session.date,
           tipo: session.session_type,
           duracion: session.duration_minutes || 0,
-          tecnicasPracticadas: session.notes?.split('FUNCIONO:')[0] || '',
-          queFunciono: session.notes?.split('FUNCIONO:')[1]?.split('NO_FUNCIONO:')[0] || '',
-          queNoFunciono: session.notes?.split('NO_FUNCIONO:')[1] || '',
+          tecnicasPracticadas: session.notes?.split('FUNCIONO:')[0]?.replace(/\n/g, '') || '',
+          queFunciono: session.notes?.split('FUNCIONO:')[1]?.split('NO_FUNCIONO:')[0]?.replace(/\n/g, '') || '',
+          queNoFunciono: session.notes?.split('NO_FUNCIONO:')[1]?.replace(/\n/g, '') || '',
           comentarios: '',
           randory: randori ? {
             oponente: randori.opponent_name,
@@ -71,7 +86,13 @@ export const useJudoSessions = (userId?: string) => {
           } : undefined,
           videoUrl: undefined
         } as EntrenamientoJudo;
+        
+        console.log('Mapped session:', mapped);
+        return mapped;
       });
+
+      console.log('Final mapped sessions:', mappedSessions);
+      return mappedSessions;
     },
     enabled: !!userId,
   });
@@ -79,6 +100,8 @@ export const useJudoSessions = (userId?: string) => {
   const createSessionMutation = useMutation({
     mutationFn: async (entrenamiento: Omit<EntrenamientoJudo, 'id'>) => {
       if (!userId) throw new Error('User not authenticated');
+
+      console.log('Creating new training session:', entrenamiento);
 
       const notes = `${entrenamiento.tecnicasPracticadas}\nFUNCIONO:${entrenamiento.queFunciono}\nNO_FUNCIONO:${entrenamiento.queNoFunciono}`;
 
@@ -95,9 +118,15 @@ export const useJudoSessions = (userId?: string) => {
         .select()
         .single();
 
-      if (sessionError) throw sessionError;
+      if (sessionError) {
+        console.error('Error creating training session:', sessionError);
+        throw sessionError;
+      }
+
+      console.log('Training session created successfully:', session);
 
       if (entrenamiento.randory) {
+        console.log('Creating randori session for:', session.id);
         const { error: randoriError } = await supabase
           .from('randori_sessions')
           .insert({
@@ -110,25 +139,32 @@ export const useJudoSessions = (userId?: string) => {
             techniques_received: entrenamiento.randory.tecnicasQueRecibio.split(', ').filter(t => t.trim())
           });
 
-        if (randoriError) throw randoriError;
+        if (randoriError) {
+          console.error('Error creating randori session:', randoriError);
+          throw randoriError;
+        }
+        console.log('Randori session created successfully');
       }
 
       return session;
     },
     onSuccess: () => {
+      console.log('Session created successfully, invalidating cache');
       queryClient.invalidateQueries({ queryKey: ['judo-sessions', userId] });
+      // Also force a refetch to ensure immediate update
+      refetch();
       toast({
         title: "Éxito",
         description: "Entrenamiento guardado correctamente",
       });
     },
     onError: (error) => {
+      console.error('Error in createSessionMutation:', error);
       toast({
         title: "Error",
         description: "No se pudo guardar el entrenamiento",
         variant: "destructive",
       });
-      console.error('Error creating judo session:', error);
     },
   });
 
@@ -177,6 +213,7 @@ export const useJudoSessions = (userId?: string) => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['judo-sessions', userId] });
+      refetch();
       toast({
         title: "Éxito",
         description: "Entrenamiento actualizado correctamente",
@@ -210,6 +247,7 @@ export const useJudoSessions = (userId?: string) => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['judo-sessions', userId] });
+      refetch();
       toast({
         title: "Éxito",
         description: "Entrenamiento eliminado correctamente",

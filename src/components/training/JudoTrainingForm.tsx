@@ -66,6 +66,7 @@ const JudoTrainingForm = ({ editandoEntrenamiento, onSubmit, onCancel, isLoading
 
   const handleSubmit = () => {
     if (!nuevoEntrenamiento.tipo || !nuevoEntrenamiento.duracion) {
+      console.log('Form validation failed: missing tipo or duracion');
       return;
     }
 
@@ -81,6 +82,7 @@ const JudoTrainingForm = ({ editandoEntrenamiento, onSubmit, onCancel, isLoading
       videoUrl: nuevoEntrenamiento.videoUrl || undefined
     };
 
+    console.log('Submitting training data:', entrenamientoData);
     onSubmit(entrenamientoData);
   };
 
