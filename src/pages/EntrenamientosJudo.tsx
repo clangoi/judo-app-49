@@ -1,14 +1,16 @@
+
 import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useJudoSessions } from "@/hooks/useJudoSessions";
 import NavHeader from "@/components/NavHeader";
 import VideoUpload from "@/components/VideoUpload";
+import JudoSessionCard from "@/components/training/JudoSessionCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, Target, CheckCircle, XCircle, Users, Eye, Edit, Trash2, Loader2 } from "lucide-react";
+import { Plus, Target, Users, Loader2 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 interface RandoryInfo {
@@ -112,6 +114,10 @@ const EntrenamientosJudo = () => {
   };
 
   const agregarEntrenamiento = () => {
+    if (!nuevoEntrenamiento.tipo || !nuevoEntrenamiento.duracion) {
+      return;
+    }
+
     const entrenamientoData = {
       fecha: new Date().toISOString().split('T')[0],
       tipo: nuevoEntrenamiento.tipo,
@@ -328,123 +334,14 @@ const EntrenamientosJudo = () => {
             </Card>
           ) : (
             sessions.map((entrenamiento) => (
-              <Card key={entrenamiento.id}>
-                <CardHeader>
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <CardTitle className="text-lg">{entrenamiento.tipo}</CardTitle>
-                      <p className="text-sm text-slate-600">{entrenamiento.fecha}</p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-sm">
-                        {entrenamiento.duracion} min
-                      </div>
-                      <div className="flex gap-2">
-                        <Button
-                          onClick={() => setEntrenamientoDetalle(entrenamiento)}
-                          variant="outline"
-                          size="sm"
-                          className="border-blue-500 text-blue-600 hover:bg-blue-50"
-                        >
-                          <Eye className="h-4 w-4 mr-2" />
-                          Ver
-                        </Button>
-                        <Button
-                          onClick={() => iniciarEdicion(entrenamiento)}
-                          variant="outline"
-                          size="sm"
-                          className="border-orange-500 text-orange-600 hover:bg-orange-50"
-                        >
-                          <Edit className="h-4 w-4 mr-2" />
-                          Editar
-                        </Button>
-                        <Button
-                          onClick={() => handleEliminar(entrenamiento)}
-                          variant="destructive"
-                          size="sm"
-                          disabled={deleteSessionMutation.isPending}
-                        >
-                          <Trash2 className="h-4 w-4 mr-2" />
-                          Eliminar
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {entrenamiento.videoUrl && (
-                      <div className="bg-black rounded-lg overflow-hidden">
-                        <video 
-                          controls 
-                          className="w-full h-64 object-contain"
-                          preload="metadata"
-                        >
-                          <source src={entrenamiento.videoUrl} type="video/mp4" />
-                          Tu navegador no soporta videos HTML5.
-                        </video>
-                      </div>
-                    )}
-                    
-                    <div>
-                      <h4 className="font-medium text-sm text-slate-700 mb-1">Técnicas Practicadas:</h4>
-                      <p className="text-slate-600">{entrenamiento.tecnicasPracticadas}</p>
-                    </div>
-                    
-                    <div className="grid md:grid-cols-2 gap-4">
-                      <div className="bg-green-50 p-3 rounded-lg">
-                        <div className="flex items-center gap-2 mb-2">
-                          <CheckCircle className="h-4 w-4 text-green-600" />
-                          <h4 className="font-medium text-sm text-green-800">Qué funcionó:</h4>
-                        </div>
-                        <p className="text-green-700 text-sm">{entrenamiento.queFunciono}</p>
-                      </div>
-                      
-                      <div className="bg-red-50 p-3 rounded-lg">
-                        <div className="flex items-center gap-2 mb-2">
-                          <XCircle className="h-4 w-4 text-red-600" />
-                          <h4 className="font-medium text-sm text-red-800">A mejorar:</h4>
-                        </div>
-                        <p className="text-red-700 text-sm">{entrenamiento.queNoFunciono}</p>
-                      </div>
-                    </div>
-                    
-                    {entrenamiento.randory && (
-                      <div className="bg-blue-50 p-4 rounded-lg">
-                        <div className="flex items-center gap-2 mb-3">
-                          <Users className="h-4 w-4 text-blue-600" />
-                          <h4 className="font-medium text-blue-800">Randory vs {entrenamiento.randory.oponente}</h4>
-                        </div>
-                        <div className="grid md:grid-cols-2 gap-3 text-sm">
-                          <div>
-                            <span className="font-medium text-blue-700">Técnicas intentadas:</span>
-                            <p className="text-blue-600">{entrenamiento.randory.tecnicasIntentadas}</p>
-                          </div>
-                          <div>
-                            <span className="font-medium text-green-700">Funcionaron:</span>
-                            <p className="text-green-600">{entrenamiento.randory.tecnicasFuncionaron}</p>
-                          </div>
-                          <div>
-                            <span className="font-medium text-red-700">No funcionaron:</span>
-                            <p className="text-red-600">{entrenamiento.randory.tecnicasNoFuncionaron}</p>
-                          </div>
-                          <div>
-                            <span className="font-medium text-orange-700">Me hicieron:</span>
-                            <p className="text-orange-600">{entrenamiento.randory.tecnicasQueRecibio}</p>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                    
-                    {entrenamiento.comentarios && (
-                      <div>
-                        <h4 className="font-medium text-sm text-slate-700 mb-1">Comentarios:</h4>
-                        <p className="text-slate-600">{entrenamiento.comentarios}</p>
-                      </div>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
+              <JudoSessionCard
+                key={entrenamiento.id}
+                entrenamiento={entrenamiento}
+                onView={setEntrenamientoDetalle}
+                onEdit={iniciarEdicion}
+                onDelete={handleEliminar}
+                isDeleting={deleteSessionMutation.isPending}
+              />
             ))
           )}
         </div>
