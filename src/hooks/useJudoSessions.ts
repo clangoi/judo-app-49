@@ -70,14 +70,19 @@ export const useJudoSessions = (userId?: string) => {
       const mappedSessions = trainingSessions.map(session => {
         const randori = randoriSessions.find(r => r.training_session_id === session.id);
         
+        // Parse notes properly to extract the different sections
+        const notes = session.notes || '';
+        const funcionoPart = notes.split('FUNCIONO:')[1];
+        const noFuncionoPart = notes.split('NO_FUNCIONO:')[1];
+        
         const mapped = {
           id: session.id,
           fecha: session.date,
           tipo: session.session_type,
           duracion: session.duration_minutes || 0,
-          tecnicasPracticadas: session.notes?.split('FUNCIONO:')[0]?.replace(/\n/g, '') || '',
-          queFunciono: session.notes?.split('FUNCIONO:')[1]?.split('NO_FUNCIONO:')[0]?.replace(/\n/g, '') || '',
-          queNoFunciono: session.notes?.split('NO_FUNCIONO:')[1]?.replace(/\n/g, '') || '',
+          tecnicasPracticadas: notes.split('FUNCIONO:')[0]?.replace(/\n/g, '') || '',
+          queFunciono: funcionoPart ? funcionoPart.split('NO_FUNCIONO:')[0]?.replace(/\n/g, '') || '' : '',
+          queNoFunciono: noFuncionoPart ? noFuncionoPart.replace(/\n/g, '') || '' : '',
           comentarios: '',
           randory: randori ? {
             oponente: randori.opponent_name,
