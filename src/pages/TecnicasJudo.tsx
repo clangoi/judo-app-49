@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import NavHeader from "@/components/NavHeader";
 import VideoUpload from "@/components/VideoUpload";
@@ -7,14 +6,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, BookOpen, Search, Camera, Youtube, Filter } from "lucide-react";
+import { Plus, BookOpen, Search, Camera, Youtube } from "lucide-react";
 
 interface TecnicaJudo {
   id: string;
   nombre: string;
   categoria: string;
-  cinturon: string;
   descripcion: string;
   puntosClaves: string;
   erroresComunes: string;
@@ -24,26 +21,13 @@ interface TecnicaJudo {
   videoUrl?: string;
 }
 
-const cinturones = [
-  { value: "blanco", label: "Blanco", color: "bg-white border-gray-300" },
-  { value: "amarillo", label: "Amarillo", color: "bg-yellow-400" },
-  { value: "naranja", label: "Naranja", color: "bg-orange-400" },
-  { value: "verde", label: "Verde", color: "bg-green-400" },
-  { value: "azul", label: "Azul", color: "bg-blue-400" },
-  { value: "marron", label: "Marrón", color: "bg-amber-700" },
-  { value: "negro", label: "Negro", color: "bg-black" }
-];
-
 const TecnicasJudo = () => {
   const [tecnicas, setTecnicas] = useState<TecnicaJudo[]>([]);
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
   const [busqueda, setBusqueda] = useState("");
-  const [filtroCategoria, setFiltroCategoria] = useState("");
-  const [filtroCinturon, setFiltroCinturon] = useState("");
   const [nuevaTecnica, setNuevaTecnica] = useState({
     nombre: "",
     categoria: "",
-    cinturon: "",
     descripcion: "",
     puntosClaves: "",
     erroresComunes: "",
@@ -95,7 +79,6 @@ const TecnicasJudo = () => {
       fechaCreacion: new Date().toLocaleDateString(),
       nombre: nuevaTecnica.nombre,
       categoria: nuevaTecnica.categoria,
-      cinturon: nuevaTecnica.cinturon,
       descripcion: nuevaTecnica.descripcion,
       puntosClaves: nuevaTecnica.puntosClaves,
       erroresComunes: nuevaTecnica.erroresComunes,
@@ -108,7 +91,6 @@ const TecnicasJudo = () => {
     setNuevaTecnica({ 
       nombre: "", 
       categoria: "", 
-      cinturon: "",
       descripcion: "", 
       puntosClaves: "", 
       erroresComunes: "",
@@ -119,25 +101,17 @@ const TecnicasJudo = () => {
     setMostrarFormulario(false);
   };
 
-  const tecnicasFiltradas = tecnicas.filter(tecnica => {
-    const matchBusqueda = tecnica.nombre.toLowerCase().includes(busqueda.toLowerCase()) ||
-                         tecnica.categoria.toLowerCase().includes(busqueda.toLowerCase());
-    const matchCategoria = !filtroCategoria || tecnica.categoria === filtroCategoria;
-    const matchCinturon = !filtroCinturon || tecnica.cinturon === filtroCinturon;
-    
-    return matchBusqueda && matchCategoria && matchCinturon;
-  });
+  const tecnicasFiltradas = tecnicas.filter(tecnica =>
+    tecnica.nombre.toLowerCase().includes(busqueda.toLowerCase()) ||
+    tecnica.categoria.toLowerCase().includes(busqueda.toLowerCase())
+  );
 
   const categorias = [...new Set(tecnicas.map(t => t.categoria))];
-  const cinturonColor = (cinturon: string) => {
-    const belt = cinturones.find(c => c.value === cinturon);
-    return belt ? belt.color : "bg-gray-200";
-  };
 
   return (
     <div className="min-h-screen bg-slate-50">
       <NavHeader 
-        title="Técnicas" 
+        title="Técnicas de Judo" 
         subtitle="Notas y guías de técnicas"
       />
       
@@ -162,54 +136,10 @@ const TecnicasJudo = () => {
           </div>
         </div>
 
-        <div className="flex gap-4 mb-6">
-          <Select value={filtroCategoria} onValueChange={setFiltroCategoria}>
-            <SelectTrigger className="w-48">
-              <SelectValue placeholder="Filtrar por categoría" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="">Todas las categorías</SelectItem>
-              {categorias.map(categoria => (
-                <SelectItem key={categoria} value={categoria}>{categoria}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          <Select value={filtroCinturon} onValueChange={setFiltroCinturon}>
-            <SelectTrigger className="w-48">
-              <SelectValue placeholder="Filtrar por cinturón" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="">Todos los cinturones</SelectItem>
-              {cinturones.map(cinturon => (
-                <SelectItem key={cinturon.value} value={cinturon.value}>
-                  <div className="flex items-center gap-2">
-                    <div className={`w-4 h-4 rounded-full ${cinturon.color} border`}></div>
-                    {cinturon.label}
-                  </div>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          {(filtroCategoria || filtroCinturon) && (
-            <Button 
-              variant="outline" 
-              onClick={() => {
-                setFiltroCategoria("");
-                setFiltroCinturon("");
-              }}
-            >
-              <Filter className="h-4 w-4 mr-2" />
-              Limpiar filtros
-            </Button>
-          )}
-        </div>
-
         {mostrarFormulario && (
           <Card className="mb-6">
             <CardHeader>
-              <CardTitle>Nueva Técnica</CardTitle>
+              <CardTitle>Nueva Técnica de Judo</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
@@ -229,24 +159,6 @@ const TecnicasJudo = () => {
                   value={nuevaTecnica.categoria}
                   onChange={(e) => setNuevaTecnica({...nuevaTecnica, categoria: e.target.value})}
                 />
-              </div>
-              <div>
-                <Label htmlFor="cinturon">Cinturón</Label>
-                <Select value={nuevaTecnica.cinturon} onValueChange={(value) => setNuevaTecnica({...nuevaTecnica, cinturon: value})}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecciona el cinturón" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {cinturones.map(cinturon => (
-                      <SelectItem key={cinturon.value} value={cinturon.value}>
-                        <div className="flex items-center gap-2">
-                          <div className={`w-4 h-4 rounded-full ${cinturon.color} border`}></div>
-                          {cinturon.label}
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
               </div>
               <div>
                 <Label htmlFor="descripcion">Descripción de la Técnica</Label>
@@ -336,20 +248,38 @@ const TecnicasJudo = () => {
           </Card>
         )}
 
+        {categorias.length > 0 && (
+          <div className="mb-6">
+            <h3 className="text-lg font-semibold mb-3">Categorías:</h3>
+            <div className="flex flex-wrap gap-2">
+              {categorias.map(categoria => (
+                <Button
+                  key={categoria}
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setBusqueda(categoria)}
+                >
+                  {categoria}
+                </Button>
+              ))}
+            </div>
+          </div>
+        )}
+
         <div className="space-y-4">
           {tecnicasFiltradas.length === 0 && tecnicas.length === 0 ? (
             <Card>
               <CardContent className="p-8 text-center">
                 <BookOpen className="h-12 w-12 mx-auto text-slate-400 mb-4" />
                 <p className="text-slate-600">No hay técnicas registradas aún</p>
-                <p className="text-sm text-slate-500">Agrega tu primera técnica</p>
+                <p className="text-sm text-slate-500">Agrega tu primera técnica de judo</p>
               </CardContent>
             </Card>
           ) : tecnicasFiltradas.length === 0 ? (
             <Card>
               <CardContent className="p-8 text-center">
                 <Search className="h-12 w-12 mx-auto text-slate-400 mb-4" />
-                <p className="text-slate-600">No se encontraron técnicas con los filtros aplicados</p>
+                <p className="text-slate-600">No se encontraron técnicas con "{busqueda}"</p>
               </CardContent>
             </Card>
           ) : (
@@ -359,14 +289,7 @@ const TecnicasJudo = () => {
                   <div className="flex justify-between items-start">
                     <div>
                       <CardTitle className="text-lg">{tecnica.nombre}</CardTitle>
-                      <div className="flex items-center gap-2 mt-1">
-                        <p className="text-sm text-slate-600">{tecnica.categoria}</p>
-                        <span className="text-slate-400">•</span>
-                        <div className="flex items-center gap-1">
-                          <div className={`w-3 h-3 rounded-full ${cinturonColor(tecnica.cinturon)} border`}></div>
-                          <span className="text-sm text-slate-600 capitalize">{tecnica.cinturon}</span>
-                        </div>
-                      </div>
+                      <p className="text-sm text-slate-600">{tecnica.categoria}</p>
                     </div>
                     <div className="text-xs text-slate-500">
                       {tecnica.fechaCreacion}

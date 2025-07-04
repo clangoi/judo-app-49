@@ -101,7 +101,7 @@ const TacticaJudo = () => {
   return (
     <div className="min-h-screen bg-slate-50">
       <NavHeader 
-        title="Táctica" 
+        title="Táctica de Judo" 
         subtitle="Planificación estratégica y análisis"
       />
       

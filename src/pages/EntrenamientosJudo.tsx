@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import NavHeader from "@/components/NavHeader";
 import VideoUpload from "@/components/VideoUpload";
@@ -97,7 +96,7 @@ const EntrenamientosJudo = () => {
   return (
     <div className="min-h-screen bg-slate-50">
       <NavHeader 
-        title="Entrenamientos" 
+        title="Entrenamientos de Judo" 
         subtitle="Registro y análisis de entrenamientos"
       />
       
@@ -113,7 +112,7 @@ const EntrenamientosJudo = () => {
         {mostrarFormulario && (
           <Card className="mb-6">
             <CardHeader>
-              <CardTitle>Nuevo Entrenamiento</CardTitle>
+              <CardTitle>Nuevo Entrenamiento de Judo</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
@@ -260,7 +259,7 @@ const EntrenamientosJudo = () => {
               <CardContent className="p-8 text-center">
                 <Target className="h-12 w-12 mx-auto text-slate-400 mb-4" />
                 <p className="text-slate-600">No hay entrenamientos registrados aún</p>
-                <p className="text-sm text-slate-500">Agrega tu primer entrenamiento</p>
+                <p className="text-sm text-slate-500">Agrega tu primer entrenamiento de judo</p>
               </CardContent>
             </Card>
           ) : (
