@@ -19,7 +19,6 @@ interface ExerciseRecord {
   weight_kg?: number;
   duration_minutes?: number;
   notes?: string;
-  saved?: boolean;
 }
 
 export const useTrainingSessions = (userId: string | undefined) => {
@@ -29,9 +28,12 @@ export const useTrainingSessions = (userId: string | undefined) => {
   const { data: sesiones = [], isLoading } = useQuery({
     queryKey: ['training_sessions', userId],
     queryFn: async () => {
+      if (!userId) throw new Error('Usuario no autenticado');
+      
       const { data, error } = await supabase
         .from('training_sessions')
         .select('*')
+        .eq('user_id', userId)
         .order('date', { ascending: false });
       
       if (error) throw error;
@@ -43,9 +45,12 @@ export const useTrainingSessions = (userId: string | undefined) => {
   const { data: ejercicios = [] } = useQuery({
     queryKey: ['exercises', userId],
     queryFn: async () => {
+      if (!userId) throw new Error('Usuario no autenticado');
+      
       const { data, error } = await supabase
         .from('exercises')
         .select('*')
+        .eq('user_id', userId)
         .order('name');
       
       if (error) throw error;
@@ -59,18 +64,20 @@ export const useTrainingSessions = (userId: string | undefined) => {
       sesion: Omit<SesionPreparacion, 'id'>, 
       ejerciciosRealizados: ExerciseRecord[] 
     }) => {
+      if (!userId) throw new Error('Usuario no autenticado');
+      
       const { data: sessionData, error: sessionError } = await supabase
         .from('training_sessions')
         .insert([{
           ...sesion,
-          user_id: userId!
+          user_id: userId
         }])
         .select()
         .single();
       
       if (sessionError) throw sessionError;
 
-      // Create exercise records (only include database fields)
+      // Create exercise records
       for (const ejercicio of ejerciciosRealizados) {
         if (ejercicio.exercise_id) {
           const recordToInsert = {
@@ -81,7 +88,7 @@ export const useTrainingSessions = (userId: string | undefined) => {
             duration_minutes: ejercicio.duration_minutes,
             notes: ejercicio.notes,
             training_session_id: sessionData.id,
-            user_id: userId!,
+            user_id: userId,
             date: sesion.date
           };
           
@@ -96,8 +103,8 @@ export const useTrainingSessions = (userId: string | undefined) => {
       return sessionData;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['training_sessions'] });
-      queryClient.invalidateQueries({ queryKey: ['exercises'] });
+      queryClient.invalidateQueries({ queryKey: ['training_sessions', userId] });
+      queryClient.invalidateQueries({ queryKey: ['session_exercises'] });
       toast({
         title: "Sesión guardada",
         description: "Tu sesión de preparación ha sido registrada exitosamente.",
@@ -113,22 +120,62 @@ export const useTrainingSessions = (userId: string | undefined) => {
   });
 
   const updateSessionMutation = useMutation({
-    mutationFn: async ({ id, sesion }: { 
+    mutationFn: async ({ id, sesion, ejerciciosRealizados }: { 
       id: string, 
-      sesion: Omit<SesionPreparacion, 'id'> 
+      sesion: Omit<SesionPreparacion, 'id'>,
+      ejerciciosRealizados?: ExerciseRecord[]
     }) => {
+      if (!userId) throw new Error('Usuario no autenticado');
+      
       const { data, error } = await supabase
         .from('training_sessions')
         .update(sesion)
         .eq('id', id)
+        .eq('user_id', userId)
         .select()
         .single();
       
       if (error) throw error;
+
+      // If exercises are provided, update them
+      if (ejerciciosRealizados) {
+        // Delete existing exercise records for this session
+        const { error: deleteError } = await supabase
+          .from('exercise_records')
+          .delete()
+          .eq('training_session_id', id);
+        
+        if (deleteError) throw deleteError;
+
+        // Insert new exercise records
+        for (const ejercicio of ejerciciosRealizados) {
+          if (ejercicio.exercise_id) {
+            const recordToInsert = {
+              exercise_id: ejercicio.exercise_id,
+              sets: ejercicio.sets,
+              reps: ejercicio.reps,
+              weight_kg: ejercicio.weight_kg,
+              duration_minutes: ejercicio.duration_minutes,
+              notes: ejercicio.notes,
+              training_session_id: id,
+              user_id: userId,
+              date: sesion.date
+            };
+            
+            const { error: recordError } = await supabase
+              .from('exercise_records')
+              .insert([recordToInsert]);
+            
+            if (recordError) throw recordError;
+          }
+        }
+      }
+      
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['training_sessions'] });
+      queryClient.invalidateQueries({ queryKey: ['training_sessions', userId] });
+      queryClient.invalidateQueries({ queryKey: ['session_exercises'] });
       toast({
         title: "Sesión actualizada",
         description: "La sesión ha sido actualizada exitosamente.",
@@ -145,6 +192,8 @@ export const useTrainingSessions = (userId: string | undefined) => {
 
   const deleteSessionMutation = useMutation({
     mutationFn: async (id: string) => {
+      if (!userId) throw new Error('Usuario no autenticado');
+      
       // First delete exercise records
       const { error: recordsError } = await supabase
         .from('exercise_records')
@@ -157,12 +206,13 @@ export const useTrainingSessions = (userId: string | undefined) => {
       const { error } = await supabase
         .from('training_sessions')
         .delete()
-        .eq('id', id);
+        .eq('id', id)
+        .eq('user_id', userId);
       
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['training_sessions'] });
+      queryClient.invalidateQueries({ queryKey: ['training_sessions', userId] });
       toast({
         title: "Sesión eliminada",
         description: "La sesión ha sido eliminada exitosamente.",
@@ -182,6 +232,8 @@ export const useTrainingSessions = (userId: string | undefined) => {
     return useQuery({
       queryKey: ['session_exercises', sessionId],
       queryFn: async () => {
+        if (!sessionId) return [];
+        
         const { data, error } = await supabase
           .from('exercise_records')
           .select(`
@@ -194,7 +246,7 @@ export const useTrainingSessions = (userId: string | undefined) => {
           .eq('training_session_id', sessionId);
         
         if (error) throw error;
-        return data;
+        return data || [];
       },
       enabled: !!sessionId,
     });

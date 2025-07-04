@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useTrainingSessions } from "@/hooks/useTrainingSessions";
@@ -27,7 +28,6 @@ interface ExerciseRecord {
   weight_kg?: number;
   duration_minutes?: number;
   notes?: string;
-  saved?: boolean;
 }
 
 const SesionesPreparacion = () => {
@@ -39,7 +39,8 @@ const SesionesPreparacion = () => {
     isLoading, 
     createSessionMutation, 
     updateSessionMutation, 
-    deleteSessionMutation 
+    deleteSessionMutation,
+    getSessionExercises
   } = useTrainingSessions(user?.id);
   
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
@@ -53,6 +54,7 @@ const SesionesPreparacion = () => {
     intensity: 1
   });
   const [ejerciciosRealizados, setEjerciciosRealizados] = useState<ExerciseRecord[]>([]);
+  const [ejerciciosExistentes, setEjerciciosExistentes] = useState<ExerciseRecord[]>([]);
 
   const nivelesIntensidad = [1, 2, 3, 5, 8, 13, 21, 34];
 
@@ -65,6 +67,7 @@ const SesionesPreparacion = () => {
       intensity: 1
     });
     setEjerciciosRealizados([]);
+    setEjerciciosExistentes([]);
     setSesionAEditar(null);
   };
 
@@ -88,7 +91,11 @@ const SesionesPreparacion = () => {
 
     if (sesionAEditar) {
       updateSessionMutation.mutate(
-        { id: sesionAEditar.id, sesion: sesionData },
+        { 
+          id: sesionAEditar.id, 
+          sesion: sesionData, 
+          ejerciciosRealizados: ejerciciosRealizados 
+        },
         {
           onSuccess: () => {
             resetForm();
@@ -109,7 +116,7 @@ const SesionesPreparacion = () => {
     }
   };
 
-  const handleEditSesion = (sesion: SesionPreparacion) => {
+  const handleEditSesion = async (sesion: SesionPreparacion) => {
     setSesionAEditar(sesion);
     setNuevaSesion({
       date: sesion.date,
@@ -118,7 +125,25 @@ const SesionesPreparacion = () => {
       notes: sesion.notes,
       intensity: sesion.intensity
     });
-    setEjerciciosRealizados([]);
+    
+    // Cargar ejercicios existentes para edición
+    const { data: existingExercises } = getSessionExercises(sesion.id);
+    if (existingExercises && existingExercises.length > 0) {
+      const exerciseRecords = existingExercises.map((record: any) => ({
+        exercise_id: record.exercise_id,
+        sets: record.sets,
+        reps: record.reps,
+        weight_kg: record.weight_kg,
+        duration_minutes: record.duration_minutes,
+        notes: record.notes
+      }));
+      setEjerciciosRealizados(exerciseRecords);
+      setEjerciciosExistentes(exerciseRecords);
+    } else {
+      setEjerciciosRealizados([]);
+      setEjerciciosExistentes([]);
+    }
+    
     setMostrarFormulario(true);
     setSesionAVer(null);
   };
@@ -144,36 +169,14 @@ const SesionesPreparacion = () => {
       reps: 0,
       weight_kg: 0,
       duration_minutes: 0,
-      notes: "",
-      saved: false
+      notes: ""
     }]);
   };
 
   const actualizarEjercicio = (index: number, campo: string, valor: any) => {
     const nuevosEjercicios = [...ejerciciosRealizados];
-    nuevosEjercicios[index] = { ...nuevosEjercicios[index], [campo]: valor, saved: false };
+    nuevosEjercicios[index] = { ...nuevosEjercicios[index], [campo]: valor };
     setEjerciciosRealizados(nuevosEjercicios);
-  };
-
-  const guardarEjercicio = (index: number) => {
-    const ejercicio = ejerciciosRealizados[index];
-    if (!ejercicio.exercise_id) {
-      toast({
-        title: "Error",
-        description: "Por favor selecciona un ejercicio.",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    const nuevosEjercicios = [...ejerciciosRealizados];
-    nuevosEjercicios[index] = { ...nuevosEjercicios[index], saved: true };
-    setEjerciciosRealizados(nuevosEjercicios);
-    
-    toast({
-      title: "Ejercicio guardado",
-      description: "El ejercicio se ha guardado temporalmente.",
-    });
   };
 
   const eliminarEjercicio = (index: number) => {
@@ -219,7 +222,6 @@ const SesionesPreparacion = () => {
             onCancel={handleCancelar}
             onAgregarEjercicio={agregarEjercicio}
             onActualizarEjercicio={actualizarEjercicio}
-            onGuardarEjercicio={guardarEjercicio}
             onEliminarEjercicio={eliminarEjercicio}
             isEditing={!!sesionAEditar}
           />

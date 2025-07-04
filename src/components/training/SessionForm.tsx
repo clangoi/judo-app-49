@@ -1,3 +1,4 @@
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -6,7 +7,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, Loader2 } from "lucide-react";
 import ExerciseForm from "./ExerciseForm";
-import SavedExerciseCard from "./SavedExerciseCard";
 
 interface Exercise {
   id: string;
@@ -20,7 +20,6 @@ interface ExerciseRecord {
   weight_kg?: number;
   duration_minutes?: number;
   notes?: string;
-  saved?: boolean;
 }
 
 interface NuevaSesion {
@@ -43,7 +42,6 @@ interface SessionFormProps {
   onCancel: () => void;
   onAgregarEjercicio: () => void;
   onActualizarEjercicio: (index: number, campo: string, valor: any) => void;
-  onGuardarEjercicio: (index: number) => void;
   onEliminarEjercicio: (index: number) => void;
 }
 
@@ -59,7 +57,6 @@ const SessionForm = ({
   onCancel,
   onAgregarEjercicio,
   onActualizarEjercicio,
-  onGuardarEjercicio,
   onEliminarEjercicio
 }: SessionFormProps) => {
   return (
@@ -117,44 +114,30 @@ const SessionForm = ({
           </Select>
         </div>
 
-        {!isEditing && (
-          <div className="space-y-4">
-            <div className="flex justify-between items-center">
-              <Label className="text-[#1A1A1A]">Ejercicios Realizados</Label>
-              <Button
-                type="button"
-                onClick={onAgregarEjercicio}
-                className="bg-[#575757] hover:bg-[#4A4A4A] text-white"
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                Agregar Ejercicio
-              </Button>
-            </div>
-
-            {ejerciciosRealizados.map((ejercicio, index) => (
-              <div key={index}>
-                {ejercicio.saved ? (
-                  <SavedExerciseCard
-                    ejercicio={ejercicio}
-                    index={index}
-                    ejercicios={ejercicios}
-                    onEdit={(idx) => onActualizarEjercicio(idx, 'saved', false)}
-                    onDelete={onEliminarEjercicio}
-                  />
-                ) : (
-                  <ExerciseForm
-                    ejercicio={ejercicio}
-                    index={index}
-                    ejercicios={ejercicios}
-                    onUpdate={onActualizarEjercicio}
-                    onSave={onGuardarEjercicio}
-                    onDelete={onEliminarEjercicio}
-                  />
-                )}
-              </div>
-            ))}
+        <div className="space-y-4">
+          <div className="flex justify-between items-center">
+            <Label className="text-[#1A1A1A]">Ejercicios Realizados</Label>
+            <Button
+              type="button"
+              onClick={onAgregarEjercicio}
+              className="bg-[#575757] hover:bg-[#4A4A4A] text-white"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Agregar Ejercicio
+            </Button>
           </div>
-        )}
+
+          {ejerciciosRealizados.map((ejercicio, index) => (
+            <ExerciseForm
+              key={index}
+              ejercicio={ejercicio}
+              index={index}
+              ejercicios={ejercicios}
+              onUpdate={onActualizarEjercicio}
+              onDelete={onEliminarEjercicio}
+            />
+          ))}
+        </div>
 
         <div>
           <Label htmlFor="notes" className="text-[#1A1A1A]">Notas</Label>

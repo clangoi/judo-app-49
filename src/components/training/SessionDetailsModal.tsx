@@ -27,7 +27,8 @@ const SessionDetailsModal = ({ sesion, isOpen, onClose, onEdit, onDelete }: Sess
   const { user } = useAuth();
   const { getSessionExercises } = useTrainingSessions(user?.id);
   
-  const { data: exerciseRecords = [] } = sesion ? getSessionExercises(sesion.id) : { data: [] };
+  // Always call the hook, but conditionally enable it
+  const { data: exerciseRecords = [] } = getSessionExercises(sesion?.id || '');
 
   if (!sesion) return null;
 
