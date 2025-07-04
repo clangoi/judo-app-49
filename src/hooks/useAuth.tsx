@@ -8,8 +8,7 @@ interface AuthContextType {
   session: Session | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
-  signUp: (email: string, password: string, fullName?: string) => Promise<{ error: any }>;
-  signInWithGoogle: () => Promise<{ error: any }>;
+  signUp: (email: string, password: string, fullName?: string, genderPreference?: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
 }
 
@@ -85,7 +84,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  const signUp = async (email: string, password: string, fullName?: string) => {
+  const signUp = async (email: string, password: string, fullName?: string, genderPreference?: string) => {
     try {
       cleanupAuthState();
       
@@ -96,26 +95,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         password,
         options: {
           emailRedirectTo: redirectUrl,
-          data: fullName ? { full_name: fullName } : undefined
-        }
-      });
-
-      return { error };
-    } catch (error) {
-      return { error };
-    }
-  };
-
-  const signInWithGoogle = async () => {
-    try {
-      cleanupAuthState();
-      
-      const redirectUrl = `${window.location.origin}/`;
-      
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: redirectUrl
+          data: { 
+            full_name: fullName,
+            gender_preference: genderPreference
+          }
         }
       });
 
@@ -144,7 +127,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     loading,
     signIn,
     signUp,
-    signInWithGoogle,
     signOut,
   };
 

@@ -22,6 +22,20 @@ interface SesionPreparacion {
   intensity: number;
 }
 
+interface Exercise {
+  id: string;
+  name: string;
+}
+
+interface ExerciseRecord {
+  exercise_id: string;
+  sets?: number;
+  reps?: number;
+  weight_kg?: number;
+  duration_minutes?: number;
+  notes?: string;
+}
+
 const SesionesPreparacion = () => {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -34,6 +48,8 @@ const SesionesPreparacion = () => {
     notes: "",
     intensity: 1
   });
+  const [ejerciciosRealizados, setEjerciciosRealizados] = useState<ExerciseRecord[]>([]);
+  const [nuevoEjercicio, setNuevoEjercicio] = useState("");
 
   // Secuencia de Fibonacci hasta 34: 1, 1, 2, 3, 5, 8, 13, 21, 34
   const nivelesIntensidad = [1, 2, 3, 5, 8, 13, 21, 34];
@@ -52,9 +68,23 @@ const SesionesPreparacion = () => {
     enabled: !!user,
   });
 
-  const createMutation = useMutation({
-    mutationFn: async (sesion: Omit<SesionPreparacion, 'id'>) => {
+  const { data: ejercicios = [] } = useQuery({
+    queryKey: ['exercises', user?.id],
+    queryFn: async () => {
       const { data, error } = await supabase
+        .from('exercises')
+        .select('*')
+        .order('name');
+      
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user,
+  });
+
+  const createSessionMutation = useMutation({
+    mutationFn: async (sesion: Omit<SesionPreparacion, 'id'>) => {
+      const { data: sessionData, error: sessionError } = await supabase
         .from('training_sessions')
         .insert([{
           ...sesion,
@@ -63,11 +93,47 @@ const SesionesPreparacion = () => {
         .select()
         .single();
       
-      if (error) throw error;
-      return data;
+      if (sessionError) throw sessionError;
+
+      // Create exercise records
+      for (const ejercicio of ejerciciosRealizados) {
+        let exerciseId = ejercicio.exercise_id;
+        
+        // If exercise doesn't exist, create it
+        if (!exerciseId && nuevoEjercicio) {
+          const { data: newExercise, error: exerciseError } = await supabase
+            .from('exercises')
+            .insert([{
+              name: nuevoEjercicio,
+              user_id: user!.id
+            }])
+            .select()
+            .single();
+          
+          if (exerciseError) throw exerciseError;
+          exerciseId = newExercise.id;
+        }
+
+        if (exerciseId) {
+          const { error: recordError } = await supabase
+            .from('exercise_records')
+            .insert([{
+              ...ejercicio,
+              exercise_id: exerciseId,
+              training_session_id: sessionData.id,
+              user_id: user!.id,
+              date: sesion.date
+            }]);
+          
+          if (recordError) throw recordError;
+        }
+      }
+      
+      return sessionData;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['training_sessions'] });
+      queryClient.invalidateQueries({ queryKey: ['exercises'] });
       toast({
         title: "Sesión guardada",
         description: "Tu sesión de preparación ha sido registrada exitosamente.",
@@ -79,6 +145,8 @@ const SesionesPreparacion = () => {
         notes: "", 
         intensity: 1
       });
+      setEjerciciosRealizados([]);
+      setNuevoEjercicio("");
       setMostrarFormulario(false);
     },
     onError: (error: any) => {
@@ -100,13 +168,34 @@ const SesionesPreparacion = () => {
       return;
     }
 
-    createMutation.mutate({
+    createSessionMutation.mutate({
       date: nuevaSesion.date,
       session_type: nuevaSesion.session_type,
       duration_minutes: parseInt(nuevaSesion.duration_minutes),
       notes: nuevaSesion.notes,
       intensity: nuevaSesion.intensity
     });
+  };
+
+  const agregarEjercicio = () => {
+    setEjerciciosRealizados([...ejerciciosRealizados, {
+      exercise_id: "",
+      sets: 0,
+      reps: 0,
+      weight_kg: 0,
+      duration_minutes: 0,
+      notes: ""
+    }]);
+  };
+
+  const actualizarEjercicio = (index: number, campo: string, valor: any) => {
+    const nuevosEjercicios = [...ejerciciosRealizados];
+    nuevosEjercicios[index] = { ...nuevosEjercicios[index], [campo]: valor };
+    setEjerciciosRealizados(nuevosEjercicios);
+  };
+
+  const eliminarEjercicio = (index: number) => {
+    setEjerciciosRealizados(ejerciciosRealizados.filter((_, i) => i !== index));
   };
 
   const getIntensidadColor = (intensidad: number) => {
@@ -118,14 +207,14 @@ const SesionesPreparacion = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin" />
+      <div className="min-h-screen bg-[#1A1A1A] flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-[#C5A46C]" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-[#1A1A1A]">
       <NavHeader 
         title="Preparación Física" 
         subtitle="Sesiones de acondicionamiento físico"
@@ -134,50 +223,53 @@ const SesionesPreparacion = () => {
       <div className="max-w-4xl mx-auto p-4">
         <Button 
           onClick={() => setMostrarFormulario(!mostrarFormulario)}
-          className="mb-6"
+          className="mb-6 bg-[#C5A46C] hover:bg-[#B8956A] text-white"
         >
           <Plus className="h-4 w-4 mr-2" />
           Nueva Sesión
         </Button>
 
         {mostrarFormulario && (
-          <Card className="mb-6">
+          <Card className="mb-6 bg-white border-[#C5A46C]">
             <CardHeader>
-              <CardTitle>Nueva Sesión de Preparación</CardTitle>
+              <CardTitle className="text-[#1A1A1A]">Nueva Sesión de Preparación</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <Label htmlFor="date">Fecha</Label>
+                <Label htmlFor="date" className="text-[#1A1A1A]">Fecha</Label>
                 <Input
                   id="date"
                   type="date"
                   value={nuevaSesion.date}
                   onChange={(e) => setNuevaSesion({...nuevaSesion, date: e.target.value})}
+                  className="border-[#C5A46C] focus:border-[#C5A46C]"
                 />
               </div>
               <div>
-                <Label htmlFor="session_type">Tipo de Entrenamiento</Label>
+                <Label htmlFor="session_type" className="text-[#1A1A1A]">Tipo de Entrenamiento</Label>
                 <Input
                   id="session_type"
                   placeholder="Cardio, Fuerza, Flexibilidad, etc."
                   value={nuevaSesion.session_type}
                   onChange={(e) => setNuevaSesion({...nuevaSesion, session_type: e.target.value})}
+                  className="border-[#C5A46C] focus:border-[#C5A46C]"
                 />
               </div>
               <div>
-                <Label htmlFor="duration_minutes">Duración (minutos)</Label>
+                <Label htmlFor="duration_minutes" className="text-[#1A1A1A]">Duración (minutos)</Label>
                 <Input
                   id="duration_minutes"
                   type="number"
                   placeholder="60"
                   value={nuevaSesion.duration_minutes}
                   onChange={(e) => setNuevaSesion({...nuevaSesion, duration_minutes: e.target.value})}
+                  className="border-[#C5A46C] focus:border-[#C5A46C]"
                 />
               </div>
               <div>
-                <Label htmlFor="intensity">Intensidad (Escala Fibonacci)</Label>
+                <Label htmlFor="intensity" className="text-[#1A1A1A]">Intensidad (Escala Fibonacci)</Label>
                 <Select value={nuevaSesion.intensity.toString()} onValueChange={(value) => setNuevaSesion({...nuevaSesion, intensity: parseInt(value)})}>
-                  <SelectTrigger>
+                  <SelectTrigger className="border-[#C5A46C] focus:border-[#C5A46C]">
                     <SelectValue placeholder="Selecciona la intensidad" />
                   </SelectTrigger>
                   <SelectContent>
@@ -189,21 +281,121 @@ const SesionesPreparacion = () => {
                   </SelectContent>
                 </Select>
               </div>
+
+              {/* Sección de ejercicios */}
+              <div className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <Label className="text-[#1A1A1A]">Ejercicios Realizados</Label>
+                  <Button
+                    type="button"
+                    onClick={agregarEjercicio}
+                    className="bg-[#575757] hover:bg-[#4A4A4A] text-white"
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Agregar Ejercicio
+                  </Button>
+                </div>
+
+                {ejerciciosRealizados.map((ejercicio, index) => (
+                  <Card key={index} className="p-4 border border-[#C5A46C]">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label className="text-[#1A1A1A]">Ejercicio</Label>
+                        <Select 
+                          value={ejercicio.exercise_id} 
+                          onValueChange={(value) => actualizarEjercicio(index, 'exercise_id', value)}
+                        >
+                          <SelectTrigger className="border-[#C5A46C]">
+                            <SelectValue placeholder="Seleccionar ejercicio" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {ejercicios.map((ej) => (
+                              <SelectItem key={ej.id} value={ej.id}>
+                                {ej.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <Label className="text-[#1A1A1A]">Series</Label>
+                        <Input
+                          type="number"
+                          value={ejercicio.sets || ''}
+                          onChange={(e) => actualizarEjercicio(index, 'sets', parseInt(e.target.value) || 0)}
+                          className="border-[#C5A46C]"
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-[#1A1A1A]">Repeticiones</Label>
+                        <Input
+                          type="number"
+                          value={ejercicio.reps || ''}
+                          onChange={(e) => actualizarEjercicio(index, 'reps', parseInt(e.target.value) || 0)}
+                          className="border-[#C5A46C]"
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-[#1A1A1A]">Peso (kg)</Label>
+                        <Input
+                          type="number"
+                          step="0.5"
+                          value={ejercicio.weight_kg || ''}
+                          onChange={(e) => actualizarEjercicio(index, 'weight_kg', parseFloat(e.target.value) || 0)}
+                          className="border-[#C5A46C]"
+                        />
+                      </div>
+                    </div>
+                    <div className="mt-4">
+                      <Label className="text-[#1A1A1A]">Notas del ejercicio</Label>
+                      <Textarea
+                        value={ejercicio.notes || ''}
+                        onChange={(e) => actualizarEjercicio(index, 'notes', e.target.value)}
+                        className="border-[#C5A46C]"
+                      />
+                    </div>
+                    <Button
+                      type="button"
+                      onClick={() => eliminarEjercicio(index)}
+                      variant="destructive"
+                      size="sm"
+                      className="mt-2"
+                    >
+                      Eliminar
+                    </Button>
+                  </Card>
+                ))}
+
+                {ejerciciosRealizados.length === 0 && (
+                  <div>
+                    <Label className="text-[#1A1A1A]">O crea un nuevo ejercicio</Label>
+                    <Input
+                      placeholder="Nombre del nuevo ejercicio"
+                      value={nuevoEjercicio}
+                      onChange={(e) => setNuevoEjercicio(e.target.value)}
+                      className="border-[#C5A46C]"
+                    />
+                  </div>
+                )}
+              </div>
+
               <div>
-                <Label htmlFor="notes">Notas</Label>
+                <Label htmlFor="notes" className="text-[#1A1A1A]">Notas</Label>
                 <Textarea
                   id="notes"
                   placeholder="Observaciones sobre la sesión..."
                   value={nuevaSesion.notes}
                   onChange={(e) => setNuevaSesion({...nuevaSesion, notes: e.target.value})}
+                  className="border-[#C5A46C] focus:border-[#C5A46C]"
                 />
               </div>
               <div className="flex gap-2">
                 <Button 
                   onClick={agregarSesion}
-                  disabled={createMutation.isPending}
+                  disabled={createSessionMutation.isPending}
+                  className="bg-[#C5A46C] hover:bg-[#B8956A] text-white"
                 >
-                  {createMutation.isPending ? (
+                  {createSessionMutation.isPending ? (
                     <>
                       <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                       Guardando...
@@ -212,7 +404,11 @@ const SesionesPreparacion = () => {
                     "Guardar"
                   )}
                 </Button>
-                <Button variant="outline" onClick={() => setMostrarFormulario(false)}>
+                <Button 
+                  variant="outline" 
+                  onClick={() => setMostrarFormulario(false)}
+                  className="border-[#C5A46C] text-[#C5A46C] hover:bg-[#C5A46C] hover:text-white"
+                >
                   Cancelar
                 </Button>
               </div>
@@ -222,21 +418,21 @@ const SesionesPreparacion = () => {
 
         <div className="space-y-4">
           {sesiones.length === 0 ? (
-            <Card>
+            <Card className="bg-white border-[#C5A46C]">
               <CardContent className="p-8 text-center">
-                <Activity className="h-12 w-12 mx-auto text-slate-400 mb-4" />
-                <p className="text-slate-600">No hay sesiones registradas aún</p>
-                <p className="text-sm text-slate-500">Agrega tu primera sesión de preparación física</p>
+                <Activity className="h-12 w-12 mx-auto text-[#575757] mb-4" />
+                <p className="text-[#575757]">No hay sesiones registradas aún</p>
+                <p className="text-sm text-[#575757]">Agrega tu primera sesión de preparación física</p>
               </CardContent>
             </Card>
           ) : (
             sesiones.map((sesion) => (
-              <Card key={sesion.id}>
+              <Card key={sesion.id} className="bg-white border-[#C5A46C]">
                 <CardHeader>
                   <div className="flex justify-between items-start">
                     <div>
-                      <CardTitle className="text-lg">{sesion.session_type}</CardTitle>
-                      <p className="text-sm text-slate-600">{sesion.date}</p>
+                      <CardTitle className="text-lg text-[#1A1A1A]">{sesion.session_type}</CardTitle>
+                      <p className="text-sm text-[#575757]">{sesion.date}</p>
                     </div>
                     <div className="flex gap-2">
                       {sesion.intensity && (
@@ -257,8 +453,8 @@ const SesionesPreparacion = () => {
                   <div className="space-y-2">
                     {sesion.notes && (
                       <div>
-                        <h4 className="font-medium text-sm text-slate-700">Notas:</h4>
-                        <p className="text-slate-600">{sesion.notes}</p>
+                        <h4 className="font-medium text-sm text-[#1A1A1A]">Notas:</h4>
+                        <p className="text-[#575757]">{sesion.notes}</p>
                       </div>
                     )}
                   </div>

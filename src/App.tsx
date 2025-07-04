@@ -8,12 +8,12 @@ import { AuthProvider } from "@/hooks/useAuth";
 import AuthGuard from "@/components/AuthGuard";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
-import Alimentacion from "./pages/Alimentacion";
 import Peso from "./pages/Peso";
 import SesionesPreparacion from "./pages/SesionesPreparacion";
 import EntrenamientosJudo from "./pages/EntrenamientosJudo";
 import TecnicasJudo from "./pages/TecnicasJudo";
 import TacticaJudo from "./pages/TacticaJudo";
+import Graficos from "./pages/Graficos";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -28,12 +28,12 @@ const App = () => (
           <Routes>
             <Route path="/auth" element={<Auth />} />
             <Route path="/" element={<AuthGuard><Index /></AuthGuard>} />
-            <Route path="/alimentacion" element={<AuthGuard><Alimentacion /></AuthGuard>} />
             <Route path="/peso" element={<AuthGuard><Peso /></AuthGuard>} />
             <Route path="/sesiones-preparacion" element={<AuthGuard><SesionesPreparacion /></AuthGuard>} />
             <Route path="/entrenamientos-judo" element={<AuthGuard><EntrenamientosJudo /></AuthGuard>} />
             <Route path="/tecnicas-judo" element={<AuthGuard><TecnicasJudo /></AuthGuard>} />
             <Route path="/tactica-judo" element={<AuthGuard><TacticaJudo /></AuthGuard>} />
+            <Route path="/graficos" element={<AuthGuard><Graficos /></AuthGuard>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
