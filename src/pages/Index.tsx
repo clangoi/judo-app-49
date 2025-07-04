@@ -52,21 +52,21 @@ const Index = () => {
       color: "bg-[#575757]"
     },
     {
-      title: "Entrenamientos",
+      title: "Entrenamientos de Judo",
       description: "Registro de entrenamientos",
       icon: Users,
       href: "/entrenamientos-judo",
       color: "bg-[#C5A46C]"
     },
     {
-      title: "Técnicas",
+      title: "Técnicas de Judo",
       description: "Biblioteca de técnicas",
       icon: BookOpen,
       href: "/tecnicas-judo",
       color: "bg-[#575757]"
     },
     {
-      title: "Táctica",
+      title: "Táctica de Judo",
       description: "Estrategias y planes tácticos",
       icon: Target,
       href: "/tactica-judo",
@@ -94,7 +94,7 @@ const Index = () => {
               />
               <div>
                 <h1 className="text-2xl font-bold text-[#1A1A1A]">
-                  Royal Strength - Panel de Entrenamiento
+                  Panel de Entrenamiento
                 </h1>
                 <p className="text-[#575757]">
                   {getGreeting()}, {profile?.full_name || user?.email}
