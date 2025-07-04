@@ -43,34 +43,35 @@ const SavedExerciseCard = ({ ejercicio, index, ejercicios, onEdit, onDelete }: S
 
   return (
     <Card className="border-green-500 bg-green-50">
-      <CardContent className="p-4">
-        <div className="flex justify-between items-start">
-          <div>
-            <h4 className="font-medium text-[#1A1A1A]">{getExerciseName(ejercicio.exercise_id)}</h4>
-            <p className="text-sm text-[#575757] mt-1">{getExerciseSummary(ejercicio)}</p>
+      <CardContent className="p-3">
+        <div className="flex justify-between items-center">
+          <div className="flex-1">
+            <h4 className="font-medium text-[#1A1A1A] text-sm">{getExerciseName(ejercicio.exercise_id)}</h4>
+            <p className="text-xs text-[#575757] mt-1">{getExerciseSummary(ejercicio)}</p>
             {ejercicio.notes && (
-              <p className="text-sm text-[#575757] mt-1 italic">"{ejercicio.notes}"</p>
+              <p className="text-xs text-[#575757] mt-1 italic line-clamp-1">"{ejercicio.notes}"</p>
             )}
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-1 ml-2">
             <Button
               type="button"
               onClick={() => onEdit(index)}
               variant="outline"
               size="sm"
-              className="border-orange-500 text-orange-600 hover:bg-orange-50"
+              className="border-orange-500 text-orange-600 hover:bg-orange-50 h-7 px-2"
             >
-              <Edit className="h-4 w-4 mr-2" />
-              Editar
+              <Edit className="h-3 w-3 mr-1" />
+              <span className="text-xs">Editar</span>
             </Button>
             <Button
               type="button"
               onClick={() => onDelete(index)}
               variant="destructive"
               size="sm"
+              className="h-7 px-2"
             >
-              <Trash2 className="h-4 w-4 mr-2" />
-              Eliminar
+              <Trash2 className="h-3 w-3 mr-1" />
+              <span className="text-xs">Eliminar</span>
             </Button>
           </div>
         </div>
