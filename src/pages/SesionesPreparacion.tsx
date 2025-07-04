@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import NavHeader from "@/components/NavHeader";
+import CreateExerciseModal from "@/components/CreateExerciseModal";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -49,7 +50,6 @@ const SesionesPreparacion = () => {
     intensity: 1
   });
   const [ejerciciosRealizados, setEjerciciosRealizados] = useState<ExerciseRecord[]>([]);
-  const [nuevoEjercicio, setNuevoEjercicio] = useState("");
 
   // Secuencia de Fibonacci hasta 34: 1, 1, 2, 3, 5, 8, 13, 21, 34
   const nivelesIntensidad = [1, 2, 3, 5, 8, 13, 21, 34];
@@ -72,7 +72,7 @@ const SesionesPreparacion = () => {
     queryKey: ['exercises', user?.id],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('exercises')
+        .from('exercises' as any)
         .select('*')
         .order('name');
       
@@ -97,29 +97,11 @@ const SesionesPreparacion = () => {
 
       // Create exercise records
       for (const ejercicio of ejerciciosRealizados) {
-        let exerciseId = ejercicio.exercise_id;
-        
-        // If exercise doesn't exist, create it
-        if (!exerciseId && nuevoEjercicio) {
-          const { data: newExercise, error: exerciseError } = await supabase
-            .from('exercises')
-            .insert([{
-              name: nuevoEjercicio,
-              user_id: user!.id
-            }])
-            .select()
-            .single();
-          
-          if (exerciseError) throw exerciseError;
-          exerciseId = newExercise.id;
-        }
-
-        if (exerciseId) {
+        if (ejercicio.exercise_id) {
           const { error: recordError } = await supabase
-            .from('exercise_records')
+            .from('exercise_records' as any)
             .insert([{
               ...ejercicio,
-              exercise_id: exerciseId,
               training_session_id: sessionData.id,
               user_id: user!.id,
               date: sesion.date
@@ -146,7 +128,6 @@ const SesionesPreparacion = () => {
         intensity: 1
       });
       setEjerciciosRealizados([]);
-      setNuevoEjercicio("");
       setMostrarFormulario(false);
     },
     onError: (error: any) => {
@@ -221,13 +202,16 @@ const SesionesPreparacion = () => {
       />
       
       <div className="max-w-4xl mx-auto p-4">
-        <Button 
-          onClick={() => setMostrarFormulario(!mostrarFormulario)}
-          className="mb-6 bg-[#C5A46C] hover:bg-[#B8956A] text-white"
-        >
-          <Plus className="h-4 w-4 mr-2" />
-          Nueva Sesión
-        </Button>
+        <div className="flex gap-2 mb-6">
+          <Button 
+            onClick={() => setMostrarFormulario(!mostrarFormulario)}
+            className="bg-[#C5A46C] hover:bg-[#B8956A] text-white"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Nueva Sesión
+          </Button>
+          <CreateExerciseModal />
+        </div>
 
         {mostrarFormulario && (
           <Card className="mb-6 bg-white border-[#C5A46C]">
@@ -309,7 +293,7 @@ const SesionesPreparacion = () => {
                             <SelectValue placeholder="Seleccionar ejercicio" />
                           </SelectTrigger>
                           <SelectContent>
-                            {ejercicios.map((ej) => (
+                            {ejercicios.map((ej: any) => (
                               <SelectItem key={ej.id} value={ej.id}>
                                 {ej.name}
                               </SelectItem>
@@ -345,6 +329,15 @@ const SesionesPreparacion = () => {
                           className="border-[#C5A46C]"
                         />
                       </div>
+                      <div>
+                        <Label className="text-[#1A1A1A]">Duración (min)</Label>
+                        <Input
+                          type="number"
+                          value={ejercicio.duration_minutes || ''}
+                          onChange={(e) => actualizarEjercicio(index, 'duration_minutes', parseInt(e.target.value) || 0)}
+                          className="border-[#C5A46C]"
+                        />
+                      </div>
                     </div>
                     <div className="mt-4">
                       <Label className="text-[#1A1A1A]">Notas del ejercicio</Label>
@@ -365,18 +358,6 @@ const SesionesPreparacion = () => {
                     </Button>
                   </Card>
                 ))}
-
-                {ejerciciosRealizados.length === 0 && (
-                  <div>
-                    <Label className="text-[#1A1A1A]">O crea un nuevo ejercicio</Label>
-                    <Input
-                      placeholder="Nombre del nuevo ejercicio"
-                      value={nuevoEjercicio}
-                      onChange={(e) => setNuevoEjercicio(e.target.value)}
-                      className="border-[#C5A46C]"
-                    />
-                  </div>
-                )}
               </div>
 
               <div>

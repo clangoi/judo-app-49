@@ -25,9 +25,11 @@ const NavHeader = ({ title, subtitle }: NavHeaderProps) => {
             Volver
           </Button>
           <div className="flex items-center gap-4">
-            <div className="w-10 h-10 bg-[#C5A46C] rounded-full flex items-center justify-center text-white font-bold">
-              RC
-            </div>
+            <img 
+              src="/lovable-uploads/c6a3ed23-61eb-43e2-94de-c781c8d1107b.png" 
+              alt="Royal Strength Logo" 
+              className="w-10 h-10 rounded-full object-contain"
+            />
             <div>
               <h1 className="text-xl font-bold text-[#1A1A1A]">{title}</h1>
               {subtitle && <p className="text-sm text-[#575757]">{subtitle}</p>}

@@ -26,10 +26,11 @@ const Index = () => {
   });
 
   const getGreeting = () => {
-    const genderPreference = profile?.gender_preference;
+    // Use the gender_preference field from auth signup or fallback to 'masculino'
+    const genderPreference = (profile as any)?.gender_preference || 'masculino';
     if (genderPreference === 'femenino') {
       return 'Bienvenida';
-    } else if (genderPreference ==='neutro'){
+    } else if (genderPreference === 'neutro'){
       return 'Bienvenide'
     }
     return 'Bienvenido';
@@ -86,12 +87,14 @@ const Index = () => {
         <div className="max-w-6xl mx-auto px-4 py-4">
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-[#C5A46C] rounded-full flex items-center justify-center text-white font-bold text-xl">
-                RC
-              </div>
+              <img 
+                src="/lovable-uploads/c6a3ed23-61eb-43e2-94de-c781c8d1107b.png" 
+                alt="Royal Strength Logo" 
+                className="w-12 h-12 rounded-full object-contain"
+              />
               <div>
                 <h1 className="text-2xl font-bold text-[#1A1A1A]">
-                  Royal Strenght - Panel de Entrenamiento
+                  Royal Strength - Panel de Entrenamiento
                 </h1>
                 <p className="text-[#575757]">
                   {getGreeting()}, {profile?.full_name || user?.email}
