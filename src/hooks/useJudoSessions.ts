@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -72,17 +71,28 @@ export const useJudoSessions = (userId?: string) => {
         
         // Parse notes properly to extract the different sections
         const notes = session.notes || '';
-        const funcionoPart = notes.split('FUNCIONO:')[1];
-        const noFuncionoPart = notes.split('NO_FUNCIONO:')[1];
+        
+        // Split by the markers and handle each section properly
+        const parts = notes.split('FUNCIONO:');
+        const tecnicasPracticadas = parts[0]?.replace(/\n/g, '') || '';
+        
+        let queFunciono = '';
+        let queNoFunciono = '';
+        
+        if (parts[1]) {
+          const funcionoAndNoFunciono = parts[1].split('NO_FUNCIONO:');
+          queFunciono = funcionoAndNoFunciono[0]?.replace(/\n/g, '') || '';
+          queNoFunciono = funcionoAndNoFunciono[1]?.replace(/\n/g, '') || '';
+        }
         
         const mapped = {
           id: session.id,
           fecha: session.date,
           tipo: session.session_type,
           duracion: session.duration_minutes || 0,
-          tecnicasPracticadas: notes.split('FUNCIONO:')[0]?.replace(/\n/g, '') || '',
-          queFunciono: funcionoPart ? funcionoPart.split('NO_FUNCIONO:')[0]?.replace(/\n/g, '') || '' : '',
-          queNoFunciono: noFuncionoPart ? noFuncionoPart.replace(/\n/g, '') || '' : '',
+          tecnicasPracticadas,
+          queFunciono,
+          queNoFunciono,
           comentarios: '',
           randory: randori ? {
             oponente: randori.opponent_name,
