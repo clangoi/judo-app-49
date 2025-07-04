@@ -29,12 +29,12 @@ export const useTrainingSessions = (userId: string | undefined) => {
     queryFn: async () => {
       if (!userId) throw new Error('Usuario no autenticado');
       
-      // Filtrar solo sesiones de preparación física (excluyendo las de Judo)
+      // Filtrar solo sesiones de preparación física usando training_category
       const { data, error } = await supabase
         .from('training_sessions')
         .select('*')
         .eq('user_id', userId)
-        .not('session_type', 'ilike', '%judo%')
+        .eq('training_category', 'physical_preparation')
         .order('date', { ascending: false });
       
       if (error) throw error;
@@ -71,7 +71,8 @@ export const useTrainingSessions = (userId: string | undefined) => {
         .from('training_sessions')
         .insert([{
           ...sesion,
-          user_id: userId
+          user_id: userId,
+          training_category: 'physical_preparation'
         }])
         .select()
         .single();
@@ -130,7 +131,10 @@ export const useTrainingSessions = (userId: string | undefined) => {
       
       const { data, error } = await supabase
         .from('training_sessions')
-        .update(sesion)
+        .update({
+          ...sesion,
+          training_category: 'physical_preparation'
+        })
         .eq('id', id)
         .eq('user_id', userId)
         .select()

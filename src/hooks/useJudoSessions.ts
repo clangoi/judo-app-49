@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -38,12 +39,12 @@ export const useJudoSessions = (userId?: string) => {
       
       console.log('Fetching judo sessions for user:', userId);
       
-      // Filtrar solo sesiones de entrenamiento que sean específicamente de Judo
+      // Filtrar solo sesiones de entrenamiento que sean específicamente de Judo usando training_category
       const { data: trainingSessions, error: sessionsError } = await supabase
         .from('training_sessions')
         .select('*')
         .eq('user_id', userId)
-        .ilike('session_type', '%judo%')
+        .eq('training_category', 'judo')
         .order('created_at', { ascending: false });
 
       if (sessionsError) {
@@ -114,7 +115,8 @@ export const useJudoSessions = (userId?: string) => {
           session_type: entrenamiento.tipo,
           duration_minutes: entrenamiento.duracion,
           notes,
-          intensity: 5
+          intensity: 5,
+          training_category: 'judo'
         })
         .select()
         .single();
@@ -179,7 +181,8 @@ export const useJudoSessions = (userId?: string) => {
           date: entrenamiento.fecha,
           session_type: entrenamiento.tipo,
           duration_minutes: entrenamiento.duracion,
-          notes
+          notes,
+          training_category: 'judo'
         })
         .eq('id', id)
         .select()

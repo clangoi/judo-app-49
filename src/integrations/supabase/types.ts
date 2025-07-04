@@ -293,6 +293,7 @@ export type Database = {
           intensity: number | null
           notes: string | null
           session_type: string
+          training_category: string | null
           user_id: string
         }
         Insert: {
@@ -303,6 +304,7 @@ export type Database = {
           intensity?: number | null
           notes?: string | null
           session_type: string
+          training_category?: string | null
           user_id: string
         }
         Update: {
@@ -313,6 +315,7 @@ export type Database = {
           intensity?: number | null
           notes?: string | null
           session_type?: string
+          training_category?: string | null
           user_id?: string
         }
         Relationships: []
