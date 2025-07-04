@@ -9,6 +9,87 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      exercise_records: {
+        Row: {
+          created_at: string | null
+          date: string
+          duration_minutes: number | null
+          exercise_id: string
+          id: string
+          notes: string | null
+          reps: number | null
+          sets: number | null
+          training_session_id: string | null
+          user_id: string
+          weight_kg: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          date: string
+          duration_minutes?: number | null
+          exercise_id: string
+          id?: string
+          notes?: string | null
+          reps?: number | null
+          sets?: number | null
+          training_session_id?: string | null
+          user_id: string
+          weight_kg?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          date?: string
+          duration_minutes?: number | null
+          exercise_id?: string
+          id?: string
+          notes?: string | null
+          reps?: number | null
+          sets?: number | null
+          training_session_id?: string | null
+          user_id?: string
+          weight_kg?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "exercise_records_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "exercises"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exercise_records_training_session_id_fkey"
+            columns: ["training_session_id"]
+            isOneToOne: false
+            referencedRelation: "training_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      exercises: {
+        Row: {
+          created_at: string | null
+          id: string
+          name: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          name: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          name?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       nutrition_entries: {
         Row: {
           calories: number | null

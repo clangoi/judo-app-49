@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -72,7 +71,7 @@ const SesionesPreparacion = () => {
     queryKey: ['exercises', user?.id],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('exercises' as any)
+        .from('exercises')
         .select('*')
         .order('name');
       
@@ -99,7 +98,7 @@ const SesionesPreparacion = () => {
       for (const ejercicio of ejerciciosRealizados) {
         if (ejercicio.exercise_id) {
           const { error: recordError } = await supabase
-            .from('exercise_records' as any)
+            .from('exercise_records')
             .insert([{
               ...ejercicio,
               training_session_id: sessionData.id,

@@ -20,7 +20,7 @@ const CreateExerciseModal = () => {
   const createExerciseMutation = useMutation({
     mutationFn: async (name: string) => {
       const { data, error } = await supabase
-        .from('exercises' as any)
+        .from('exercises')
         .insert([{
           name: name,
           user_id: user!.id
