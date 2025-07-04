@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Activity, Clock, Loader2 } from "lucide-react";
+import { Plus, Activity, Clock, Loader2, Save, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface SesionPreparacion {
@@ -34,6 +34,7 @@ interface ExerciseRecord {
   weight_kg?: number;
   duration_minutes?: number;
   notes?: string;
+  saved?: boolean;
 }
 
 const SesionesPreparacion = () => {
@@ -50,7 +51,6 @@ const SesionesPreparacion = () => {
   });
   const [ejerciciosRealizados, setEjerciciosRealizados] = useState<ExerciseRecord[]>([]);
 
-  // Secuencia de Fibonacci hasta 34: 1, 1, 2, 3, 5, 8, 13, 21, 34
   const nivelesIntensidad = [1, 2, 3, 5, 8, 13, 21, 34];
 
   const { data: sesiones = [], isLoading } = useQuery({
@@ -164,14 +164,36 @@ const SesionesPreparacion = () => {
       reps: 0,
       weight_kg: 0,
       duration_minutes: 0,
-      notes: ""
+      notes: "",
+      saved: false
     }]);
   };
 
   const actualizarEjercicio = (index: number, campo: string, valor: any) => {
     const nuevosEjercicios = [...ejerciciosRealizados];
-    nuevosEjercicios[index] = { ...nuevosEjercicios[index], [campo]: valor };
+    nuevosEjercicios[index] = { ...nuevosEjercicios[index], [campo]: valor, saved: false };
     setEjerciciosRealizados(nuevosEjercicios);
+  };
+
+  const guardarEjercicio = (index: number) => {
+    const ejercicio = ejerciciosRealizados[index];
+    if (!ejercicio.exercise_id) {
+      toast({
+        title: "Error",
+        description: "Por favor selecciona un ejercicio.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    const nuevosEjercicios = [...ejerciciosRealizados];
+    nuevosEjercicios[index] = { ...nuevosEjercicios[index], saved: true };
+    setEjerciciosRealizados(nuevosEjercicios);
+    
+    toast({
+      title: "Ejercicio guardado",
+      description: "El ejercicio se ha guardado temporalmente.",
+    });
   };
 
   const eliminarEjercicio = (index: number) => {
@@ -265,7 +287,6 @@ const SesionesPreparacion = () => {
                 </Select>
               </div>
 
-              {/* Sección de ejercicios */}
               <div className="space-y-4">
                 <div className="flex justify-between items-center">
                   <Label className="text-[#1A1A1A]">Ejercicios Realizados</Label>
@@ -280,13 +301,14 @@ const SesionesPreparacion = () => {
                 </div>
 
                 {ejerciciosRealizados.map((ejercicio, index) => (
-                  <Card key={index} className="p-4 border border-[#C5A46C]">
+                  <Card key={index} className={`p-4 border ${ejercicio.saved ? 'border-green-500 bg-green-50' : 'border-[#C5A46C]'}`}>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <Label className="text-[#1A1A1A]">Ejercicio</Label>
                         <Select 
                           value={ejercicio.exercise_id} 
                           onValueChange={(value) => actualizarEjercicio(index, 'exercise_id', value)}
+                          disabled={ejercicio.saved}
                         >
                           <SelectTrigger className="border-[#C5A46C]">
                             <SelectValue placeholder="Seleccionar ejercicio" />
@@ -307,6 +329,7 @@ const SesionesPreparacion = () => {
                           value={ejercicio.sets || ''}
                           onChange={(e) => actualizarEjercicio(index, 'sets', parseInt(e.target.value) || 0)}
                           className="border-[#C5A46C]"
+                          disabled={ejercicio.saved}
                         />
                       </div>
                       <div>
@@ -316,6 +339,7 @@ const SesionesPreparacion = () => {
                           value={ejercicio.reps || ''}
                           onChange={(e) => actualizarEjercicio(index, 'reps', parseInt(e.target.value) || 0)}
                           className="border-[#C5A46C]"
+                          disabled={ejercicio.saved}
                         />
                       </div>
                       <div>
@@ -326,6 +350,7 @@ const SesionesPreparacion = () => {
                           value={ejercicio.weight_kg || ''}
                           onChange={(e) => actualizarEjercicio(index, 'weight_kg', parseFloat(e.target.value) || 0)}
                           className="border-[#C5A46C]"
+                          disabled={ejercicio.saved}
                         />
                       </div>
                       <div>
@@ -335,6 +360,7 @@ const SesionesPreparacion = () => {
                           value={ejercicio.duration_minutes || ''}
                           onChange={(e) => actualizarEjercicio(index, 'duration_minutes', parseInt(e.target.value) || 0)}
                           className="border-[#C5A46C]"
+                          disabled={ejercicio.saved}
                         />
                       </div>
                     </div>
@@ -344,17 +370,41 @@ const SesionesPreparacion = () => {
                         value={ejercicio.notes || ''}
                         onChange={(e) => actualizarEjercicio(index, 'notes', e.target.value)}
                         className="border-[#C5A46C]"
+                        disabled={ejercicio.saved}
                       />
                     </div>
-                    <Button
-                      type="button"
-                      onClick={() => eliminarEjercicio(index)}
-                      variant="destructive"
-                      size="sm"
-                      className="mt-2"
-                    >
-                      Eliminar
-                    </Button>
+                    <div className="flex gap-2 mt-4">
+                      {!ejercicio.saved ? (
+                        <Button
+                          type="button"
+                          onClick={() => guardarEjercicio(index)}
+                          className="bg-green-600 hover:bg-green-700 text-white"
+                          size="sm"
+                        >
+                          <Save className="h-4 w-4 mr-2" />
+                          Guardar
+                        </Button>
+                      ) : (
+                        <Button
+                          type="button"
+                          onClick={() => actualizarEjercicio(index, 'saved', false)}
+                          variant="outline"
+                          size="sm"
+                          className="border-orange-500 text-orange-600 hover:bg-orange-50"
+                        >
+                          Editar
+                        </Button>
+                      )}
+                      <Button
+                        type="button"
+                        onClick={() => eliminarEjercicio(index)}
+                        variant="destructive"
+                        size="sm"
+                      >
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Eliminar
+                      </Button>
+                    </div>
                   </Card>
                 ))}
               </div>
