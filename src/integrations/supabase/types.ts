@@ -9,7 +9,257 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      nutrition_entries: {
+        Row: {
+          calories: number | null
+          carbs: number | null
+          created_at: string | null
+          date: string
+          fats: number | null
+          id: string
+          meal_description: string
+          protein: number | null
+          user_id: string
+        }
+        Insert: {
+          calories?: number | null
+          carbs?: number | null
+          created_at?: string | null
+          date: string
+          fats?: number | null
+          id?: string
+          meal_description: string
+          protein?: number | null
+          user_id: string
+        }
+        Update: {
+          calories?: number | null
+          carbs?: number | null
+          created_at?: string | null
+          date?: string
+          fats?: number | null
+          id?: string
+          meal_description?: string
+          protein?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          club_name: string | null
+          created_at: string | null
+          current_belt: Database["public"]["Enums"]["belt_level"] | null
+          email: string | null
+          full_name: string | null
+          gender: Database["public"]["Enums"]["gender_type"] | null
+          id: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          club_name?: string | null
+          created_at?: string | null
+          current_belt?: Database["public"]["Enums"]["belt_level"] | null
+          email?: string | null
+          full_name?: string | null
+          gender?: Database["public"]["Enums"]["gender_type"] | null
+          id?: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          club_name?: string | null
+          created_at?: string | null
+          current_belt?: Database["public"]["Enums"]["belt_level"] | null
+          email?: string | null
+          full_name?: string | null
+          gender?: Database["public"]["Enums"]["gender_type"] | null
+          id?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      randori_sessions: {
+        Row: {
+          created_at: string | null
+          id: string
+          notes: string | null
+          opponent_name: string
+          techniques_attempted: string[] | null
+          techniques_failed: string[] | null
+          techniques_received: string[] | null
+          techniques_successful: string[] | null
+          training_session_id: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          notes?: string | null
+          opponent_name: string
+          techniques_attempted?: string[] | null
+          techniques_failed?: string[] | null
+          techniques_received?: string[] | null
+          techniques_successful?: string[] | null
+          training_session_id?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          notes?: string | null
+          opponent_name?: string
+          techniques_attempted?: string[] | null
+          techniques_failed?: string[] | null
+          techniques_received?: string[] | null
+          techniques_successful?: string[] | null
+          training_session_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "randori_sessions_training_session_id_fkey"
+            columns: ["training_session_id"]
+            isOneToOne: false
+            referencedRelation: "training_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tactical_notes: {
+        Row: {
+          content: string | null
+          created_at: string | null
+          id: string
+          image_urls: string[] | null
+          title: string
+          updated_at: string | null
+          user_id: string
+          video_url: string | null
+          youtube_url: string | null
+        }
+        Insert: {
+          content?: string | null
+          created_at?: string | null
+          id?: string
+          image_urls?: string[] | null
+          title: string
+          updated_at?: string | null
+          user_id: string
+          video_url?: string | null
+          youtube_url?: string | null
+        }
+        Update: {
+          content?: string | null
+          created_at?: string | null
+          id?: string
+          image_urls?: string[] | null
+          title?: string
+          updated_at?: string | null
+          user_id?: string
+          video_url?: string | null
+          youtube_url?: string | null
+        }
+        Relationships: []
+      }
+      techniques: {
+        Row: {
+          belt_level: Database["public"]["Enums"]["belt_level"]
+          created_at: string | null
+          description: string | null
+          id: string
+          image_url: string | null
+          name: string
+          updated_at: string | null
+          user_id: string
+          video_url: string | null
+          youtube_url: string | null
+        }
+        Insert: {
+          belt_level: Database["public"]["Enums"]["belt_level"]
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          name: string
+          updated_at?: string | null
+          user_id: string
+          video_url?: string | null
+          youtube_url?: string | null
+        }
+        Update: {
+          belt_level?: Database["public"]["Enums"]["belt_level"]
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          name?: string
+          updated_at?: string | null
+          user_id?: string
+          video_url?: string | null
+          youtube_url?: string | null
+        }
+        Relationships: []
+      }
+      training_sessions: {
+        Row: {
+          created_at: string | null
+          date: string
+          duration_minutes: number | null
+          id: string
+          intensity: number | null
+          notes: string | null
+          session_type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          date: string
+          duration_minutes?: number | null
+          id?: string
+          intensity?: number | null
+          notes?: string | null
+          session_type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          date?: string
+          duration_minutes?: number | null
+          id?: string
+          intensity?: number | null
+          notes?: string | null
+          session_type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      weight_entries: {
+        Row: {
+          created_at: string | null
+          date: string
+          id: string
+          user_id: string
+          weight: number
+        }
+        Insert: {
+          created_at?: string | null
+          date: string
+          id?: string
+          user_id: string
+          weight: number
+        }
+        Update: {
+          created_at?: string | null
+          date?: string
+          id?: string
+          user_id?: string
+          weight?: number
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -18,7 +268,15 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      belt_level:
+        | "white"
+        | "yellow"
+        | "orange"
+        | "green"
+        | "blue"
+        | "brown"
+        | "black"
+      gender_type: "male" | "female"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -133,6 +391,17 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      belt_level: [
+        "white",
+        "yellow",
+        "orange",
+        "green",
+        "blue",
+        "brown",
+        "black",
+      ],
+      gender_type: ["male", "female"],
+    },
   },
 } as const
