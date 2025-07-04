@@ -15,12 +15,11 @@ import { useToast } from "@/hooks/use-toast";
 
 interface SesionPreparacion {
   id: string;
-  fecha: string;
-  tipo_sesion: string;
-  duracion: number;
-  ejercicios: string;
-  intensidad: number;
-  notas?: string;
+  date: string;
+  session_type: string;
+  duration_minutes: number;
+  notes: string;
+  intensity: number;
 }
 
 const SesionesPreparacion = () => {
@@ -29,24 +28,23 @@ const SesionesPreparacion = () => {
   const queryClient = useQueryClient();
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
   const [nuevaSesion, setNuevaSesion] = useState({
-    fecha: new Date().toISOString().split('T')[0],
-    tipo_sesion: "",
-    duracion: "",
-    ejercicios: "",
-    intensidad: 1,
-    notas: ""
+    date: new Date().toISOString().split('T')[0],
+    session_type: "",
+    duration_minutes: "",
+    notes: "",
+    intensity: 1
   });
 
   // Secuencia de Fibonacci hasta 34: 1, 1, 2, 3, 5, 8, 13, 21, 34
   const nivelesIntensidad = [1, 2, 3, 5, 8, 13, 21, 34];
 
   const { data: sesiones = [], isLoading } = useQuery({
-    queryKey: ['sesiones_preparacion', user?.id],
+    queryKey: ['training_sessions', user?.id],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('sesiones_preparacion')
+        .from('training_sessions')
         .select('*')
-        .order('fecha', { ascending: false });
+        .order('date', { ascending: false });
       
       if (error) throw error;
       return data;
@@ -57,7 +55,7 @@ const SesionesPreparacion = () => {
   const createMutation = useMutation({
     mutationFn: async (sesion: Omit<SesionPreparacion, 'id'>) => {
       const { data, error } = await supabase
-        .from('sesiones_preparacion')
+        .from('training_sessions')
         .insert([{
           ...sesion,
           user_id: user!.id
@@ -69,18 +67,17 @@ const SesionesPreparacion = () => {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['sesiones_preparacion'] });
+      queryClient.invalidateQueries({ queryKey: ['training_sessions'] });
       toast({
         title: "Sesión guardada",
         description: "Tu sesión de preparación ha sido registrada exitosamente.",
       });
       setNuevaSesion({ 
-        fecha: new Date().toISOString().split('T')[0],
-        tipo_sesion: "", 
-        duracion: "", 
-        ejercicios: "", 
-        intensidad: 1, 
-        notas: "" 
+        date: new Date().toISOString().split('T')[0],
+        session_type: "", 
+        duration_minutes: "", 
+        notes: "", 
+        intensity: 1
       });
       setMostrarFormulario(false);
     },
@@ -94,7 +91,7 @@ const SesionesPreparacion = () => {
   });
 
   const agregarSesion = () => {
-    if (!nuevaSesion.tipo_sesion || !nuevaSesion.duracion) {
+    if (!nuevaSesion.session_type || !nuevaSesion.duration_minutes) {
       toast({
         title: "Error",
         description: "Por favor completa los campos obligatorios.",
@@ -104,12 +101,11 @@ const SesionesPreparacion = () => {
     }
 
     createMutation.mutate({
-      fecha: nuevaSesion.fecha,
-      tipo_sesion: nuevaSesion.tipo_sesion,
-      duracion: parseInt(nuevaSesion.duracion),
-      ejercicios: nuevaSesion.ejercicios,
-      intensidad: nuevaSesion.intensidad,
-      notas: nuevaSesion.notas || undefined
+      date: nuevaSesion.date,
+      session_type: nuevaSesion.session_type,
+      duration_minutes: parseInt(nuevaSesion.duration_minutes),
+      notes: nuevaSesion.notes,
+      intensity: nuevaSesion.intensity
     });
   };
 
@@ -151,45 +147,36 @@ const SesionesPreparacion = () => {
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <Label htmlFor="fecha">Fecha</Label>
+                <Label htmlFor="date">Fecha</Label>
                 <Input
-                  id="fecha"
+                  id="date"
                   type="date"
-                  value={nuevaSesion.fecha}
-                  onChange={(e) => setNuevaSesion({...nuevaSesion, fecha: e.target.value})}
+                  value={nuevaSesion.date}
+                  onChange={(e) => setNuevaSesion({...nuevaSesion, date: e.target.value})}
                 />
               </div>
               <div>
-                <Label htmlFor="tipo_sesion">Tipo de Entrenamiento</Label>
+                <Label htmlFor="session_type">Tipo de Entrenamiento</Label>
                 <Input
-                  id="tipo_sesion"
+                  id="session_type"
                   placeholder="Cardio, Fuerza, Flexibilidad, etc."
-                  value={nuevaSesion.tipo_sesion}
-                  onChange={(e) => setNuevaSesion({...nuevaSesion, tipo_sesion: e.target.value})}
+                  value={nuevaSesion.session_type}
+                  onChange={(e) => setNuevaSesion({...nuevaSesion, session_type: e.target.value})}
                 />
               </div>
               <div>
-                <Label htmlFor="duracion">Duración (minutos)</Label>
+                <Label htmlFor="duration_minutes">Duración (minutos)</Label>
                 <Input
-                  id="duracion"
+                  id="duration_minutes"
                   type="number"
                   placeholder="60"
-                  value={nuevaSesion.duracion}
-                  onChange={(e) => setNuevaSesion({...nuevaSesion, duracion: e.target.value})}
+                  value={nuevaSesion.duration_minutes}
+                  onChange={(e) => setNuevaSesion({...nuevaSesion, duration_minutes: e.target.value})}
                 />
               </div>
               <div>
-                <Label htmlFor="ejercicios">Ejercicios Realizados</Label>
-                <Textarea
-                  id="ejercicios"
-                  placeholder="Lista de ejercicios y repeticiones..."
-                  value={nuevaSesion.ejercicios}
-                  onChange={(e) => setNuevaSesion({...nuevaSesion, ejercicios: e.target.value})}
-                />
-              </div>
-              <div>
-                <Label htmlFor="intensidad">Intensidad (Escala Fibonacci)</Label>
-                <Select value={nuevaSesion.intensidad.toString()} onValueChange={(value) => setNuevaSesion({...nuevaSesion, intensidad: parseInt(value)})}>
+                <Label htmlFor="intensity">Intensidad (Escala Fibonacci)</Label>
+                <Select value={nuevaSesion.intensity.toString()} onValueChange={(value) => setNuevaSesion({...nuevaSesion, intensity: parseInt(value)})}>
                   <SelectTrigger>
                     <SelectValue placeholder="Selecciona la intensidad" />
                   </SelectTrigger>
@@ -203,12 +190,12 @@ const SesionesPreparacion = () => {
                 </Select>
               </div>
               <div>
-                <Label htmlFor="notas">Notas</Label>
+                <Label htmlFor="notes">Notas</Label>
                 <Textarea
-                  id="notas"
+                  id="notes"
                   placeholder="Observaciones sobre la sesión..."
-                  value={nuevaSesion.notas}
-                  onChange={(e) => setNuevaSesion({...nuevaSesion, notas: e.target.value})}
+                  value={nuevaSesion.notes}
+                  onChange={(e) => setNuevaSesion({...nuevaSesion, notes: e.target.value})}
                 />
               </div>
               <div className="flex gap-2">
@@ -248,32 +235,30 @@ const SesionesPreparacion = () => {
                 <CardHeader>
                   <div className="flex justify-between items-start">
                     <div>
-                      <CardTitle className="text-lg">{sesion.tipo_sesion}</CardTitle>
-                      <p className="text-sm text-slate-600">{sesion.fecha}</p>
+                      <CardTitle className="text-lg">{sesion.session_type}</CardTitle>
+                      <p className="text-sm text-slate-600">{sesion.date}</p>
                     </div>
                     <div className="flex gap-2">
-                      <div className={`px-2 py-1 rounded-full text-sm ${getIntensidadColor(sesion.intensidad)}`}>
-                        Nivel {sesion.intensidad}
-                      </div>
-                      <div className="flex items-center gap-1 bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-sm">
-                        <Clock className="h-3 w-3" />
-                        {sesion.duracion} min
-                      </div>
+                      {sesion.intensity && (
+                        <div className={`px-2 py-1 rounded-full text-sm ${getIntensidadColor(sesion.intensity)}`}>
+                          Nivel {sesion.intensity}
+                        </div>
+                      )}
+                      {sesion.duration_minutes && (
+                        <div className="flex items-center gap-1 bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-sm">
+                          <Clock className="h-3 w-3" />
+                          {sesion.duration_minutes} min
+                        </div>
+                      )}
                     </div>
                   </div>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-2">
-                    {sesion.ejercicios && (
-                      <div>
-                        <h4 className="font-medium text-sm text-slate-700">Ejercicios:</h4>
-                        <p className="text-slate-600">{sesion.ejercicios}</p>
-                      </div>
-                    )}
-                    {sesion.notas && (
+                    {sesion.notes && (
                       <div>
                         <h4 className="font-medium text-sm text-slate-700">Notas:</h4>
-                        <p className="text-slate-600">{sesion.notas}</p>
+                        <p className="text-slate-600">{sesion.notes}</p>
                       </div>
                     )}
                   </div>

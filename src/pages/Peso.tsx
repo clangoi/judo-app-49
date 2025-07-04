@@ -48,7 +48,7 @@ const Peso = () => {
         .insert([{
           ...registro,
           user_id: user!.id,
-          weight: parseFloat(registro.weight as string)
+          weight: parseFloat(registro.weight.toString())
         }])
         .select()
         .single();

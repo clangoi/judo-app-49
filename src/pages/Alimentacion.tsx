@@ -59,10 +59,10 @@ const Alimentacion = () => {
         .insert([{
           ...registro,
           user_id: user!.id,
-          calories: registro.calories ? parseInt(registro.calories as string) : null,
-          protein: registro.protein ? parseFloat(registro.protein as string) : null,
-          carbs: registro.carbs ? parseFloat(registro.carbs as string) : null,
-          fats: registro.fats ? parseFloat(registro.fats as string) : null
+          calories: registro.calories ? parseInt(registro.calories.toString()) : null,
+          protein: registro.protein ? parseFloat(registro.protein.toString()) : null,
+          carbs: registro.carbs ? parseFloat(registro.carbs.toString()) : null,
+          fats: registro.fats ? parseFloat(registro.fats.toString()) : null
         }])
         .select()
         .single();
