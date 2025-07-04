@@ -15,12 +15,12 @@ import { useToast } from "@/hooks/use-toast";
 
 interface ComidaRegistro {
   id: string;
-  fecha: string;
-  tipo_alimento: string;
-  alimento: string;
-  cantidad?: string;
-  notas?: string;
-  foto_url?: string;
+  date: string;
+  meal_description: string;
+  calories?: number;
+  protein?: number;
+  carbs?: number;
+  fats?: number;
 }
 
 const Alimentacion = () => {
@@ -29,23 +29,21 @@ const Alimentacion = () => {
   const queryClient = useQueryClient();
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
   const [nuevoRegistro, setNuevoRegistro] = useState({
-    fecha: new Date().toISOString().split('T')[0],
-    tipo_alimento: "",
-    alimento: "",
-    cantidad: "",
-    notas: "",
-    foto: ""
+    date: new Date().toISOString().split('T')[0],
+    meal_description: "",
+    calories: "",
+    protein: "",
+    carbs: "",
+    fats: ""
   });
 
-  const tiposComida = ["Desayuno", "Colacion", "Almuerzo", "Cena"];
-
   const { data: registros = [], isLoading } = useQuery({
-    queryKey: ['alimentacion', user?.id],
+    queryKey: ['nutrition_entries', user?.id],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('alimentacion')
+        .from('nutrition_entries')
         .select('*')
-        .order('fecha', { ascending: false })
+        .order('date', { ascending: false })
         .order('created_at', { ascending: false });
       
       if (error) throw error;
@@ -57,10 +55,14 @@ const Alimentacion = () => {
   const createMutation = useMutation({
     mutationFn: async (registro: Omit<ComidaRegistro, 'id'>) => {
       const { data, error } = await supabase
-        .from('alimentacion')
+        .from('nutrition_entries')
         .insert([{
           ...registro,
-          user_id: user!.id
+          user_id: user!.id,
+          calories: registro.calories ? parseInt(registro.calories as string) : null,
+          protein: registro.protein ? parseFloat(registro.protein as string) : null,
+          carbs: registro.carbs ? parseFloat(registro.carbs as string) : null,
+          fats: registro.fats ? parseFloat(registro.fats as string) : null
         }])
         .select()
         .single();
@@ -69,18 +71,18 @@ const Alimentacion = () => {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['alimentacion'] });
+      queryClient.invalidateQueries({ queryKey: ['nutrition_entries'] });
       toast({
         title: "Comida registrada",
         description: "Tu registro de alimentación ha sido guardado exitosamente.",
       });
       setNuevoRegistro({ 
-        fecha: new Date().toISOString().split('T')[0],
-        tipo_alimento: "", 
-        alimento: "", 
-        cantidad: "", 
-        notas: "",
-        foto: ""
+        date: new Date().toISOString().split('T')[0],
+        meal_description: "", 
+        calories: "", 
+        protein: "", 
+        carbs: "",
+        fats: ""
       });
       setMostrarFormulario(false);
     },
@@ -93,34 +95,23 @@ const Alimentacion = () => {
     }
   });
 
-  const handleFotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setNuevoRegistro({...nuevoRegistro, foto: e.target?.result as string});
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
   const agregarRegistro = () => {
-    if (!nuevoRegistro.tipo_alimento || !nuevoRegistro.alimento) {
+    if (!nuevoRegistro.meal_description) {
       toast({
         title: "Error",
-        description: "Por favor completa los campos obligatorios.",
+        description: "Por favor describe los alimentos consumidos.",
         variant: "destructive",
       });
       return;
     }
 
     createMutation.mutate({
-      fecha: nuevoRegistro.fecha,
-      tipo_alimento: nuevoRegistro.tipo_alimento,
-      alimento: nuevoRegistro.alimento,
-      cantidad: nuevoRegistro.cantidad || undefined,
-      notas: nuevoRegistro.notas || undefined,
-      foto_url: nuevoRegistro.foto || undefined
+      date: nuevoRegistro.date,
+      meal_description: nuevoRegistro.meal_description,
+      calories: nuevoRegistro.calories ? parseInt(nuevoRegistro.calories) : undefined,
+      protein: nuevoRegistro.protein ? parseFloat(nuevoRegistro.protein) : undefined,
+      carbs: nuevoRegistro.carbs ? parseFloat(nuevoRegistro.carbs) : undefined,
+      fats: nuevoRegistro.fats ? parseFloat(nuevoRegistro.fats) : undefined
     });
   };
 
@@ -155,69 +146,69 @@ const Alimentacion = () => {
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <Label htmlFor="fecha">Fecha</Label>
+                <Label htmlFor="date">Fecha</Label>
                 <Input
-                  id="fecha"
+                  id="date"
                   type="date"
-                  value={nuevoRegistro.fecha}
-                  onChange={(e) => setNuevoRegistro({...nuevoRegistro, fecha: e.target.value})}
+                  value={nuevoRegistro.date}
+                  onChange={(e) => setNuevoRegistro({...nuevoRegistro, date: e.target.value})}
                 />
               </div>
               <div>
-                <Label htmlFor="tipo_alimento">Tipo de Comida</Label>
-                <Select value={nuevoRegistro.tipo_alimento} onValueChange={(value) => setNuevoRegistro({...nuevoRegistro, tipo_alimento: value})}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecciona el tipo de comida" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {tiposComida.map((tipo) => (
-                      <SelectItem key={tipo} value={tipo}>{tipo}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label htmlFor="alimento">Alimentos</Label>
+                <Label htmlFor="meal_description">Descripción de la Comida</Label>
                 <Textarea
-                  id="alimento"
-                  placeholder="Lista de alimentos consumidos..."
-                  value={nuevoRegistro.alimento}
-                  onChange={(e) => setNuevoRegistro({...nuevoRegistro, alimento: e.target.value})}
+                  id="meal_description"
+                  placeholder="Describe los alimentos consumidos..."
+                  value={nuevoRegistro.meal_description}
+                  onChange={(e) => setNuevoRegistro({...nuevoRegistro, meal_description: e.target.value})}
                 />
               </div>
-              <div>
-                <Label htmlFor="cantidad">Cantidad (opcional)</Label>
-                <Input
-                  id="cantidad"
-                  placeholder="Cantidad consumida"
-                  value={nuevoRegistro.cantidad}
-                  onChange={(e) => setNuevoRegistro({...nuevoRegistro, cantidad: e.target.value})}
-                />
-              </div>
-              <div>
-                <Label htmlFor="foto">Foto (opcional)</Label>
-                <div className="flex items-center gap-2">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="calories">Calorías (opcional)</Label>
                   <Input
-                    id="foto"
-                    type="file"
-                    accept="image/*"
-                    onChange={handleFotoChange}
-                    className="flex-1"
+                    id="calories"
+                    type="number"
+                    placeholder="Ej: 500"
+                    value={nuevoRegistro.calories}
+                    onChange={(e) => setNuevoRegistro({...nuevoRegistro, calories: e.target.value})}
                   />
-                  <Camera className="h-5 w-5 text-slate-400" />
                 </div>
-                {nuevoRegistro.foto && (
-                  <img src={nuevoRegistro.foto} alt="Vista previa" className="mt-2 max-w-32 h-32 object-cover rounded" />
-                )}
+                <div>
+                  <Label htmlFor="protein">Proteínas (g)</Label>
+                  <Input
+                    id="protein"
+                    type="number"
+                    step="0.1"
+                    placeholder="Ej: 25.5"
+                    value={nuevoRegistro.protein}
+                    onChange={(e) => setNuevoRegistro({...nuevoRegistro, protein: e.target.value})}
+                  />
+                </div>
               </div>
-              <div>
-                <Label htmlFor="notas">Notas</Label>
-                <Textarea
-                  id="notas"
-                  placeholder="Observaciones adicionales..."
-                  value={nuevoRegistro.notas}
-                  onChange={(e) => setNuevoRegistro({...nuevoRegistro, notas: e.target.value})}
-                />
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="carbs">Carbohidratos (g)</Label>
+                  <Input
+                    id="carbs"
+                    type="number"
+                    step="0.1"
+                    placeholder="Ej: 50.0"
+                    value={nuevoRegistro.carbs}
+                    onChange={(e) => setNuevoRegistro({...nuevoRegistro, carbs: e.target.value})}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="fats">Grasas (g)</Label>
+                  <Input
+                    id="fats"
+                    type="number"
+                    step="0.1"
+                    placeholder="Ej: 15.0"
+                    value={nuevoRegistro.fats}
+                    onChange={(e) => setNuevoRegistro({...nuevoRegistro, fats: e.target.value})}
+                  />
+                </div>
               </div>
               <div className="flex gap-2">
                 <Button 
@@ -256,29 +247,42 @@ const Alimentacion = () => {
                 <CardHeader>
                   <div className="flex justify-between items-start">
                     <div>
-                      <CardTitle className="text-lg">{registro.tipo_alimento}</CardTitle>
-                      <p className="text-sm text-slate-600">{registro.fecha}</p>
+                      <CardTitle className="text-lg">Comida</CardTitle>
+                      <p className="text-sm text-slate-600">{registro.date}</p>
                     </div>
-                    {registro.cantidad && (
+                    {registro.calories && (
                       <div className="bg-orange-100 text-orange-800 px-2 py-1 rounded-full text-sm">
-                        {registro.cantidad}
+                        {registro.calories} cal
                       </div>
                     )}
                   </div>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
-                    {registro.foto_url && (
-                      <img src={registro.foto_url} alt="Comida" className="w-full max-w-64 h-48 object-cover rounded" />
-                    )}
                     <div>
-                      <h4 className="font-medium text-sm text-slate-700">Alimentos:</h4>
-                      <p className="text-slate-600">{registro.alimento}</p>
+                      <h4 className="font-medium text-sm text-slate-700">Descripción:</h4>
+                      <p className="text-slate-600">{registro.meal_description}</p>
                     </div>
-                    {registro.notas && (
-                      <div>
-                        <h4 className="font-medium text-sm text-slate-700">Notas:</h4>
-                        <p className="text-slate-600">{registro.notas}</p>
+                    {(registro.protein || registro.carbs || registro.fats) && (
+                      <div className="grid grid-cols-3 gap-4 pt-2 border-t">
+                        {registro.protein && (
+                          <div className="text-center">
+                            <p className="text-xs text-slate-500">Proteínas</p>
+                            <p className="font-medium text-blue-600">{registro.protein}g</p>
+                          </div>
+                        )}
+                        {registro.carbs && (
+                          <div className="text-center">
+                            <p className="text-xs text-slate-500">Carbohidratos</p>
+                            <p className="font-medium text-green-600">{registro.carbs}g</p>
+                          </div>
+                        )}
+                        {registro.fats && (
+                          <div className="text-center">
+                            <p className="text-xs text-slate-500">Grasas</p>
+                            <p className="font-medium text-yellow-600">{registro.fats}g</p>
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>

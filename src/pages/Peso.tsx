@@ -13,10 +13,8 @@ import { useToast } from "@/hooks/use-toast";
 
 interface RegistroPeso {
   id: string;
-  fecha: string;
-  peso: number;
-  notas?: string;
-  foto_url?: string;
+  date: string;
+  weight: number;
 }
 
 const Peso = () => {
@@ -25,19 +23,17 @@ const Peso = () => {
   const queryClient = useQueryClient();
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
   const [nuevoRegistro, setNuevoRegistro] = useState({
-    fecha: new Date().toISOString().split('T')[0],
-    peso: "",
-    notas: "",
-    foto: ""
+    date: new Date().toISOString().split('T')[0],
+    weight: ""
   });
 
   const { data: registros = [], isLoading } = useQuery({
-    queryKey: ['peso', user?.id],
+    queryKey: ['weight_entries', user?.id],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('peso')
+        .from('weight_entries')
         .select('*')
-        .order('fecha', { ascending: false });
+        .order('date', { ascending: false });
       
       if (error) throw error;
       return data;
@@ -48,10 +44,11 @@ const Peso = () => {
   const createMutation = useMutation({
     mutationFn: async (registro: Omit<RegistroPeso, 'id'>) => {
       const { data, error } = await supabase
-        .from('peso')
+        .from('weight_entries')
         .insert([{
           ...registro,
-          user_id: user!.id
+          user_id: user!.id,
+          weight: parseFloat(registro.weight as string)
         }])
         .select()
         .single();
@@ -60,16 +57,14 @@ const Peso = () => {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['peso'] });
+      queryClient.invalidateQueries({ queryKey: ['weight_entries'] });
       toast({
         title: "Registro guardado",
         description: "Tu peso ha sido registrado exitosamente.",
       });
       setNuevoRegistro({ 
-        fecha: new Date().toISOString().split('T')[0],
-        peso: "", 
-        notas: "",
-        foto: ""
+        date: new Date().toISOString().split('T')[0],
+        weight: ""
       });
       setMostrarFormulario(false);
     },
@@ -82,19 +77,8 @@ const Peso = () => {
     }
   });
 
-  const handleFotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setNuevoRegistro({...nuevoRegistro, foto: e.target?.result as string});
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
   const agregarRegistro = () => {
-    if (!nuevoRegistro.peso) {
+    if (!nuevoRegistro.weight) {
       toast({
         title: "Error",
         description: "Por favor ingresa el peso.",
@@ -104,17 +88,15 @@ const Peso = () => {
     }
 
     createMutation.mutate({
-      fecha: nuevoRegistro.fecha,
-      peso: parseFloat(nuevoRegistro.peso),
-      notas: nuevoRegistro.notas || undefined,
-      foto_url: nuevoRegistro.foto || undefined
+      date: nuevoRegistro.date,
+      weight: parseFloat(nuevoRegistro.weight)
     });
   };
 
   const calcularTendencia = (index: number) => {
     if (index >= registros.length - 1) return null;
-    const actual = registros[index].peso;
-    const anterior = registros[index + 1].peso;
+    const actual = registros[index].weight;
+    const anterior = registros[index + 1].weight;
     return actual - anterior;
   };
 
@@ -149,48 +131,23 @@ const Peso = () => {
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <Label htmlFor="fecha">Fecha</Label>
+                <Label htmlFor="date">Fecha</Label>
                 <Input
-                  id="fecha"
+                  id="date"
                   type="date"
-                  value={nuevoRegistro.fecha}
-                  onChange={(e) => setNuevoRegistro({...nuevoRegistro, fecha: e.target.value})}
+                  value={nuevoRegistro.date}
+                  onChange={(e) => setNuevoRegistro({...nuevoRegistro, date: e.target.value})}
                 />
               </div>
               <div>
-                <Label htmlFor="peso">Peso (kg)</Label>
+                <Label htmlFor="weight">Peso (kg)</Label>
                 <Input
-                  id="peso"
+                  id="weight"
                   type="number"
                   step="0.1"
                   placeholder="Ej: 70.5"
-                  value={nuevoRegistro.peso}
-                  onChange={(e) => setNuevoRegistro({...nuevoRegistro, peso: e.target.value})}
-                />
-              </div>
-              <div>
-                <Label htmlFor="foto">Foto (opcional)</Label>
-                <div className="flex items-center gap-2">
-                  <Input
-                    id="foto"
-                    type="file"
-                    accept="image/*"
-                    onChange={handleFotoChange}
-                    className="flex-1"
-                  />
-                  <Camera className="h-5 w-5 text-slate-400" />
-                </div>
-                {nuevoRegistro.foto && (
-                  <img src={nuevoRegistro.foto} alt="Vista previa" className="mt-2 max-w-32 h-32 object-cover rounded" />
-                )}
-              </div>
-              <div>
-                <Label htmlFor="notas">Notas (opcional)</Label>
-                <Input
-                  id="notas"
-                  placeholder="Observaciones sobre el peso..."
-                  value={nuevoRegistro.notas}
-                  onChange={(e) => setNuevoRegistro({...nuevoRegistro, notas: e.target.value})}
+                  value={nuevoRegistro.weight}
+                  onChange={(e) => setNuevoRegistro({...nuevoRegistro, weight: e.target.value})}
                 />
               </div>
               <div className="flex gap-2">
@@ -233,9 +190,9 @@ const Peso = () => {
                     <div className="flex justify-between items-start">
                       <div>
                         <CardTitle className="text-2xl font-bold">
-                          {registro.peso} kg
+                          {registro.weight} kg
                         </CardTitle>
-                        <p className="text-sm text-slate-600">{registro.fecha}</p>
+                        <p className="text-sm text-slate-600">{registro.date}</p>
                       </div>
                       {tendencia !== null && (
                         <div className={`flex items-center gap-1 px-2 py-1 rounded-full text-sm ${
@@ -255,16 +212,6 @@ const Peso = () => {
                       )}
                     </div>
                   </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3">
-                      {registro.foto_url && (
-                        <img src={registro.foto_url} alt="Registro de peso" className="w-full max-w-64 h-48 object-cover rounded" />
-                      )}
-                      {registro.notas && (
-                        <p className="text-slate-600">{registro.notas}</p>
-                      )}
-                    </div>
-                  </CardContent>
                 </Card>
               );
             })
