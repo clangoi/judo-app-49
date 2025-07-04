@@ -52,21 +52,21 @@ const Index = () => {
       color: "bg-[#575757]"
     },
     {
-      title: "Entrenamientos de Judo",
+      title: "Entrenamientos",
       description: "Registro de entrenamientos",
       icon: Users,
       href: "/entrenamientos-judo",
       color: "bg-[#C5A46C]"
     },
     {
-      title: "Técnicas de Judo",
+      title: "Técnicas",
       description: "Biblioteca de técnicas",
       icon: BookOpen,
       href: "/tecnicas-judo",
       color: "bg-[#575757]"
     },
     {
-      title: "Táctica de Judo",
+      title: "Táctica",
       description: "Estrategias y planes tácticos",
       icon: Target,
       href: "/tactica-judo",
