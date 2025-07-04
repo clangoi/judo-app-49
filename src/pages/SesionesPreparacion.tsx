@@ -34,7 +34,7 @@ interface ExerciseRecord {
   weight_kg?: number;
   duration_minutes?: number;
   notes?: string;
-  saved?: boolean;
+  saved?: boolean; // This is only for frontend state, not saved to database
 }
 
 const SesionesPreparacion = () => {
@@ -94,17 +94,24 @@ const SesionesPreparacion = () => {
       
       if (sessionError) throw sessionError;
 
-      // Create exercise records
+      // Create exercise records (only include database fields)
       for (const ejercicio of ejerciciosRealizados) {
         if (ejercicio.exercise_id) {
+          const recordToInsert = {
+            exercise_id: ejercicio.exercise_id,
+            sets: ejercicio.sets,
+            reps: ejercicio.reps,
+            weight_kg: ejercicio.weight_kg,
+            duration_minutes: ejercicio.duration_minutes,
+            notes: ejercicio.notes,
+            training_session_id: sessionData.id,
+            user_id: user!.id,
+            date: sesion.date
+          };
+          
           const { error: recordError } = await supabase
             .from('exercise_records')
-            .insert([{
-              ...ejercicio,
-              training_session_id: sessionData.id,
-              user_id: user!.id,
-              date: sesion.date
-            }]);
+            .insert([recordToInsert]);
           
           if (recordError) throw recordError;
         }
