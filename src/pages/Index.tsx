@@ -91,7 +91,7 @@ const Index = () => {
               </div>
               <div>
                 <h1 className="text-2xl font-bold text-[#1A1A1A]">
-                  Royal Club - Panel de Entrenamiento
+                  Royal Strenght - Panel de Entrenamiento
                 </h1>
                 <p className="text-[#575757]">
                   {getGreeting()}, {profile?.full_name || user?.email}
