@@ -2,8 +2,12 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import type { Database } from "@/integrations/supabase/types";
 
 export type AppRole = 'deportista' | 'entrenador' | 'admin';
+
+// Usar el tipo de la base de datos para la mutación
+type DatabaseRole = Database['public']['Enums']['app_role'];
 
 interface UserRole {
   id: string;
@@ -71,7 +75,7 @@ export const useUserRoles = (userId?: string) => {
         .from('user_roles')
         .upsert({
           user_id: targetUserId,
-          role,
+          role: role as DatabaseRole,
           assigned_by: userId
         })
         .select()

@@ -52,7 +52,7 @@ const Admin = () => {
         <Tabs defaultValue="roles" className="space-y-6">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="roles">Gestión de Roles</TabsTrigger>
-            <TabsTrigger value="assignments">Asignaciones Entrenador-Practicante</TabsTrigger>
+            <TabsTrigger value="assignments">Asignaciones Entrenador-Deportista</TabsTrigger>
           </TabsList>
           
           <TabsContent value="roles" className="space-y-6">
