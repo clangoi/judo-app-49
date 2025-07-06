@@ -47,7 +47,7 @@ const UserRoleManagement = () => {
         return 'destructive';
       case 'entrenador':
         return 'default';
-      case 'deportista':
+      case 'practicante':
         return 'secondary';
       default:
         return 'secondary';
@@ -60,8 +60,8 @@ const UserRoleManagement = () => {
         return 'Administrador';
       case 'entrenador':
         return 'Entrenador';
-      case 'deportista':
-        return 'Deportista';
+      case 'practicante':
+        return 'Practicante';
       default:
         return role;
     }
@@ -126,7 +126,7 @@ const UserRoleManagement = () => {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="deportista">Deportista</SelectItem>
+                      <SelectItem value="practicante">Practicante</SelectItem>
                       <SelectItem value="entrenador">Entrenador</SelectItem>
                       <SelectItem value="admin">Administrador</SelectItem>
                     </SelectContent>

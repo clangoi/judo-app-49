@@ -4,7 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import type { Database } from "@/integrations/supabase/types";
 
-export type AppRole = 'deportista' | 'entrenador' | 'admin';
+// Usar los tipos correctos de la base de datos
+export type AppRole = 'practicante' | 'entrenador' | 'admin';
 
 // Usar el tipo de la base de datos para la mutación
 type DatabaseRole = Database['public']['Enums']['app_role'];
