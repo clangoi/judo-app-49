@@ -67,6 +67,20 @@ const UserRoleManagement = () => {
     }
   };
 
+  const getUserDisplayName = (userRole: any) => {
+    if (userRole.profiles?.full_name) {
+      return userRole.profiles.full_name;
+    }
+    if (userRole.profiles?.email) {
+      return userRole.profiles.email;
+    }
+    return `Usuario ${userRole.user_id.slice(0, 8)}...`;
+  };
+
+  const getUserEmail = (userRole: any) => {
+    return userRole.profiles?.email || 'Email no disponible';
+  };
+
   if (isLoadingAllRoles) {
     return (
       <div className="flex items-center justify-center p-8">
@@ -93,14 +107,14 @@ const UserRoleManagement = () => {
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-2">
                     <span className="font-medium text-[#1A1A1A]">
-                      {userRole.profiles?.full_name || userRole.profiles?.email || 'Usuario sin nombre'}
+                      {getUserDisplayName(userRole)}
                     </span>
                     <Badge variant={getRoleBadgeVariant(userRole.role)}>
                       {getRoleLabel(userRole.role)}
                     </Badge>
                   </div>
                   <p className="text-sm text-[#575757]">
-                    {userRole.profiles?.email || 'Sin email'}
+                    {getUserEmail(userRole)}
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
