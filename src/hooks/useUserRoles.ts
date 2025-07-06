@@ -43,7 +43,7 @@ export const useUserRoles = (userId?: string) => {
   const { data: allUserRoles = [], isLoading: isLoadingAllRoles } = useQuery({
     queryKey: ['all-user-roles'],
     queryFn: async () => {
-      // Una sola query con JOIN para obtener todos los datos necesarios
+      // Una sola query con JOIN manual usando user_id
       const { data, error } = await supabase
         .from('user_roles')
         .select(`
@@ -51,26 +51,39 @@ export const useUserRoles = (userId?: string) => {
           user_id,
           role,
           assigned_at,
-          assigned_by,
-          profiles!inner(
-            full_name,
-            email
-          )
+          assigned_by
         `)
         .order('assigned_at', { ascending: false });
       
       if (error) throw error;
 
-      // Transformar los datos para que coincidan con la interfaz esperada
-      const transformedData = data?.map(item => ({
-        id: item.id,
-        user_id: item.user_id,
-        role: item.role as AppRole,
-        assigned_at: item.assigned_at,
-        assigned_by: item.assigned_by,
-        full_name: item.profiles?.full_name || null,
-        email: item.profiles?.email || null
-      })) || [];
+      // Si no hay roles, retornar array vacío
+      if (!data || data.length === 0) {
+        return [];
+      }
+
+      // Obtener los profiles correspondientes
+      const userIds = data.map(role => role.user_id);
+      const { data: profilesData, error: profilesError } = await supabase
+        .from('profiles')
+        .select('user_id, full_name, email')
+        .in('user_id', userIds);
+      
+      if (profilesError) throw profilesError;
+
+      // Combinar los datos manualmente
+      const transformedData = data.map(role => {
+        const profile = profilesData?.find(p => p.user_id === role.user_id);
+        return {
+          id: role.id,
+          user_id: role.user_id,
+          role: role.role as AppRole,
+          assigned_at: role.assigned_at,
+          assigned_by: role.assigned_by,
+          full_name: profile?.full_name || null,
+          email: profile?.email || null
+        };
+      });
 
       return transformedData as UserRole[];
     },
