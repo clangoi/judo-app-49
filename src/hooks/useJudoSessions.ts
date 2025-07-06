@@ -81,8 +81,9 @@ export const useJudoSessions = (userId?: string) => {
         
         if (parts[1]) {
           const funcionoAndNoFunciono = parts[1].split('NO_FUNCIONO:');
-          queFunciono = funcionoAndNoFunciono[0]?.replace(/\n/g, '') || '';
-          queNoFunciono = funcionoAndNoFunciono[1]?.replace(/\n/g, '') || '';
+          // Clean the "queFunciono" text properly by trimming whitespace and removing any remaining markers
+          queFunciono = funcionoAndNoFunciono[0]?.replace(/\n/g, '').trim() || '';
+          queNoFunciono = funcionoAndNoFunciono[1]?.replace(/\n/g, '').trim() || '';
         }
         
         const mapped = {
