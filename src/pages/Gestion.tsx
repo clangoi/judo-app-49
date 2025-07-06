@@ -107,21 +107,22 @@ const Gestion = () => {
           )}
         </div>
 
-        <Tabs
-          value={currentView}
-          onValueChange={(value) => {
-            // Evita cambiar a 'individual' si no hay deportista seleccionado
-            if (value === 'individual' && !selectedAthleteId) return;
-            if (value === 'summary') handleBackToSummary();
-            setCurrentView(value as 'summary' | 'individual');
-          }}
-        >
+        <Tabs value={currentView} onValueChange={(value) => {
+          if (value === 'summary') {
+            handleBackToSummary();
+          }
+          setCurrentView(value as 'summary' | 'individual');
+        }}>
           <TabsList className="grid w-full grid-cols-2 max-w-md">
             <TabsTrigger value="summary" className="flex items-center gap-2">
               <Users className="h-4 w-4" />
               Resumen General
             </TabsTrigger>
-            <TabsTrigger value="individual" className="flex items-center gap-2">
+            <TabsTrigger 
+              value="individual" 
+              disabled={!selectedAthleteId}
+              className="flex items-center gap-2"
+            >
               Deportista Individual
             </TabsTrigger>
           </TabsList>
