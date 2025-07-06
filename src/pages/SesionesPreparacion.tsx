@@ -1,14 +1,17 @@
+
 import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useTrainingSessions } from "@/hooks/useTrainingSessions";
 import NavHeader from "@/components/NavHeader";
 import CreateExerciseModal from "@/components/CreateExerciseModal";
+import ExerciseManagement from "@/components/training/ExerciseManagement";
 import SessionForm from "@/components/training/SessionForm";
 import SessionCard from "@/components/training/SessionCard";
 import SessionDetailsModal from "@/components/training/SessionDetailsModal";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, Activity, Loader2 } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Plus, Activity, Loader2, Dumbbell } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface SesionPreparacion {
@@ -222,57 +225,76 @@ const SesionesPreparacion = () => {
       />
       
       <div className="max-w-4xl mx-auto p-4">
-        <div className="flex gap-2 mb-6">
-          <Button 
-            onClick={handleNuevaSesion}
-            className="bg-[#C5A46C] hover:bg-[#B8956A] text-white"
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Nueva Sesión
-          </Button>
-          <CreateExerciseModal />
-        </div>
+        <Tabs defaultValue="sesiones" className="w-full">
+          <TabsList className="grid w-full grid-cols-2 mb-6">
+            <TabsTrigger value="sesiones" className="flex items-center gap-2">
+              <Activity className="h-4 w-4" />
+              Sesiones
+            </TabsTrigger>
+            <TabsTrigger value="ejercicios" className="flex items-center gap-2">
+              <Dumbbell className="h-4 w-4" />
+              Gestión de Ejercicios
+            </TabsTrigger>
+          </TabsList>
 
-        {mostrarFormulario && (
-          <SessionForm
-            nuevaSesion={nuevaSesion}
-            setNuevaSesion={setNuevaSesion}
-            ejerciciosRealizados={ejerciciosRealizados}
-            ejercicios={ejercicios}
-            nivelesIntensidad={nivelesIntensidad}
-            isSubmitting={createSessionMutation.isPending || updateSessionMutation.isPending}
-            onSubmit={agregarSesion}
-            onCancel={handleCancelar}
-            onAgregarEjercicio={agregarEjercicio}
-            onActualizarEjercicio={actualizarEjercicio}
-            onEliminarEjercicio={eliminarEjercicio}
-            onGuardarEjercicio={guardarEjercicio}
-            onEditarEjercicio={editarEjercicio}
-            isEditing={!!sesionAEditar}
-          />
-        )}
+          <TabsContent value="sesiones" className="space-y-4">
+            <div className="flex gap-2 mb-6">
+              <Button 
+                onClick={handleNuevaSesion}
+                className="bg-[#C5A46C] hover:bg-[#B8956A] text-white"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Nueva Sesión
+              </Button>
+              <CreateExerciseModal />
+            </div>
 
-        <div className="space-y-4">
-          {sesiones.length === 0 ? (
-            <Card className="bg-white border-[#C5A46C]">
-              <CardContent className="p-8 text-center">
-                <Activity className="h-12 w-12 mx-auto text-[#575757] mb-4" />
-                <p className="text-[#575757]">No hay sesiones registradas aún</p>
-                <p className="text-sm text-[#575757]">Agrega tu primera sesión de preparación física</p>
-              </CardContent>
-            </Card>
-          ) : (
-            sesiones.map((sesion) => (
-              <SessionCard 
-                key={sesion.id} 
-                sesion={sesion}
-                onView={setSesionAVer}
-                onEdit={handleEditSesion}
-                onDelete={handleDeleteSesion}
+            {mostrarFormulario && (
+              <SessionForm
+                nuevaSesion={nuevaSesion}
+                setNuevaSesion={setNuevaSesion}
+                ejerciciosRealizados={ejerciciosRealizados}
+                ejercicios={ejercicios}
+                nivelesIntensidad={nivelesIntensidad}
+                isSubmitting={createSessionMutation.isPending || updateSessionMutation.isPending}
+                onSubmit={agregarSesion}
+                onCancel={handleCancelar}
+                onAgregarEjercicio={agregarEjercicio}
+                onActualizarEjercicio={actualizarEjercicio}
+                onEliminarEjercicio={eliminarEjercicio}
+                onGuardarEjercicio={guardarEjercicio}
+                onEditarEjercicio={editarEjercicio}
+                isEditing={!!sesionAEditar}
               />
-            ))
-          )}
-        </div>
+            )}
+
+            <div className="space-y-4">
+              {sesiones.length === 0 ? (
+                <Card className="bg-white border-[#C5A46C]">
+                  <CardContent className="p-8 text-center">
+                    <Activity className="h-12 w-12 mx-auto text-[#575757] mb-4" />
+                    <p className="text-[#575757]">No hay sesiones registradas aún</p>
+                    <p className="text-sm text-[#575757]">Agrega tu primera sesión de preparación física</p>
+                  </CardContent>
+                </Card>
+              ) : (
+                sesiones.map((sesion) => (
+                  <SessionCard 
+                    key={sesion.id} 
+                    sesion={sesion}
+                    onView={setSesionAVer}
+                    onEdit={handleEditSesion}
+                    onDelete={handleDeleteSesion}
+                  />
+                ))
+              )}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="ejercicios">
+            <ExerciseManagement />
+          </TabsContent>
+        </Tabs>
 
         <SessionDetailsModal
           sesion={sesionAVer}
