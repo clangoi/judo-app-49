@@ -58,8 +58,21 @@ export const AthleteCard = ({ athlete, onClick }: AthleteCardProps) => {
     });
   };
 
+  const handleCardClick = (e: React.MouseEvent) => {
+    // Evitar que el clic en el botón active el clic de la tarjeta
+    if ((e.target as HTMLElement).closest('button')) {
+      return;
+    }
+    onClick();
+  };
+
+  const handleButtonClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onClick();
+  };
+
   return (
-    <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={onClick}>
+    <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={handleCardClick}>
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
           <div>
@@ -130,7 +143,12 @@ export const AthleteCard = ({ athlete, onClick }: AthleteCardProps) => {
         </div>
 
         {/* Botón de ver detalles */}
-        <Button variant="outline" size="sm" className="w-full">
+        <Button 
+          variant="outline" 
+          size="sm" 
+          className="w-full"
+          onClick={handleButtonClick}
+        >
           <Eye className="h-4 w-4 mr-2" />
           Ver Detalles
         </Button>

@@ -8,13 +8,15 @@ import { AthletesSummaryView } from "@/components/gestion/AthletesSummaryView";
 import { IndividualAthleteView } from "@/components/gestion/IndividualAthleteView";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
-import { Users, ArrowLeft } from "lucide-react";
+import { Users, ArrowLeft, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
 
 const Gestion = () => {
   const { user } = useAuth();
   const { currentUserRole } = useUserRoles(user?.id);
   const { athletesData, isLoading, filterAthletes, getGroupStats } = useAthleteManagement(user?.id || '');
+  const navigate = useNavigate();
   
   const [selectedAthleteId, setSelectedAthleteId] = useState<string | null>(null);
   const [currentView, setCurrentView] = useState<'summary' | 'individual'>('summary');
@@ -62,6 +64,10 @@ const Gestion = () => {
     setCurrentView('summary');
   };
 
+  const handleAdminPanel = () => {
+    navigate('/admin');
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <NavHeader 
@@ -73,8 +79,9 @@ const Gestion = () => {
       />
 
       <div className="max-w-7xl mx-auto p-6">
-        {currentView === 'individual' && (
-          <div className="mb-6">
+        {/* Botones de navegación */}
+        <div className="flex items-center justify-between mb-6">
+          {currentView === 'individual' && (
             <Button
               variant="outline"
               onClick={handleBackToSummary}
@@ -83,10 +90,29 @@ const Gestion = () => {
               <ArrowLeft className="h-4 w-4" />
               Volver al Resumen
             </Button>
-          </div>
-        )}
+          )}
+          
+          {currentView === 'summary' && <div></div>}
+          
+          {/* Solo mostrar botón de Admin si el usuario es administrador */}
+          {currentUserRole === 'admin' && (
+            <Button
+              variant="outline"
+              onClick={handleAdminPanel}
+              className="flex items-center gap-2"
+            >
+              <Shield className="h-4 w-4" />
+              Panel de Administración
+            </Button>
+          )}
+        </div>
 
-        <Tabs value={currentView} onValueChange={(value) => setCurrentView(value as 'summary' | 'individual')}>
+        <Tabs value={currentView} onValueChange={(value) => {
+          if (value === 'summary') {
+            handleBackToSummary();
+          }
+          setCurrentView(value as 'summary' | 'individual');
+        }}>
           <TabsList className="grid w-full grid-cols-2 max-w-md">
             <TabsTrigger value="summary" className="flex items-center gap-2">
               <Users className="h-4 w-4" />
