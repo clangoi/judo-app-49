@@ -189,8 +189,13 @@ export const useJudoSessions = (userId?: string) => {
 
   const updateSessionMutation = useMutation({
     mutationFn: async ({ id, entrenamiento }: { id: string; entrenamiento: Omit<EntrenamientoJudo, 'id'> }) => {
-      const notes = `${entrenamiento.tecnicasPracticadas}\nFUNCIONO:${entrenamiento.queFunciono}\nNO_FUNCIONO:${entrenamiento.queNoFunciono}`;
-
+      const lines = [
+        entrenamiento.tecnicasPracticadas,
+        `FUNCIONO: ${entrenamiento.queFunciono}`,
+        entrenamiento.queNoFunciono && `NO_FUNCIONO: ${entrenamiento.queNoFunciono}`
+      ]
+      // filter(Boolean) elimina elementos false-y ('' | undefined)
+      const notes = lines.filter(Boolean).join('\n');
       const { data: session, error: sessionError } = await supabase
         .from('training_sessions')
         .update({
