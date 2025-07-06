@@ -1,4 +1,3 @@
-
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRoles } from "@/hooks/useUserRoles";
 import { useQuery } from "@tanstack/react-query";
@@ -41,6 +40,10 @@ const Index = () => {
 
   const handleAdminPanel = () => {
     navigate('/admin');
+  };
+
+  const handleGestionPanel = () => {
+    navigate('/gestion');
   };
 
   const cards = [
@@ -114,7 +117,19 @@ const Index = () => {
                 {user?.email}
               </div>
               
-              {(currentUserRole === 'admin' || currentUserRole === 'entrenador') && (
+              {currentUserRole === 'entrenador' && (
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={handleGestionPanel}
+                  className="ml-2 border-[#C5A46C] text-[#C5A46C] hover:bg-[#C5A46C] hover:text-white"
+                >
+                  <Shield className="h-4 w-4 mr-2" />
+                  Gestión
+                </Button>
+              )}
+              
+              {currentUserRole === 'admin' && (
                 <Button 
                   variant="outline" 
                   size="sm"
@@ -122,7 +137,7 @@ const Index = () => {
                   className="ml-2 border-[#C5A46C] text-[#C5A46C] hover:bg-[#C5A46C] hover:text-white"
                 >
                   <Shield className="h-4 w-4 mr-2" />
-                  {currentUserRole === 'admin' ? 'Admin' : 'Gestión'}
+                  Admin
                 </Button>
               )}
               
