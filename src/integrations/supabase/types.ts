@@ -284,6 +284,30 @@ export type Database = {
         }
         Relationships: []
       }
+      trainer_assignments: {
+        Row: {
+          assigned_at: string | null
+          assigned_by: string | null
+          id: string
+          student_id: string
+          trainer_id: string
+        }
+        Insert: {
+          assigned_at?: string | null
+          assigned_by?: string | null
+          id?: string
+          student_id: string
+          trainer_id: string
+        }
+        Update: {
+          assigned_at?: string | null
+          assigned_by?: string | null
+          id?: string
+          student_id?: string
+          trainer_id?: string
+        }
+        Relationships: []
+      }
       training_sessions: {
         Row: {
           created_at: string | null
@@ -373,6 +397,24 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_student_trainer: {
+        Args: { _student_id?: string }
+        Returns: {
+          trainer_id: string
+          full_name: string
+          email: string
+          assigned_at: string
+        }[]
+      }
+      get_trainer_students: {
+        Args: { _trainer_id?: string }
+        Returns: {
+          student_id: string
+          full_name: string
+          email: string
+          assigned_at: string
+        }[]
+      }
       get_user_role: {
         Args: { _user_id?: string }
         Returns: Database["public"]["Enums"]["app_role"]
