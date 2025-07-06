@@ -90,12 +90,21 @@ export const useUserRoles = (userId?: string) => {
     enabled: currentUserRole === 'admin',
   });
 
-  // Asignar rol a usuario
+  // Asignar rol a usuario - MODIFICADO para reemplazar el rol anterior
   const assignRoleMutation = useMutation({
     mutationFn: async ({ userId: targetUserId, role }: { userId: string; role: AppRole }) => {
-      const { data, error } = await supabase
+      // PASO 1: Eliminar el rol anterior del usuario
+      const { error: deleteError } = await supabase
         .from('user_roles')
-        .upsert({
+        .delete()
+        .eq('user_id', targetUserId);
+      
+      if (deleteError) throw deleteError;
+      
+      // PASO 2: Insertar el nuevo rol
+      const { data, error: insertError } = await supabase
+        .from('user_roles')
+        .insert({
           user_id: targetUserId,
           role: role as DatabaseRole,
           assigned_by: userId
@@ -103,21 +112,21 @@ export const useUserRoles = (userId?: string) => {
         .select()
         .single();
       
-      if (error) throw error;
+      if (insertError) throw insertError;
       return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['all-user-roles'] });
       queryClient.invalidateQueries({ queryKey: ['user-role'] });
       toast({
-        title: "Rol asignado",
-        description: "El rol ha sido asignado exitosamente.",
+        title: "Rol actualizado",
+        description: "El rol ha sido actualizado exitosamente.",
       });
     },
     onError: (error: any) => {
       toast({
         title: "Error",
-        description: error.message || "No se pudo asignar el rol.",
+        description: error.message || "No se pudo actualizar el rol.",
         variant: "destructive",
       });
     }
