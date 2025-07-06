@@ -40,7 +40,7 @@ export const useUserRoles = (userId?: string) => {
         .from('user_roles')
         .select(`
           *,
-          profiles!user_roles_user_id_fkey(full_name, email)
+          profiles!user_id(full_name, email)
         `)
         .order('assigned_at', { ascending: false });
       
