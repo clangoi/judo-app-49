@@ -68,17 +68,17 @@ const UserRoleManagement = () => {
   };
 
   const getUserDisplayName = (userRole: any) => {
-    if (userRole.profiles?.full_name) {
-      return userRole.profiles.full_name;
+    if (userRole.full_name) {
+      return userRole.full_name;
     }
-    if (userRole.profiles?.email) {
-      return userRole.profiles.email;
+    if (userRole.email) {
+      return userRole.email;
     }
     return `Usuario ${userRole.user_id.slice(0, 8)}...`;
   };
 
   const getUserEmail = (userRole: any) => {
-    return userRole.profiles?.email || 'Email no disponible';
+    return userRole.email || 'Email no disponible';
   };
 
   if (isLoadingAllRoles) {

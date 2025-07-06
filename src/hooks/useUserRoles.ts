@@ -16,6 +16,8 @@ interface UserRole {
   role: AppRole;
   assigned_at: string;
   assigned_by: string | null;
+  full_name: string | null;
+  email: string | null;
 }
 
 export const useUserRoles = (userId?: string) => {
@@ -37,34 +39,40 @@ export const useUserRoles = (userId?: string) => {
     enabled: !!userId,
   });
 
-  // Obtener todos los roles (solo para admins)
+  // Obtener todos los roles (solo para admins) - query simplificada con JOIN
   const { data: allUserRoles = [], isLoading: isLoadingAllRoles } = useQuery({
     queryKey: ['all-user-roles'],
     queryFn: async () => {
-      // Primero obtenemos los roles
-      const { data: rolesData, error: rolesError } = await supabase
+      // Una sola query con JOIN para obtener todos los datos necesarios
+      const { data, error } = await supabase
         .from('user_roles')
-        .select('*')
+        .select(`
+          id,
+          user_id,
+          role,
+          assigned_at,
+          assigned_by,
+          profiles!inner(
+            full_name,
+            email
+          )
+        `)
         .order('assigned_at', { ascending: false });
       
-      if (rolesError) throw rolesError;
+      if (error) throw error;
 
-      // Luego obtenemos los profiles correspondientes
-      const userIds = rolesData?.map(role => role.user_id) || [];
-      const { data: profilesData, error: profilesError } = await supabase
-        .from('profiles')
-        .select('user_id, full_name, email')
-        .in('user_id', userIds);
-      
-      if (profilesError) throw profilesError;
-
-      // Combinamos la data
-      const combinedData = rolesData?.map(role => ({
-        ...role,
-        profiles: profilesData?.find(profile => profile.user_id === role.user_id) || null
+      // Transformar los datos para que coincidan con la interfaz esperada
+      const transformedData = data?.map(item => ({
+        id: item.id,
+        user_id: item.user_id,
+        role: item.role as AppRole,
+        assigned_at: item.assigned_at,
+        assigned_by: item.assigned_by,
+        full_name: item.profiles?.full_name || null,
+        email: item.profiles?.email || null
       })) || [];
 
-      return combinedData as (UserRole & { profiles: { full_name: string; email: string } | null })[];
+      return transformedData as UserRole[];
     },
     enabled: currentUserRole === 'admin',
   });
