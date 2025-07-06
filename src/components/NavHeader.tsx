@@ -36,8 +36,8 @@ const NavHeader = ({ title, subtitle }: NavHeaderProps) => {
         return 'Administrador';
       case 'entrenador':
         return 'Entrenador';
-      case 'practicante':
-        return 'Practicante';
+      case 'deportista':
+        return 'Deportista';
       default:
         return role;
     }
@@ -49,7 +49,7 @@ const NavHeader = ({ title, subtitle }: NavHeaderProps) => {
         return 'destructive';
       case 'entrenador':
         return 'default';
-      case 'practicante':
+      case 'deportista':
         return 'secondary';
       default:
         return 'secondary';
@@ -88,7 +88,7 @@ const NavHeader = ({ title, subtitle }: NavHeaderProps) => {
               </Badge>
             )}
             
-            {currentUserRole === 'admin' && location.pathname !== '/admin' && (
+            {(currentUserRole === 'admin' || currentUserRole === 'entrenador') && location.pathname !== '/admin' && (
               <Button
                 variant="ghost"
                 size="sm"
@@ -96,7 +96,7 @@ const NavHeader = ({ title, subtitle }: NavHeaderProps) => {
                 className="text-white hover:bg-white/20"
               >
                 <Shield className="h-4 w-4 mr-2" />
-                Admin
+                {currentUserRole === 'admin' ? 'Admin' : 'Gestión'}
               </Button>
             )}
             

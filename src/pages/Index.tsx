@@ -1,14 +1,17 @@
 
 import { useAuth } from "@/hooks/useAuth";
+import { useUserRoles } from "@/hooks/useUserRoles";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Weight, Activity, Users, Target, BookOpen, LogOut, User, BarChart3 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Weight, Activity, Users, Target, BookOpen, LogOut, User, BarChart3, Shield } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
 
 const Index = () => {
   const { user, signOut } = useAuth();
+  const { currentUserRole } = useUserRoles(user?.id);
+  const navigate = useNavigate();
 
   const { data: profile } = useQuery({
     queryKey: ['profile', user?.id],
@@ -34,6 +37,10 @@ const Index = () => {
       return 'Bienvenide'
     }
     return 'Bienvenido';
+  };
+
+  const handleAdminPanel = () => {
+    navigate('/admin');
   };
 
   const cards = [
@@ -106,11 +113,24 @@ const Index = () => {
                 <User className="h-4 w-4" />
                 {user?.email}
               </div>
+              
+              {(currentUserRole === 'admin' || currentUserRole === 'entrenador') && (
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={handleAdminPanel}
+                  className="ml-2 border-[#C5A46C] text-[#C5A46C] hover:bg-[#C5A46C] hover:text-white"
+                >
+                  <Shield className="h-4 w-4 mr-2" />
+                  {currentUserRole === 'admin' ? 'Admin' : 'Gestión'}
+                </Button>
+              )}
+              
               <Button 
                 variant="outline" 
                 size="sm"
                 onClick={signOut}
-                className="ml-4 border-[#C5A46C] text-[#C5A46C] hover:bg-[#C5A46C] hover:text-white"
+                className="ml-2 border-[#C5A46C] text-[#C5A46C] hover:bg-[#C5A46C] hover:text-white"
               >
                 <LogOut className="h-4 w-4 mr-2" />
                 Cerrar Sesión

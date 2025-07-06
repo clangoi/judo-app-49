@@ -93,7 +93,7 @@ const UserRoleManagement = () => {
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-2">
                     <span className="font-medium text-[#1A1A1A]">
-                      {userRole.profiles?.full_name || 'Usuario sin nombre'}
+                      {userRole.profiles?.full_name || userRole.profiles?.email || 'Usuario sin nombre'}
                     </span>
                     <Badge variant={getRoleBadgeVariant(userRole.role)}>
                       {getRoleLabel(userRole.role)}
