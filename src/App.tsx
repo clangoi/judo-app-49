@@ -15,6 +15,7 @@ import TecnicasJudo from "./pages/TecnicasJudo";
 import TacticaJudo from "./pages/TacticaJudo";
 import Graficos from "./pages/Graficos";
 import Admin from "./pages/Admin";
+import Gestion from "./pages/Gestion";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
