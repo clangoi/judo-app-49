@@ -14,6 +14,7 @@ import EntrenamientosJudo from "./pages/EntrenamientosJudo";
 import TecnicasJudo from "./pages/TecnicasJudo";
 import TacticaJudo from "./pages/TacticaJudo";
 import Graficos from "./pages/Graficos";
+import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -34,6 +35,7 @@ const App = () => (
             <Route path="/tecnicas-judo" element={<AuthGuard><TecnicasJudo /></AuthGuard>} />
             <Route path="/tactica-judo" element={<AuthGuard><TacticaJudo /></AuthGuard>} />
             <Route path="/graficos" element={<AuthGuard><Graficos /></AuthGuard>} />
+            <Route path="/admin" element={<AuthGuard><Admin /></AuthGuard>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
