@@ -70,7 +70,7 @@ const Gestion = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <NavHeader 
-        title={currentView === 'summary' ? 'Gestión de Deportistas' : `Deportista: ${selectedAthlete?.full_name}`}
+        title={currentView === 'summary' ? 'Gestión de Deportistas' : `Deportista: ${selectedAthlete?.full_name || 'Selección'}`}
         subtitle={currentView === 'summary' 
           ? `${groupStats.totalAthletes} deportistas asignados` 
           : 'Datos detallados del deportista'
@@ -118,8 +118,7 @@ const Gestion = () => {
               Resumen General
             </TabsTrigger>
             <TabsTrigger 
-              value="individual" 
-              disabled={!selectedAthleteId}
+              value="individual"
               className="flex items-center gap-2"
             >
               Deportista Individual
@@ -138,21 +137,13 @@ const Gestion = () => {
           </TabsContent>
 
           <TabsContent value="individual" className="mt-6">
-            {selectedAthleteId && selectedAthlete ? (
-              <IndividualAthleteView
-                athleteId={selectedAthleteId}
-                athlete={selectedAthlete}
-                onBack={handleBackToSummary}
-              />
-            ) : (
-              <Card>
-                <CardContent className="p-6 text-center">
-                  <p className="text-gray-600">
-                    Selecciona un deportista desde el resumen general para ver sus datos detallados.
-                  </p>
-                </CardContent>
-              </Card>
-            )}
+            <IndividualAthleteView
+              athleteId={selectedAthleteId || ''}
+              athlete={selectedAthlete!}
+              onBack={handleBackToSummary}
+              allAthletes={filteredAthletes}
+              onAthleteSelect={handleAthleteSelect}
+            />
           </TabsContent>
         </Tabs>
       </div>

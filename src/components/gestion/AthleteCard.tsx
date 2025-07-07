@@ -1,16 +1,17 @@
 
 import { AthleteData } from "@/hooks/useAthleteManagement";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Calendar, Weight, Trophy, Target, Eye } from "lucide-react";
+import { User, Calendar, Trophy, TrendingUp, Eye } from "lucide-react";
 
 interface AthleteCardProps {
   athlete: AthleteData;
   onClick: () => void;
+  isSelected?: boolean;
 }
 
-export const AthleteCard = ({ athlete, onClick }: AthleteCardProps) => {
+export const AthleteCard = ({ athlete, onClick, isSelected = false }: AthleteCardProps) => {
   const getActivityColor = (status: string) => {
     switch (status) {
       case 'active':
@@ -50,108 +51,83 @@ export const AthleteCard = ({ athlete, onClick }: AthleteCardProps) => {
     return colors[belt] || colors.white;
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('es-ES', {
-      day: '2-digit',
-      month: '2-digit',
-      year: '2-digit'
-    });
-  };
-
-  const handleCardClick = (e: React.MouseEvent) => {
-    // Evitar que el clic en el botón active el clic de la tarjeta
-    if ((e.target as HTMLElement).closest('button')) {
-      return;
-    }
-    onClick();
-  };
-
-  const handleButtonClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    onClick();
-  };
-
   return (
-    <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={handleCardClick}>
+    <Card 
+      className={`cursor-pointer transition-all hover:shadow-md ${
+        isSelected ? 'ring-2 ring-blue-500 shadow-md' : ''
+      }`}
+      onClick={onClick}
+    >
       <CardHeader className="pb-3">
-        <div className="flex items-start justify-between">
-          <div>
-            <h3 className="font-semibold text-lg">{athlete.full_name}</h3>
-            <p className="text-sm text-muted-foreground">{athlete.email}</p>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
+              <User className="h-5 w-5 text-gray-500" />
+            </div>
+            <div>
+              <CardTitle className="text-base">{athlete.full_name}</CardTitle>
+              <p className="text-sm text-muted-foreground">{athlete.email}</p>
+            </div>
           </div>
-          <Badge className={getActivityColor(athlete.activityStatus)}>
-            {getActivityLabel(athlete.activityStatus)}
-          </Badge>
+          {!isSelected && (
+            <Button variant="ghost" size="sm">
+              <Eye className="h-4 w-4" />
+            </Button>
+          )}
         </div>
       </CardHeader>
 
-      <CardContent className="space-y-4">
-        {/* Información básica */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Trophy className="h-4 w-4 text-muted-foreground" />
-            <span className="text-sm">Cinturón:</span>
-          </div>
+      <CardContent className="space-y-3">
+        {/* Estado y Cinturón */}
+        <div className="flex gap-2">
+          <Badge className={getActivityColor(athlete.activityStatus)}>
+            {getActivityLabel(athlete.activityStatus)}
+          </Badge>
           <Badge className={getBeltColor(athlete.current_belt)}>
             {athlete.current_belt}
           </Badge>
         </div>
 
-        {/* Último peso */}
-        {athlete.lastWeightEntry && (
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Weight className="h-4 w-4 text-muted-foreground" />
-              <span className="text-sm">Último peso:</span>
-            </div>
-            <div className="text-sm font-medium">
-              {athlete.lastWeightEntry.weight} kg
-              <span className="text-muted-foreground ml-1">
-                ({formatDate(athlete.lastWeightEntry.date)})
+        {/* Métricas */}
+        <div className="grid grid-cols-3 gap-2 text-center">
+          <div>
+            <div className="flex items-center justify-center gap-1">
+              <Calendar className="h-3 w-3 text-blue-600" />
+              <span className="text-sm font-semibold text-blue-600">
+                {athlete.weeklySessionsCount}
               </span>
             </div>
+            <div className="text-xs text-muted-foreground">Sesiones</div>
           </div>
-        )}
-
-        {/* Última sesión */}
-        {athlete.lastTrainingSession && (
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Calendar className="h-4 w-4 text-muted-foreground" />
-              <span className="text-sm">Última sesión:</span>
+          
+          <div>
+            <div className="flex items-center justify-center gap-1">
+              <Trophy className="h-3 w-3 text-green-600" />
+              <span className="text-sm font-semibold text-green-600">
+                {athlete.totalTechniques}
+              </span>
             </div>
-            <div className="text-sm font-medium">
-              {formatDate(athlete.lastTrainingSession.date)}
-            </div>
-          </div>
-        )}
-
-        {/* Estadísticas rápidas */}
-        <div className="grid grid-cols-3 gap-4 pt-2 border-t">
-          <div className="text-center">
-            <div className="text-lg font-bold text-blue-600">{athlete.weeklySessionsCount}</div>
-            <div className="text-xs text-muted-foreground">Sesiones/sem</div>
-          </div>
-          <div className="text-center">
-            <div className="text-lg font-bold text-green-600">{athlete.totalTechniques}</div>
             <div className="text-xs text-muted-foreground">Técnicas</div>
           </div>
-          <div className="text-center">
-            <div className="text-lg font-bold text-purple-600">{athlete.totalTacticalNotes}</div>
+
+          <div>
+            <div className="flex items-center justify-center gap-1">
+              <TrendingUp className="h-3 w-3 text-purple-600" />
+              <span className="text-sm font-semibold text-purple-600">
+                {athlete.totalTacticalNotes}
+              </span>
+            </div>
             <div className="text-xs text-muted-foreground">Tácticas</div>
           </div>
         </div>
 
-        {/* Botón de ver detalles */}
-        <Button 
-          variant="outline" 
-          size="sm" 
-          className="w-full"
-          onClick={handleButtonClick}
-        >
-          <Eye className="h-4 w-4 mr-2" />
-          Ver Detalles
-        </Button>
+        {/* Información adicional */}
+        <div className="text-xs text-muted-foreground">
+          <p>Club: {athlete.club_name}</p>
+          {athlete.lastWeightEntry && (
+            <p>Último peso: {athlete.lastWeightEntry.weight} kg</p>
+          )}
+        </div>
       </CardContent>
     </Card>
   );

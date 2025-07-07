@@ -4,14 +4,23 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { User, Weight, Calendar, Trophy, Target, Swords } from "lucide-react";
+import { AthleteCard } from "./AthleteCard";
 
 interface IndividualAthleteViewProps {
   athleteId: string;
   athlete: AthleteData;
   onBack: () => void;
+  allAthletes?: AthleteData[];
+  onAthleteSelect?: (athleteId: string) => void;
 }
 
-export const IndividualAthleteView = ({ athleteId, athlete, onBack }: IndividualAthleteViewProps) => {
+export const IndividualAthleteView = ({ 
+  athleteId, 
+  athlete, 
+  onBack, 
+  allAthletes = [], 
+  onAthleteSelect 
+}: IndividualAthleteViewProps) => {
   const getActivityColor = (status: string) => {
     switch (status) {
       case 'active':
@@ -59,8 +68,51 @@ export const IndividualAthleteView = ({ athleteId, athlete, onBack }: Individual
     });
   };
 
+  // Si no hay athleteId o athlete, mostrar todas las tarjetas de deportistas
+  if (!athleteId || !athlete) {
+    return (
+      <div className="space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Selecciona un Deportista</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-muted-foreground mb-4">
+              Elige un deportista para ver sus datos detallados.
+            </p>
+            
+            {allAthletes.length === 0 ? (
+              <div className="text-center py-8">
+                <p className="text-gray-600">No hay deportistas disponibles.</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {allAthletes.map((athleteItem) => (
+                  <AthleteCard
+                    key={athleteItem.id}
+                    athlete={athleteItem}
+                    onClick={() => onAthleteSelect?.(athleteItem.id)}
+                  />
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
+      {/* Tarjeta del Deportista Seleccionado */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+        <AthleteCard
+          athlete={athlete}
+          onClick={() => {}}
+          isSelected={true}
+        />
+      </div>
+
       {/* Header del Deportista */}
       <Card>
         <CardHeader>
