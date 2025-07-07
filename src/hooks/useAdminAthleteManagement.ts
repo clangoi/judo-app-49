@@ -1,27 +1,28 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
-
-export interface TrainerWithAthletes {
-  trainer_id: string;
-  trainer_name: string;
-  trainer_email: string;
-  athletes: AdminAthleteData[];
-  totalAthletes: number;
-  activeAthletes: number;
-  averageWeeklySessions: number;
-}
 
 export interface AdminAthleteData {
   id: string;
   full_name: string;
   email: string;
-  current_belt: string;
   club_name: string;
-  assigned_at: string;
-  trainer_name: string;
-  trainer_email: string;
+  current_belt: string;
+  gender?: 'male' | 'female';
+  competition_category?: string;
+  injuries?: string[];
+  injury_description?: string;
+  profile_image_url?: string;
+  activityStatus: 'active' | 'moderate' | 'inactive';
+  weeklySessionsCount: number;
+  totalTechniques: number;
+  totalTacticalNotes: number;
+  trainer?: {
+    id: string;
+    full_name: string;
+    email: string;
+    assigned_at: string;
+  };
   lastWeightEntry?: {
     weight: number;
     date: string;
@@ -30,173 +31,182 @@ export interface AdminAthleteData {
     session_type: string;
     date: string;
   };
-  activityStatus: 'active' | 'moderate' | 'inactive';
-  weeklySessionsCount: number;
-  totalTechniques: number;
-  totalTacticalNotes: number;
 }
 
 export const useAdminAthleteManagement = () => {
-  const { toast } = useToast();
-
-  // Obtener todos los entrenadores con sus deportistas
-  const { data: trainersWithAthletes = [], isLoading } = useQuery({
-    queryKey: ['admin-athletes-management'],
+  const { data: athletesData = [], isLoading, error } = useQuery({
+    queryKey: ['admin-athlete-management'],
     queryFn: async () => {
-      // Obtener todas las asignaciones trainer-student
-      const { data: assignments, error: assignmentsError } = await supabase
-        .from('trainer_assignments')
-        .select(`
-          trainer_id,
-          student_id,
-          assigned_at
-        `);
-
-      if (assignmentsError) throw assignmentsError;
-
-      // Obtener información de todos los entrenadores
-      const trainerIds = [...new Set(assignments?.map(a => a.trainer_id) || [])];
-      const { data: trainerProfiles, error: trainersError } = await supabase
+      console.log('Fetching all athletes for admin view');
+      
+      // Get all profiles
+      const { data: profiles, error: profileError } = await supabase
         .from('profiles')
-        .select('user_id, full_name, email')
-        .in('user_id', trainerIds);
+        .select('*');
 
-      if (trainersError) throw trainersError;
-
-      // Obtener información de todos los deportistas
-      const studentIds = [...new Set(assignments?.map(a => a.student_id) || [])];
-      const { data: studentProfiles, error: studentsError } = await supabase
-        .from('profiles')
-        .select('user_id, full_name, email, current_belt, club_name')
-        .in('user_id', studentIds);
-
-      if (studentsError) throw studentsError;
-
-      const trainersData: TrainerWithAthletes[] = [];
-
-      for (const trainer of trainerProfiles || []) {
-        const trainerAssignments = assignments?.filter(a => a.trainer_id === trainer.user_id) || [];
-        const athletesData: AdminAthleteData[] = [];
-
-        for (const assignment of trainerAssignments) {
-          const studentProfile = studentProfiles?.find(s => s.user_id === assignment.student_id);
-          if (!studentProfile) continue;
-
-          // Obtener última entrada de peso
-          const { data: lastWeight } = await supabase
-            .from('weight_entries')
-            .select('weight, date')
-            .eq('user_id', assignment.student_id)
-            .order('date', { ascending: false })
-            .limit(1)
-            .maybeSingle();
-
-          // Obtener última sesión de entrenamiento
-          const { data: lastSession } = await supabase
-            .from('training_sessions')
-            .select('session_type, date')
-            .eq('user_id', assignment.student_id)
-            .order('date', { ascending: false })
-            .limit(1)
-            .maybeSingle();
-
-          // Contar sesiones de la última semana
-          const oneWeekAgo = new Date();
-          oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
-          
-          const { count: weeklySessionsCount } = await supabase
-            .from('training_sessions')
-            .select('*', { count: 'exact', head: true })
-            .eq('user_id', assignment.student_id)
-            .gte('date', oneWeekAgo.toISOString().split('T')[0]);
-
-          // Contar técnicas
-          const { count: totalTechniques } = await supabase
-            .from('techniques')
-            .select('*', { count: 'exact', head: true })
-            .eq('user_id', assignment.student_id);
-
-          // Contar notas tácticas
-          const { count: totalTacticalNotes } = await supabase
-            .from('tactical_notes')
-            .select('*', { count: 'exact', head: true })
-            .eq('user_id', assignment.student_id);
-
-          // Determinar estado de actividad
-          let activityStatus: 'active' | 'moderate' | 'inactive' = 'inactive';
-          if (lastSession) {
-            const daysSinceLastSession = Math.floor(
-              (new Date().getTime() - new Date(lastSession.date).getTime()) / (1000 * 60 * 60 * 24)
-            );
-            
-            if (daysSinceLastSession <= 7) {
-              activityStatus = 'active';
-            } else if (daysSinceLastSession <= 30) {
-              activityStatus = 'moderate';
-            }
-          }
-
-          athletesData.push({
-            id: assignment.student_id,
-            full_name: studentProfile.full_name || '',
-            email: studentProfile.email || '',
-            current_belt: studentProfile.current_belt || 'white',
-            club_name: studentProfile.club_name || 'Royal Strength',
-            assigned_at: assignment.assigned_at || '',
-            trainer_name: trainer.full_name || '',
-            trainer_email: trainer.email || '',
-            lastWeightEntry: lastWeight ? {
-              weight: Number(lastWeight.weight),
-              date: lastWeight.date
-            } : undefined,
-            lastTrainingSession: lastSession ? {
-              session_type: lastSession.session_type,
-              date: lastSession.date
-            } : undefined,
-            activityStatus,
-            weeklySessionsCount: weeklySessionsCount || 0,
-            totalTechniques: totalTechniques || 0,
-            totalTacticalNotes: totalTacticalNotes || 0
-          });
-        }
-
-        const activeAthletes = athletesData.filter(a => a.activityStatus === 'active').length;
-        const averageWeeklySessions = athletesData.reduce((sum, a) => sum + a.weeklySessionsCount, 0) / athletesData.length;
-
-        trainersData.push({
-          trainer_id: trainer.user_id,
-          trainer_name: trainer.full_name || '',
-          trainer_email: trainer.email || '',
-          athletes: athletesData,
-          totalAthletes: athletesData.length,
-          activeAthletes,
-          averageWeeklySessions: Math.round(averageWeeklySessions * 100) / 100 || 0
-        });
+      if (profileError) {
+        console.error('Error fetching profiles:', profileError);
+        throw profileError;
       }
 
-      return trainersData;
+      console.log('All profiles found:', profiles?.length || 0);
+
+      // For each profile, get their activity data and trainer info
+      const athletesWithData = await Promise.all(
+        (profiles || []).map(async (profile) => {
+          // Get trainer assignment
+          const { data: assignment } = await supabase
+            .from('trainer_assignments')
+            .select(`
+              trainer_id,
+              assigned_at,
+              trainer:profiles!trainer_assignments_trainer_id_fkey(
+                full_name,
+                email
+              )
+            `)
+            .eq('student_id', profile.user_id)
+            .single();
+
+          // Get recent training sessions (last 30 days)
+          const thirtyDaysAgo = new Date();
+          thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+          
+          const { data: sessions } = await supabase
+            .from('training_sessions')
+            .select('*')
+            .eq('user_id', profile.user_id)
+            .gte('date', thirtyDaysAgo.toISOString().split('T')[0])
+            .order('date', { ascending: false });
+
+          // Get techniques count
+          const { data: techniques } = await supabase
+            .from('techniques')
+            .select('id')
+            .eq('user_id', profile.user_id);
+
+          // Get tactical notes count
+          const { data: tacticalNotes } = await supabase
+            .from('tactical_notes')
+            .select('id')
+            .eq('user_id', profile.user_id);
+
+          // Get last weight entry
+          const { data: weightEntries } = await supabase
+            .from('weight_entries')
+            .select('*')
+            .eq('user_id', profile.user_id)
+            .order('date', { ascending: false })
+            .limit(1);
+
+          // Calculate activity status
+          const weeklySessionsCount = sessions?.filter(s => {
+            const sessionDate = new Date(s.date);
+            const weekAgo = new Date();
+            weekAgo.setDate(weekAgo.getDate() - 7);
+            return sessionDate >= weekAgo;
+          }).length || 0;
+
+          let activityStatus: 'active' | 'moderate' | 'inactive' = 'inactive';
+          if (weeklySessionsCount >= 3) {
+            activityStatus = 'active';
+          } else if (weeklySessionsCount >= 1) {
+            activityStatus = 'moderate';
+          }
+
+          return {
+            id: profile.user_id,
+            full_name: profile.full_name || profile.email || 'Sin nombre',
+            email: profile.email || '',
+            club_name: profile.club_name || 'Sin club',
+            current_belt: profile.current_belt || 'white',
+            gender: profile.gender,
+            competition_category: profile.competition_category,
+            injuries: profile.injuries,
+            injury_description: profile.injury_description,
+            profile_image_url: profile.profile_image_url,
+            activityStatus,
+            weeklySessionsCount,
+            totalTechniques: techniques?.length || 0,
+            totalTacticalNotes: tacticalNotes?.length || 0,
+            trainer: assignment ? {
+              id: assignment.trainer_id,
+              full_name: (assignment.trainer as any)?.full_name || 'Sin nombre',
+              email: (assignment.trainer as any)?.email || '',
+              assigned_at: assignment.assigned_at
+            } : undefined,
+            lastWeightEntry: weightEntries?.[0] ? {
+              weight: Number(weightEntries[0].weight),
+              date: weightEntries[0].date
+            } : undefined,
+            lastTrainingSession: sessions?.[0] ? {
+              session_type: sessions[0].session_type,
+              date: sessions[0].date
+            } : undefined,
+          } as AdminAthleteData;
+        })
+      );
+
+      console.log('Admin athletes with data:', athletesWithData.length);
+      return athletesWithData;
     },
   });
 
-  // Obtener estadísticas globales
-  const getGlobalStats = () => {
-    const totalTrainers = trainersWithAthletes.length;
-    const totalAthletes = trainersWithAthletes.reduce((sum, t) => sum + t.totalAthletes, 0);
-    const totalActiveAthletes = trainersWithAthletes.reduce((sum, t) => sum + t.activeAthletes, 0);
-    const globalAverageWeeklySessions = trainersWithAthletes.reduce((sum, t) => sum + t.averageWeeklySessions, 0) / totalTrainers;
+  const getProfileStats = (athletes: AdminAthleteData[]) => {
+    const totalAthletes = athletes.length;
+    
+    const genderDistribution = athletes.reduce((acc, athlete) => {
+      if (athlete.gender === 'male') acc.male++;
+      else if (athlete.gender === 'female') acc.female++;
+      else acc.unspecified++;
+      return acc;
+    }, { male: 0, female: 0, unspecified: 0 });
+
+    const clubDistribution = athletes.reduce((acc, athlete) => {
+      const club = athlete.club_name || 'Sin club';
+      acc[club] = (acc[club] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+
+    const injuryStats = athletes.reduce((acc, athlete) => {
+      if (athlete.injuries && athlete.injuries.length > 0) {
+        acc.withInjuries++;
+      } else {
+        acc.withoutInjuries++;
+      }
+      return acc;
+    }, { withInjuries: 0, withoutInjuries: 0 });
+
+    const categoryDistribution = athletes.reduce((acc, athlete) => {
+      const category = athlete.competition_category || 'Sin categoría';
+      acc[category] = (acc[category] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
 
     return {
-      totalTrainers,
       totalAthletes,
-      totalActiveAthletes,
-      globalAverageWeeklySessions: Math.round(globalAverageWeeklySessions * 100) / 100 || 0,
-      inactiveAthletes: totalAthletes - totalActiveAthletes
+      genderDistribution,
+      clubDistribution,
+      injuryStats,
+      categoryDistribution,
     };
   };
 
+  const getTrainerStats = (athletes: AdminAthleteData[]) => {
+    const trainerDistribution = athletes.reduce((acc, athlete) => {
+      const trainerName = athlete.trainer?.full_name || 'Sin entrenador';
+      acc[trainerName] = (acc[trainerName] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+
+    return { trainerDistribution };
+  };
+
   return {
-    trainersWithAthletes,
+    athletesData,
     isLoading,
-    getGlobalStats
+    error,
+    getProfileStats,
+    getTrainerStats,
   };
 };

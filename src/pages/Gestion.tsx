@@ -15,7 +15,7 @@ import { useNavigate } from "react-router-dom";
 const Gestion = () => {
   const { user } = useAuth();
   const { currentUserRole } = useUserRoles(user?.id);
-  const { athletesData, isLoading, filterAthletes, getGroupStats } = useAthleteManagement(user?.id || '');
+  const { athletesData, isLoading, filterAthletes, getGroupStats, getProfileStats } = useAthleteManagement(user?.id || '');
   const navigate = useNavigate();
   
   const [selectedAthleteId, setSelectedAthleteId] = useState<string | null>(null);
@@ -51,6 +51,7 @@ const Gestion = () => {
 
   const filteredAthletes = filterAthletes(athletesData, filters);
   const groupStats = getGroupStats(filteredAthletes);
+  const profileStats = getProfileStats(filteredAthletes);
   const selectedAthlete = athletesData.find(a => a.id === selectedAthleteId);
 
   const handleAthleteSelect = (athleteId: string) => {
@@ -129,6 +130,7 @@ const Gestion = () => {
             <AthletesSummaryView
               athletes={filteredAthletes}
               groupStats={groupStats}
+              profileStats={profileStats}
               filters={filters}
               onFiltersChange={setFilters}
               onAthleteSelect={handleAthleteSelect}
@@ -139,7 +141,7 @@ const Gestion = () => {
           <TabsContent value="individual" className="mt-6">
             <IndividualAthleteView
               athleteId={selectedAthleteId || ''}
-              athlete={selectedAthlete!}
+              athlete={selectedAthlete}
               onBack={handleBackToSummary}
               allAthletes={filteredAthletes}
               onAthleteSelect={handleAthleteSelect}

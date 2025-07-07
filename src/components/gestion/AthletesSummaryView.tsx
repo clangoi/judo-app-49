@@ -5,6 +5,7 @@ import { AthleteCard } from "./AthleteCard";
 import { SummaryFilters } from "./SummaryFilters";
 import { GroupProgressCharts } from "./GroupProgressCharts";
 import { AthletesSummaryStats } from "./AthletesSummaryStats";
+import { ProfileSummaryStats } from "./ProfileSummaryStats";
 import { Users, TrendingUp, Award, Activity } from "lucide-react";
 
 interface AthletesSummaryViewProps {
@@ -17,6 +18,13 @@ interface AthletesSummaryViewProps {
     inactiveAthletes: number;
     moderateAthletes: number;
   };
+  profileStats: {
+    totalAthletes: number;
+    genderDistribution: { male: number; female: number; unspecified: number };
+    clubDistribution: Record<string, number>;
+    injuryStats: { withInjuries: number; withoutInjuries: number };
+    categoryDistribution: Record<string, number>;
+  };
   filters: ActivityFilter;
   onFiltersChange: (filters: ActivityFilter) => void;
   onAthleteSelect: (athleteId: string) => void;
@@ -26,6 +34,7 @@ interface AthletesSummaryViewProps {
 export const AthletesSummaryView = ({
   athletes,
   groupStats,
+  profileStats,
   filters,
   onFiltersChange,
   onAthleteSelect,
@@ -108,7 +117,14 @@ export const AthletesSummaryView = ({
       </div>
 
       {/* Estadísticas Detalladas */}
-      <AthletesSummaryStats groupStats={groupStats} />
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div>
+          <AthletesSummaryStats groupStats={groupStats} />
+        </div>
+        <div>
+          <ProfileSummaryStats profileStats={profileStats} />
+        </div>
+      </div>
 
       {/* Gráficos del Grupo */}
       <GroupProgressCharts athletes={athletes} />

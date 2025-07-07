@@ -4,8 +4,9 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Weight, Activity, Users, Target, BookOpen, LogOut, User, BarChart3, Shield } from "lucide-react";
+import { Weight, Activity, Users, Target, BookOpen, LogOut, BarChart3, Shield } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
+import { ProfileButton } from "@/components/ProfileButton";
 
 const Index = () => {
   const { user, signOut } = useAuth();
@@ -112,10 +113,7 @@ const Index = () => {
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <div className="flex items-center gap-2 text-sm text-[#575757]">
-                <User className="h-4 w-4" />
-                {user?.email}
-              </div>
+              <ProfileButton />
               
               {currentUserRole === 'entrenador' && (
                 <Button 
