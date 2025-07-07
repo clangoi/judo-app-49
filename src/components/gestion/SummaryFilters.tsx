@@ -25,7 +25,6 @@ export const SummaryFilters = ({ filters, onFiltersChange, totalAthletes }: Summ
     onFiltersChange({
       activity: 'all',
       belt: 'all',
-      weightProgress: 'all',
       trainingType: 'all',
       period: 'month',
       search: ''
@@ -36,7 +35,6 @@ export const SummaryFilters = ({ filters, onFiltersChange, totalAthletes }: Summ
     let count = 0;
     if (filters.activity !== 'all') count++;
     if (filters.belt !== 'all') count++;
-    if (filters.weightProgress !== 'all') count++;
     if (filters.trainingType !== 'all') count++;
     if (filters.search) count++;
     return count;
@@ -76,8 +74,8 @@ export const SummaryFilters = ({ filters, onFiltersChange, totalAthletes }: Summ
           />
         </div>
 
-        {/* Filtros en grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Filtros en grid (ahora con 3 columnas en lugar de 4) */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* Filtro de actividad */}
           <div>
             <label className="text-sm font-medium mb-2 block">Estado de Actividad</label>
@@ -116,25 +114,6 @@ export const SummaryFilters = ({ filters, onFiltersChange, totalAthletes }: Summ
                 <SelectItem value="blue">Azul</SelectItem>
                 <SelectItem value="brown">Marrón</SelectItem>
                 <SelectItem value="black">Negro</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Filtro de progreso de peso */}
-          <div>
-            <label className="text-sm font-medium mb-2 block">Progreso de Peso</label>
-            <Select
-              value={filters.weightProgress}
-              onValueChange={(value) => handleFilterChange('weightProgress', value)}
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos</SelectItem>
-                <SelectItem value="gaining">Ganando</SelectItem>
-                <SelectItem value="losing">Perdiendo</SelectItem>
-                <SelectItem value="maintaining">Manteniendo</SelectItem>
               </SelectContent>
             </Select>
           </div>

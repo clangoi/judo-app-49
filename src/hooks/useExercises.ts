@@ -28,9 +28,22 @@ export const useExercises = (userId: string | undefined) => {
     mutationFn: async (exerciseName: string) => {
       if (!userId) throw new Error('Usuario no autenticado');
       
+      // Verificar si ya existe un ejercicio con el mismo nombre (case-insensitive)
+      const { data: existingExercise, error: checkError } = await supabase
+        .from('exercises')
+        .select('id, name')
+        .eq('user_id', userId)
+        .ilike('name', exerciseName.trim());
+      
+      if (checkError) throw checkError;
+      
+      if (existingExercise && existingExercise.length > 0) {
+        throw new Error(`Ya existe un ejercicio con el nombre "${existingExercise[0].name}". Por favor, utiliza el ejercicio existente o elige un nombre diferente.`);
+      }
+      
       const { data, error } = await supabase
         .from('exercises')
-        .insert([{ name: exerciseName, user_id: userId }])
+        .insert([{ name: exerciseName.trim(), user_id: userId }])
         .select()
         .single();
       

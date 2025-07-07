@@ -1,4 +1,3 @@
-
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -28,7 +27,6 @@ export interface AthleteData {
 export interface ActivityFilter {
   activity: 'all' | 'active' | 'moderate' | 'inactive';
   belt: 'all' | 'white' | 'yellow' | 'orange' | 'green' | 'blue' | 'brown' | 'black';
-  weightProgress: 'all' | 'gaining' | 'losing' | 'maintaining';
   trainingType: 'all' | 'judo' | 'physical' | 'mixed';
   period: 'week' | 'month' | 'quarter';
   search: string;
@@ -188,7 +186,7 @@ export const useAthleteManagement = (trainerId: string) => {
     });
   };
 
-  // Filtrar deportistas
+  // Filtrar deportistas (sin filtro de progreso de peso)
   const filterAthletes = (athletes: AthleteData[], filters: ActivityFilter) => {
     return athletes.filter(athlete => {
       // Filtro por actividad

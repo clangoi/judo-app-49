@@ -23,7 +23,6 @@ const Gestion = () => {
   const [filters, setFilters] = useState<ActivityFilter>({
     activity: 'all',
     belt: 'all',
-    weightProgress: 'all',
     trainingType: 'all',
     period: 'month',
     search: ''

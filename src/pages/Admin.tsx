@@ -4,6 +4,7 @@ import { useUserRoles } from "@/hooks/useUserRoles";
 import NavHeader from "@/components/NavHeader";
 import UserRoleManagement from "@/components/admin/UserRoleManagement";
 import TrainerAssignmentManagement from "@/components/admin/TrainerAssignmentManagement";
+import { AdminAthleteManagement } from "@/components/admin/AdminAthleteManagement";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Shield, Loader2 } from "lucide-react";
@@ -48,11 +49,12 @@ const Admin = () => {
         subtitle="Panel de administración del sistema"
       />
       
-      <div className="max-w-4xl mx-auto p-4">
+      <div className="max-w-6xl mx-auto p-4">
         <Tabs defaultValue="roles" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="roles">Gestión de Roles</TabsTrigger>
-            <TabsTrigger value="assignments">Asignaciones Entrenador-Deportista</TabsTrigger>
+            <TabsTrigger value="assignments">Asignaciones</TabsTrigger>
+            <TabsTrigger value="athletes">Gestión de Deportistas</TabsTrigger>
           </TabsList>
           
           <TabsContent value="roles" className="space-y-6">
@@ -61,6 +63,10 @@ const Admin = () => {
           
           <TabsContent value="assignments" className="space-y-6">
             <TrainerAssignmentManagement />
+          </TabsContent>
+
+          <TabsContent value="athletes" className="space-y-6">
+            <AdminAthleteManagement />
           </TabsContent>
         </Tabs>
       </div>
