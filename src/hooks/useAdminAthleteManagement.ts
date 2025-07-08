@@ -41,10 +41,20 @@ export const useAdminAthleteManagement = () => {
     queryFn: async () => {
       console.log('Fetching all athletes for admin view');
       
-      // Get all profiles
+      // Get all profiles with their trainer assignments
       const { data: profiles, error: profileError } = await supabase
         .from('profiles')
-        .select('*');
+        .select(`
+          *,
+          trainer_assignments!trainer_assignments_student_id_fkey(
+            trainer_id,
+            assigned_at,
+            trainer:profiles!trainer_assignments_trainer_id_fkey(
+              full_name,
+              email
+            )
+          )
+        `);
 
       if (profileError) {
         console.error('Error fetching profiles:', profileError);
@@ -53,22 +63,13 @@ export const useAdminAthleteManagement = () => {
 
       console.log('All profiles found:', profiles?.length || 0);
 
-      // For each profile, get their activity data and trainer info
+      // For each profile, get their activity data
       const athletesWithData = await Promise.all(
         (profiles || []).map(async (profile) => {
-          // Get trainer assignment
-          const { data: assignment } = await supabase
-            .from('trainer_assignments')
-            .select(`
-              trainer_id,
-              assigned_at,
-              trainer:profiles!trainer_assignments_trainer_id_fkey(
-                full_name,
-                email
-              )
-            `)
-            .eq('student_id', profile.user_id)
-            .maybeSingle();
+          // Extract trainer assignment info
+          const trainerAssignment = Array.isArray(profile.trainer_assignments) 
+            ? profile.trainer_assignments[0] 
+            : profile.trainer_assignments;
 
           // Get recent training sessions (last 30 days)
           const thirtyDaysAgo = new Date();
@@ -123,23 +124,23 @@ export const useAdminAthleteManagement = () => {
             club_name: profile.club_name || 'Sin club',
             current_belt: profile.current_belt || 'white',
             gender: profile.gender,
-            competition_category: (profile as any).competition_category,
-            injuries: (profile as any).injuries,
-            injury_description: (profile as any).injury_description,
-            profile_image_url: (profile as any).profile_image_url,
+            competition_category: profile.competition_category,
+            injuries: profile.injuries,
+            injury_description: profile.injury_description,
+            profile_image_url: profile.profile_image_url,
             activityStatus,
             weeklySessionsCount,
             totalTechniques: techniques?.length || 0,
             totalTacticalNotes: tacticalNotes?.length || 0,
-            trainer: assignment ? {
-              id: assignment.trainer_id,
-              full_name: (assignment.trainer as any)?.full_name || 'Sin nombre',
-              email: (assignment.trainer as any)?.email || '',
-              assigned_at: assignment.assigned_at
+            trainer: trainerAssignment ? {
+              id: trainerAssignment.trainer_id,
+              full_name: (trainerAssignment.trainer as any)?.full_name || 'Sin nombre',
+              email: (trainerAssignment.trainer as any)?.email || '',
+              assigned_at: trainerAssignment.assigned_at
             } : undefined,
-            trainer_name: assignment ? (assignment.trainer as any)?.full_name || 'Sin entrenador' : 'Sin entrenador',
-            trainer_email: assignment ? (assignment.trainer as any)?.email || '' : '',
-            assigned_at: assignment?.assigned_at,
+            trainer_name: trainerAssignment ? (trainerAssignment.trainer as any)?.full_name || 'Sin entrenador' : 'Sin entrenador',
+            trainer_email: trainerAssignment ? (trainerAssignment.trainer as any)?.email || '' : '',
+            assigned_at: trainerAssignment?.assigned_at,
             lastWeightEntry: weightEntries?.[0] ? {
               weight: Number(weightEntries[0].weight),
               date: weightEntries[0].date

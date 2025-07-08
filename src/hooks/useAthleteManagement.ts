@@ -40,10 +40,25 @@ export const useAthleteManagement = (trainerId: string) => {
     queryFn: async () => {
       console.log('Fetching athletes for trainer:', trainerId);
       
-      // Get trainer assignments
+      // Get trainer assignments with profile information using JOIN
       const { data: assignments, error: assignError } = await supabase
         .from('trainer_assignments')
-        .select('student_id')
+        .select(`
+          student_id,
+          assigned_at,
+          profiles!trainer_assignments_student_id_fkey(
+            user_id,
+            full_name,
+            email,
+            club_name,
+            current_belt,
+            gender,
+            competition_category,
+            injuries,
+            injury_description,
+            profile_image_url
+          )
+        `)
         .eq('trainer_id', trainerId);
 
       if (assignError) {
@@ -56,33 +71,22 @@ export const useAthleteManagement = (trainerId: string) => {
         return [];
       }
 
-      const studentIds = assignments.map(a => a.student_id);
-      console.log('Student IDs:', studentIds);
+      console.log('Raw assignments data:', assignments);
 
-      // Get profiles for these students - usando maybeSingle para evitar errores
-      const profilesPromises = studentIds.map(async (studentId) => {
-        const { data: profile, error: profileError } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('user_id', studentId)
-          .maybeSingle();
+      // Filter out assignments without valid profiles and transform data
+      const validAssignments = assignments.filter(assignment => 
+        assignment.profiles && 
+        typeof assignment.profiles === 'object' && 
+        assignment.profiles.user_id
+      );
 
-        if (profileError) {
-          console.error('Error fetching profile for student:', studentId, profileError);
-          return null;
-        }
+      console.log('Valid assignments:', validAssignments.length);
 
-        return profile;
-      });
-
-      const profiles = await Promise.all(profilesPromises);
-      const validProfiles = profiles.filter(p => p !== null);
-      
-      console.log('Profiles found:', validProfiles.length);
-
-      // For each student, get their activity data
+      // For each valid assignment, get their activity data
       const athletesWithData = await Promise.all(
-        validProfiles.map(async (profile) => {
+        validAssignments.map(async (assignment) => {
+          const profile = assignment.profiles as any;
+          
           // Get recent training sessions (last 30 days)
           const thirtyDaysAgo = new Date();
           thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
@@ -136,10 +140,10 @@ export const useAthleteManagement = (trainerId: string) => {
             club_name: profile.club_name || 'Sin club',
             current_belt: profile.current_belt || 'white',
             gender: profile.gender,
-            competition_category: (profile as any).competition_category,
-            injuries: (profile as any).injuries,
-            injury_description: (profile as any).injury_description,
-            profile_image_url: (profile as any).profile_image_url,
+            competition_category: profile.competition_category,
+            injuries: profile.injuries,
+            injury_description: profile.injury_description,
+            profile_image_url: profile.profile_image_url,
             activityStatus,
             weeklySessionsCount,
             totalTechniques: techniques?.length || 0,
