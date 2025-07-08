@@ -134,34 +134,46 @@ export type Database = {
       profiles: {
         Row: {
           club_name: string | null
+          competition_category: string | null
           created_at: string | null
           current_belt: Database["public"]["Enums"]["belt_level"] | null
           email: string | null
           full_name: string | null
           gender: Database["public"]["Enums"]["gender_type"] | null
           id: string
+          injuries: string[] | null
+          injury_description: string | null
+          profile_image_url: string | null
           updated_at: string | null
           user_id: string
         }
         Insert: {
           club_name?: string | null
+          competition_category?: string | null
           created_at?: string | null
           current_belt?: Database["public"]["Enums"]["belt_level"] | null
           email?: string | null
           full_name?: string | null
           gender?: Database["public"]["Enums"]["gender_type"] | null
           id?: string
+          injuries?: string[] | null
+          injury_description?: string | null
+          profile_image_url?: string | null
           updated_at?: string | null
           user_id: string
         }
         Update: {
           club_name?: string | null
+          competition_category?: string | null
           created_at?: string | null
           current_belt?: Database["public"]["Enums"]["belt_level"] | null
           email?: string | null
           full_name?: string | null
           gender?: Database["public"]["Enums"]["gender_type"] | null
           id?: string
+          injuries?: string[] | null
+          injury_description?: string | null
+          profile_image_url?: string | null
           updated_at?: string | null
           user_id?: string
         }

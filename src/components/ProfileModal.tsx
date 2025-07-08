@@ -121,12 +121,12 @@ export const ProfileModal = ({ isOpen, onClose }: ProfileModalProps) => {
         setProfile(data);
         form.reset({
           full_name: data.full_name || "",
-          profile_image_url: data.profile_image_url || "",
+          profile_image_url: (data as any).profile_image_url || "",
           club_name: data.club_name || "",
           gender: data.gender || undefined,
-          competition_category: data.competition_category || "",
-          injuries: data.injuries || [],
-          injury_description: data.injury_description || "",
+          competition_category: (data as any).competition_category || "",
+          injuries: (data as any).injuries || [],
+          injury_description: (data as any).injury_description || "",
         });
       }
     } catch (error) {

@@ -1,4 +1,3 @@
-
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -129,10 +128,10 @@ export const useAthleteManagement = (trainerId: string) => {
             club_name: profile.club_name || 'Sin club',
             current_belt: profile.current_belt || 'white',
             gender: profile.gender,
-            competition_category: profile.competition_category,
-            injuries: profile.injuries,
-            injury_description: profile.injury_description,
-            profile_image_url: profile.profile_image_url,
+            competition_category: (profile as any).competition_category,
+            injuries: (profile as any).injuries,
+            injury_description: (profile as any).injury_description,
+            profile_image_url: (profile as any).profile_image_url,
             activityStatus,
             weeklySessionsCount,
             totalTechniques: techniques?.length || 0,

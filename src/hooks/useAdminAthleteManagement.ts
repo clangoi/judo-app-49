@@ -36,16 +36,6 @@ export interface AdminAthleteData {
   };
 }
 
-export interface TrainerWithAthletes {
-  trainer_name: string;
-  trainer_email: string;
-  trainer_id?: string;
-  totalAthletes: number;
-  activeAthletes: number;
-  averageWeeklySessions: number;
-  athletes: AdminAthleteData[];
-}
-
 export const useAdminAthleteManagement = () => {
   const { data: athletesData = [], isLoading, error } = useQuery({
     queryKey: ['admin-athlete-management'],
@@ -134,10 +124,10 @@ export const useAdminAthleteManagement = () => {
             club_name: profile.club_name || 'Sin club',
             current_belt: profile.current_belt || 'white',
             gender: profile.gender,
-            competition_category: profile.competition_category,
-            injuries: profile.injuries,
-            injury_description: profile.injury_description,
-            profile_image_url: profile.profile_image_url,
+            competition_category: (profile as any).competition_category,
+            injuries: (profile as any).injuries,
+            injury_description: (profile as any).injury_description,
+            profile_image_url: (profile as any).profile_image_url,
             activityStatus,
             weeklySessionsCount,
             totalTechniques: techniques?.length || 0,
