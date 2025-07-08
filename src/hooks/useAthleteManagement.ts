@@ -37,112 +37,144 @@ export interface ActivityFilter {
 export const useAthleteManagement = (trainerId: string) => {
   const { data: athletesData = [], isLoading, error } = useQuery({
     queryKey: ['athlete-management', trainerId],
-    queryFn: async (): Promise<AthleteData[]> => {
+    queryFn: async () => {
+      console.log('Fetching athletes for trainer:', trainerId);
+      
       if (!trainerId) {
+        console.log('No trainer ID provided');
         return [];
       }
 
-      // 1) Traigo asignaciones con perfil embebido
+      // First, get trainer assignments
       const { data: assignments, error: assignError } = await supabase
         .from('trainer_assignments')
-        .select(`
-          student_id,
-          assigned_at,
-          profiles:user_id (
-            full_name,
-            email,
-            club_name,
-            current_belt,
-            gender,
-            competition_category,
-            injuries,
-            injury_description,
-            profile_image_url
-          )
-        `)
-        .eq('coach_id', trainerId);
+        .select('student_id, assigned_at')
+        .eq('trainer_id', trainerId);
 
       if (assignError) {
-        console.error('Error fetching assignments with profiles:', assignError);
+        console.error('Error fetching assignments:', assignError);
         throw assignError;
       }
+
       if (!assignments || assignments.length === 0) {
+        console.log('No student assignments found for trainer:', trainerId);
         return [];
       }
 
-      // 2) Para cada asignación, obtengo sesiones, técnicas, notas y peso
-      const athletesWithData = await Promise.all(
-        assignments.map(async (assignment) => {
-          const userId = assignment.student_id;
-          const profile = assignment.profiles!;
+      console.log('Assignments found:', assignments.length);
+      console.log('Student IDs:', assignments.map(a => a.student_id));
 
-          // Fecha hace 30 días
+      // Get student IDs
+      const studentIds = assignments.map(a => a.student_id);
+
+      // Fetch profiles for all assigned students
+      const { data: profiles, error: profilesError } = await supabase
+        .from('profiles')
+        .select('*')
+        .in('user_id', studentIds);
+
+      if (profilesError) {
+        console.error('Error fetching profiles:', profilesError);
+        throw profilesError;
+      }
+
+      console.log('Profiles found:', profiles?.length || 0);
+      console.log('Profile data:', profiles);
+
+      // Check if we have any profiles at all
+      if (!profiles || profiles.length === 0) {
+        console.log('No profiles found for student IDs:', studentIds);
+        // Let's check if there are any profiles at all in the table
+        const { data: allProfilesCheck, error: allProfilesError } = await supabase
+          .from('profiles')
+          .select('user_id, full_name, email')
+          .limit(5);
+        
+        console.log('Sample profiles in database:', allProfilesCheck);
+        if (allProfilesError) {
+          console.error('Error checking all profiles:', allProfilesError);
+        }
+        
+        return [];
+      }
+
+      // For each profile, get their activity data
+      const athletesWithData = await Promise.all(
+        profiles.map(async (profile) => {
+          // Get recent training sessions (last 30 days)
           const thirtyDaysAgo = new Date();
           thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-          const since = thirtyDaysAgo.toISOString().split('T')[0];
-
-          // a) Sesiones de entrenamiento últimos 30 días
-          const { data: sessions = [] } = await supabase
+          
+          const { data: sessions } = await supabase
             .from('training_sessions')
             .select('*')
-            .eq('user_id', userId)
-            .gte('date', since)
+            .eq('user_id', profile.user_id)
+            .gte('date', thirtyDaysAgo.toISOString().split('T')[0])
             .order('date', { ascending: false });
 
-          // b) Técnicas
-          const { data: techniques = [] } = await supabase
+          // Get techniques count
+          const { data: techniques } = await supabase
             .from('techniques')
             .select('id')
-            .eq('user_id', userId);
+            .eq('user_id', profile.user_id);
 
-          // c) Notas tácticas
-          const { data: tacticalNotes = [] } = await supabase
+          // Get tactical notes count
+          const { data: tacticalNotes } = await supabase
             .from('tactical_notes')
             .select('id')
-            .eq('user_id', userId);
+            .eq('user_id', profile.user_id);
 
-          // d) Última entrada de peso
-          const { data: weightEntries = [] } = await supabase
+          // Get last weight entry
+          const { data: weightEntries } = await supabase
             .from('weight_entries')
             .select('*')
-            .eq('user_id', userId)
+            .eq('user_id', profile.user_id)
             .order('date', { ascending: false })
             .limit(1);
 
-          // Cálculo de estado de actividad
-          const weekAgo = new Date();
-          weekAgo.setDate(weekAgo.getDate() - 7);
-          const weeklySessionsCount = sessions.filter(s => new Date(s.date) >= weekAgo).length;
+          // Calculate activity status
+          const weeklySessionsCount = sessions?.filter(s => {
+            const sessionDate = new Date(s.date);
+            const weekAgo = new Date();
+            weekAgo.setDate(weekAgo.getDate() - 7);
+            return sessionDate >= weekAgo;
+          }).length || 0;
 
           let activityStatus: 'active' | 'moderate' | 'inactive' = 'inactive';
-          if (weeklySessionsCount >= 3) activityStatus = 'active';
-          else if (weeklySessionsCount >= 1) activityStatus = 'moderate';
+          if (weeklySessionsCount >= 3) {
+            activityStatus = 'active';
+          } else if (weeklySessionsCount >= 1) {
+            activityStatus = 'moderate';
+          }
 
           return {
-            id: userId,
+            id: profile.user_id,
             full_name: profile.full_name || profile.email || 'Sin nombre',
             email: profile.email || '',
             club_name: profile.club_name || 'Sin club',
             current_belt: profile.current_belt || 'white',
-            gender: profile.gender as 'male' | 'female' | undefined,
+            gender: profile.gender,
             competition_category: profile.competition_category,
             injuries: profile.injuries,
             injury_description: profile.injury_description,
             profile_image_url: profile.profile_image_url,
             activityStatus,
             weeklySessionsCount,
-            totalTechniques: techniques.length,
-            totalTacticalNotes: tacticalNotes.length,
-            lastWeightEntry: weightEntries[0]
-              ? { weight: Number(weightEntries[0].weight), date: weightEntries[0].date }
-              : undefined,
-            lastTrainingSession: sessions[0]
-              ? { session_type: sessions[0].session_type, date: sessions[0].date }
-              : undefined,
+            totalTechniques: techniques?.length || 0,
+            totalTacticalNotes: tacticalNotes?.length || 0,
+            lastWeightEntry: weightEntries?.[0] ? {
+              weight: Number(weightEntries[0].weight),
+              date: weightEntries[0].date
+            } : undefined,
+            lastTrainingSession: sessions?.[0] ? {
+              session_type: sessions[0].session_type,
+              date: sessions[0].date
+            } : undefined,
           } as AthleteData;
         })
       );
 
+      console.log('Athletes with data:', athletesWithData.length);
       return athletesWithData;
     },
     enabled: !!trainerId,
@@ -150,16 +182,26 @@ export const useAthleteManagement = (trainerId: string) => {
 
   const filterAthletes = (athletes: AthleteData[], filters: ActivityFilter): AthleteData[] => {
     return athletes.filter(athlete => {
-      if (filters.activity !== 'all' && athlete.activityStatus !== filters.activity) return false;
-      if (filters.belt !== 'all' && athlete.current_belt !== filters.belt) return false;
-      if (filters.search) {
-        const q = filters.search.toLowerCase();
-        if (
-          !athlete.full_name.toLowerCase().includes(q) &&
-          !athlete.email.toLowerCase().includes(q) &&
-          !athlete.club_name.toLowerCase().includes(q)
-        ) return false;
+      // Activity filter
+      if (filters.activity !== 'all' && athlete.activityStatus !== filters.activity) {
+        return false;
       }
+
+      // Belt filter
+      if (filters.belt !== 'all' && athlete.current_belt !== filters.belt) {
+        return false;
+      }
+
+      // Search filter
+      if (filters.search) {
+        const searchLower = filters.search.toLowerCase();
+        if (!athlete.full_name.toLowerCase().includes(searchLower) &&
+            !athlete.email.toLowerCase().includes(searchLower) &&
+            !athlete.club_name.toLowerCase().includes(searchLower)) {
+          return false;
+        }
+      }
+
       return true;
     });
   };
@@ -169,45 +211,64 @@ export const useAthleteManagement = (trainerId: string) => {
     const activeAthletes = athletes.filter(a => a.activityStatus === 'active').length;
     const moderateAthletes = athletes.filter(a => a.activityStatus === 'moderate').length;
     const inactiveAthletes = athletes.filter(a => a.activityStatus === 'inactive').length;
-    const averageWeeklySessions =
-      Math.round(athletes.reduce((sum, a) => sum + a.weeklySessionsCount, 0) / (totalAthletes || 1));
+    
+    const averageWeeklySessions = Math.round(
+      athletes.reduce((sum, a) => sum + a.weeklySessionsCount, 0) / totalAthletes || 0
+    );
 
-    const beltDistribution = athletes.reduce((acc, a) => {
-      acc[a.current_belt] = (acc[a.current_belt] || 0) + 1;
+    const beltDistribution = athletes.reduce((acc, athlete) => {
+      acc[athlete.current_belt] = (acc[athlete.current_belt] || 0) + 1;
       return acc;
     }, {} as Record<string, number>);
 
-    return { totalAthletes, activeAthletes, moderateAthletes, inactiveAthletes, averageWeeklySessions, beltDistribution };
+    return {
+      totalAthletes,
+      activeAthletes,
+      moderateAthletes,
+      inactiveAthletes,
+      averageWeeklySessions,
+      beltDistribution,
+    };
   };
 
   const getProfileStats = (athletes: AthleteData[]) => {
     const totalAthletes = athletes.length;
-    const genderDistribution = athletes.reduce((acc, a) => {
-      if (a.gender === 'male') acc.male++;
-      else if (a.gender === 'female') acc.female++;
+    
+    const genderDistribution = athletes.reduce((acc, athlete) => {
+      if (athlete.gender === 'male') acc.male++;
+      else if (athlete.gender === 'female') acc.female++;
       else acc.unspecified++;
       return acc;
     }, { male: 0, female: 0, unspecified: 0 });
 
-    const clubDistribution = athletes.reduce((acc, a) => {
-      const club = a.club_name || 'Sin club';
+    const clubDistribution = athletes.reduce((acc, athlete) => {
+      const club = athlete.club_name || 'Sin club';
       acc[club] = (acc[club] || 0) + 1;
       return acc;
     }, {} as Record<string, number>);
 
-    const injuryStats = athletes.reduce((acc, a) => {
-      if (a.injuries && a.injuries.length) acc.withInjuries++;
-      else acc.withoutInjuries++;
+    const injuryStats = athletes.reduce((acc, athlete) => {
+      if (athlete.injuries && athlete.injuries.length > 0) {
+        acc.withInjuries++;
+      } else {
+        acc.withoutInjuries++;
+      }
       return acc;
     }, { withInjuries: 0, withoutInjuries: 0 });
 
-    const categoryDistribution = athletes.reduce((acc, a) => {
-      const cat = a.competition_category || 'Sin categoría';
-      acc[cat] = (acc[cat] || 0) + 1;
+    const categoryDistribution = athletes.reduce((acc, athlete) => {
+      const category = athlete.competition_category || 'Sin categoría';
+      acc[category] = (acc[category] || 0) + 1;
       return acc;
     }, {} as Record<string, number>);
 
-    return { totalAthletes, genderDistribution, clubDistribution, injuryStats, categoryDistribution };
+    return {
+      totalAthletes,
+      genderDistribution,
+      clubDistribution,
+      injuryStats,
+      categoryDistribution,
+    };
   };
 
   return {
