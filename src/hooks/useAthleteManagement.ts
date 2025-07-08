@@ -1,3 +1,4 @@
+
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -46,7 +47,7 @@ export const useAthleteManagement = (trainerId: string) => {
         .select(`
           student_id,
           assigned_at,
-          profiles!trainer_assignments_student_id_fkey(
+          profiles!inner(
             user_id,
             full_name,
             email,
@@ -77,6 +78,7 @@ export const useAthleteManagement = (trainerId: string) => {
       const validAssignments = assignments.filter(assignment => 
         assignment.profiles && 
         typeof assignment.profiles === 'object' && 
+        'user_id' in assignment.profiles &&
         assignment.profiles.user_id
       );
 
@@ -85,7 +87,8 @@ export const useAthleteManagement = (trainerId: string) => {
       // For each valid assignment, get their activity data
       const athletesWithData = await Promise.all(
         validAssignments.map(async (assignment) => {
-          const profile = assignment.profiles as any;
+          // Now we know profiles is not null due to the filter above
+          const profile = assignment.profiles!;
           
           // Get recent training sessions (last 30 days)
           const thirtyDaysAgo = new Date();
