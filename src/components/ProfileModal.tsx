@@ -144,21 +144,39 @@ export const ProfileModal = ({ isOpen, onClose }: ProfileModalProps) => {
 
     setLoading(true);
     try {
-      const { error } = await supabase
-        .from("profiles")
-        .upsert({
-          user_id: user.id,
-          full_name: values.full_name,
-          profile_image_url: values.profile_image_url,
-          club_name: values.club_name,
-          gender: values.gender,
-          competition_category: values.competition_category,
-          injuries: values.injuries,
-          injury_description: values.injury_description,
-          updated_at: new Date().toISOString(),
-        });
+      // Si el perfil ya existe, usamos UPDATE, si no, usamos INSERT
+      if (profile) {
+        const { error } = await supabase
+          .from("profiles")
+          .update({
+            full_name: values.full_name,
+            profile_image_url: values.profile_image_url,
+            club_name: values.club_name,
+            gender: values.gender,
+            competition_category: values.competition_category,
+            injuries: values.injuries,
+            injury_description: values.injury_description,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("user_id", user.id);
 
-      if (error) throw error;
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from("profiles")
+          .insert({
+            user_id: user.id,
+            full_name: values.full_name,
+            profile_image_url: values.profile_image_url,
+            club_name: values.club_name,
+            gender: values.gender,
+            competition_category: values.competition_category,
+            injuries: values.injuries,
+            injury_description: values.injury_description,
+          });
+
+        if (error) throw error;
+      }
 
       toast({
         title: "Éxito",

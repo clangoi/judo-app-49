@@ -59,22 +59,30 @@ export const useAthleteManagement = (trainerId: string) => {
       const studentIds = assignments.map(a => a.student_id);
       console.log('Student IDs:', studentIds);
 
-      // Get profiles for these students
-      const { data: profiles, error: profileError } = await supabase
-        .from('profiles')
-        .select('*')
-        .in('user_id', studentIds);
+      // Get profiles for these students - usando maybeSingle para evitar errores
+      const profilesPromises = studentIds.map(async (studentId) => {
+        const { data: profile, error: profileError } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('user_id', studentId)
+          .maybeSingle();
 
-      if (profileError) {
-        console.error('Error fetching profiles:', profileError);
-        throw profileError;
-      }
+        if (profileError) {
+          console.error('Error fetching profile for student:', studentId, profileError);
+          return null;
+        }
 
-      console.log('Profiles found:', profiles?.length || 0);
+        return profile;
+      });
+
+      const profiles = await Promise.all(profilesPromises);
+      const validProfiles = profiles.filter(p => p !== null);
+      
+      console.log('Profiles found:', validProfiles.length);
 
       // For each student, get their activity data
       const athletesWithData = await Promise.all(
-        (profiles || []).map(async (profile) => {
+        validProfiles.map(async (profile) => {
           // Get recent training sessions (last 30 days)
           const thirtyDaysAgo = new Date();
           thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);

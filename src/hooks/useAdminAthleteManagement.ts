@@ -1,4 +1,3 @@
-
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -69,7 +68,7 @@ export const useAdminAthleteManagement = () => {
               )
             `)
             .eq('student_id', profile.user_id)
-            .single();
+            .maybeSingle();
 
           // Get recent training sessions (last 30 days)
           const thirtyDaysAgo = new Date();
