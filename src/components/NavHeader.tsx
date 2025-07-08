@@ -88,7 +88,7 @@ const NavHeader = ({ title, subtitle }: NavHeaderProps) => {
               </Badge>
             )}
             
-            {(currentUserRole === 'admin' || currentUserRole === 'entrenador') && location.pathname !== '/admin' && (
+            /* {(currentUserRole === 'admin' || currentUserRole === 'entrenador') && location.pathname !== '/admin' && (
               <Button
                 variant="ghost"
                 size="sm"
@@ -98,7 +98,20 @@ const NavHeader = ({ title, subtitle }: NavHeaderProps) => {
                 <Shield className="h-4 w-4 mr-2" />
                 {currentUserRole === 'admin' ? 'Admin' : 'Gestión'}
               </Button>
-            )}
+            )} */
+            {currentUserRole === 'admin' && location.pathname !== '/admin' && (
+  <Button
+    variant="ghost"
+    size="sm"
+    onClick={handleAdminPanel}
+    className="text-white hover:bg-white/20"
+  >
+    <Shield className="h-4 w-4 mr-2" />
+    Gestión
+  </Button>
+)}
+
+            
             
             <Button
               variant="ghost"
