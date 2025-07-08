@@ -1,4 +1,3 @@
-
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -63,6 +62,7 @@ export const useAthleteManagement = (trainerId: string) => {
       }
 
       console.log('Assignments found:', assignments.length);
+      console.log('Student IDs:', assignments.map(a => a.student_id));
 
       // Get student IDs
       const studentIds = assignments.map(a => a.student_id);
@@ -78,12 +78,25 @@ export const useAthleteManagement = (trainerId: string) => {
         throw profilesError;
       }
 
+      console.log('Profiles found:', profiles?.length || 0);
+      console.log('Profile data:', profiles);
+
+      // Check if we have any profiles at all
       if (!profiles || profiles.length === 0) {
-        console.log('No profiles found for assignments');
+        console.log('No profiles found for student IDs:', studentIds);
+        // Let's check if there are any profiles at all in the table
+        const { data: allProfilesCheck, error: allProfilesError } = await supabase
+          .from('profiles')
+          .select('user_id, full_name, email')
+          .limit(5);
+        
+        console.log('Sample profiles in database:', allProfilesCheck);
+        if (allProfilesError) {
+          console.error('Error checking all profiles:', allProfilesError);
+        }
+        
         return [];
       }
-
-      console.log('Profiles found:', profiles.length);
 
       // For each profile, get their activity data
       const athletesWithData = await Promise.all(
