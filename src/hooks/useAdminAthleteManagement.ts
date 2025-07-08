@@ -1,3 +1,4 @@
+
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -41,20 +42,10 @@ export const useAdminAthleteManagement = () => {
     queryFn: async () => {
       console.log('Fetching all athletes for admin view');
       
-      // Get all profiles with their trainer assignments
+      // Get all profiles
       const { data: profiles, error: profileError } = await supabase
         .from('profiles')
-        .select(`
-          *,
-          trainer_assignments!trainer_assignments_student_id_fkey(
-            trainer_id,
-            assigned_at,
-            trainer:profiles!trainer_assignments_trainer_id_fkey(
-              full_name,
-              email
-            )
-          )
-        `);
+        .select('*');
 
       if (profileError) {
         console.error('Error fetching profiles:', profileError);
@@ -63,13 +54,35 @@ export const useAdminAthleteManagement = () => {
 
       console.log('All profiles found:', profiles?.length || 0);
 
-      // For each profile, get their activity data
+      // Get all trainer assignments
+      const { data: assignments, error: assignmentError } = await supabase
+        .from('trainer_assignments')
+        .select('*');
+
+      if (assignmentError) {
+        console.error('Error fetching assignments:', assignmentError);
+        // Don't throw, just continue without assignments
+      }
+
+      // Get trainer profiles for assignments
+      const trainerIds = assignments?.map(a => a.trainer_id) || [];
+      const { data: trainerProfiles } = await supabase
+        .from('profiles')
+        .select('user_id, full_name, email')
+        .in('user_id', trainerIds);
+
+      // Create a map for quick trainer lookup
+      const trainerMap = new Map();
+      trainerProfiles?.forEach(trainer => {
+        trainerMap.set(trainer.user_id, trainer);
+      });
+
+      // For each profile, get their activity data and trainer info
       const athletesWithData = await Promise.all(
         (profiles || []).map(async (profile) => {
-          // Extract trainer assignment info
-          const trainerAssignment = Array.isArray(profile.trainer_assignments) 
-            ? profile.trainer_assignments[0] 
-            : profile.trainer_assignments;
+          // Find trainer assignment for this student
+          const assignment = assignments?.find(a => a.student_id === profile.user_id);
+          const trainer = assignment ? trainerMap.get(assignment.trainer_id) : null;
 
           // Get recent training sessions (last 30 days)
           const thirtyDaysAgo = new Date();
@@ -132,15 +145,15 @@ export const useAdminAthleteManagement = () => {
             weeklySessionsCount,
             totalTechniques: techniques?.length || 0,
             totalTacticalNotes: tacticalNotes?.length || 0,
-            trainer: trainerAssignment ? {
-              id: trainerAssignment.trainer_id,
-              full_name: (trainerAssignment.trainer as any)?.full_name || 'Sin nombre',
-              email: (trainerAssignment.trainer as any)?.email || '',
-              assigned_at: trainerAssignment.assigned_at
+            trainer: trainer ? {
+              id: assignment!.trainer_id,
+              full_name: trainer.full_name || 'Sin nombre',
+              email: trainer.email || '',
+              assigned_at: assignment!.assigned_at
             } : undefined,
-            trainer_name: trainerAssignment ? (trainerAssignment.trainer as any)?.full_name || 'Sin entrenador' : 'Sin entrenador',
-            trainer_email: trainerAssignment ? (trainerAssignment.trainer as any)?.email || '' : '',
-            assigned_at: trainerAssignment?.assigned_at,
+            trainer_name: trainer?.full_name || 'Sin entrenador',
+            trainer_email: trainer?.email || '',
+            assigned_at: assignment?.assigned_at,
             lastWeightEntry: weightEntries?.[0] ? {
               weight: Number(weightEntries[0].weight),
               date: weightEntries[0].date

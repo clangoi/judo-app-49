@@ -41,25 +41,10 @@ export const useAthleteManagement = (trainerId: string) => {
     queryFn: async () => {
       console.log('Fetching athletes for trainer:', trainerId);
       
-      // Get trainer assignments with profile information using JOIN
+      // First, get trainer assignments
       const { data: assignments, error: assignError } = await supabase
         .from('trainer_assignments')
-        .select(`
-          student_id,
-          assigned_at,
-          profiles!inner(
-            user_id,
-            full_name,
-            email,
-            club_name,
-            current_belt,
-            gender,
-            competition_category,
-            injuries,
-            injury_description,
-            profile_image_url
-          )
-        `)
+        .select('student_id, assigned_at')
         .eq('trainer_id', trainerId);
 
       if (assignError) {
@@ -72,24 +57,32 @@ export const useAthleteManagement = (trainerId: string) => {
         return [];
       }
 
-      console.log('Raw assignments data:', assignments);
+      console.log('Assignments found:', assignments.length);
 
-      // Filter out assignments without valid profiles and transform data
-      const validAssignments = assignments.filter(assignment => 
-        assignment.profiles && 
-        typeof assignment.profiles === 'object' && 
-        'user_id' in assignment.profiles &&
-        assignment.profiles.user_id
-      );
+      // Get student IDs
+      const studentIds = assignments.map(a => a.student_id);
 
-      console.log('Valid assignments:', validAssignments.length);
+      // Fetch profiles for all assigned students
+      const { data: profiles, error: profilesError } = await supabase
+        .from('profiles')
+        .select('*')
+        .in('user_id', studentIds);
 
-      // For each valid assignment, get their activity data
+      if (profilesError) {
+        console.error('Error fetching profiles:', profilesError);
+        throw profilesError;
+      }
+
+      if (!profiles || profiles.length === 0) {
+        console.log('No profiles found for assignments');
+        return [];
+      }
+
+      console.log('Profiles found:', profiles.length);
+
+      // For each profile, get their activity data
       const athletesWithData = await Promise.all(
-        validAssignments.map(async (assignment) => {
-          // Now we know profiles is not null due to the filter above
-          const profile = assignment.profiles!;
-          
+        profiles.map(async (profile) => {
           // Get recent training sessions (last 30 days)
           const thirtyDaysAgo = new Date();
           thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
