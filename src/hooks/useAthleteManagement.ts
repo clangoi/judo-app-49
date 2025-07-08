@@ -41,6 +41,11 @@ export const useAthleteManagement = (trainerId: string) => {
     queryFn: async () => {
       console.log('Fetching athletes for trainer:', trainerId);
       
+      if (!trainerId) {
+        console.log('No trainer ID provided');
+        return [];
+      }
+
       // First, get trainer assignments
       const { data: assignments, error: assignError } = await supabase
         .from('trainer_assignments')
@@ -53,7 +58,7 @@ export const useAthleteManagement = (trainerId: string) => {
       }
 
       if (!assignments || assignments.length === 0) {
-        console.log('No student assignments found');
+        console.log('No student assignments found for trainer:', trainerId);
         return [];
       }
 
