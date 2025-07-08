@@ -5,11 +5,23 @@ import { Badge } from "@/components/ui/badge";
 import { User, Weight, Calendar, Trophy, Target, UserCheck, Mail } from "lucide-react";
 
 interface AdminIndividualAthleteViewProps {
-  athlete: AdminAthleteData;
+  athlete?: AdminAthleteData;
   onBack: () => void;
 }
 
 export const AdminIndividualAthleteView = ({ athlete, onBack }: AdminIndividualAthleteViewProps) => {
+  if (!athlete) {
+    return (
+      <Card>
+        <CardContent className="p-6">
+          <p className="text-center text-muted-foreground">
+            Selecciona un deportista para ver sus detalles
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
+
   const getActivityColor = (status: string) => {
     switch (status) {
       case 'active':
@@ -102,10 +114,12 @@ export const AdminIndividualAthleteView = ({ athlete, onBack }: AdminIndividualA
             <Mail className="h-4 w-4 text-muted-foreground" />
             <span>{athlete.trainer_email}</span>
           </div>
-          <div className="flex items-center gap-2">
-            <Calendar className="h-4 w-4 text-muted-foreground" />
-            <span>Asignado el: {formatDate(athlete.assigned_at)}</span>
-          </div>
+          {athlete.assigned_at && (
+            <div className="flex items-center gap-2">
+              <Calendar className="h-4 w-4 text-muted-foreground" />
+              <span>Asignado el: {formatDate(athlete.assigned_at)}</span>
+            </div>
+          )}
         </CardContent>
       </Card>
 

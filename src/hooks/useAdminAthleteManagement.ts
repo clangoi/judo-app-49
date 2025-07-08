@@ -23,6 +23,9 @@ export interface AdminAthleteData {
     email: string;
     assigned_at: string;
   };
+  trainer_name?: string;
+  trainer_email?: string;
+  assigned_at?: string;
   lastWeightEntry?: {
     weight: number;
     date: string;
@@ -31,6 +34,16 @@ export interface AdminAthleteData {
     session_type: string;
     date: string;
   };
+}
+
+export interface TrainerWithAthletes {
+  trainer_name: string;
+  trainer_email: string;
+  trainer_id?: string;
+  totalAthletes: number;
+  activeAthletes: number;
+  averageWeeklySessions: number;
+  athletes: AdminAthleteData[];
 }
 
 export const useAdminAthleteManagement = () => {
@@ -135,6 +148,9 @@ export const useAdminAthleteManagement = () => {
               email: (assignment.trainer as any)?.email || '',
               assigned_at: assignment.assigned_at
             } : undefined,
+            trainer_name: assignment ? (assignment.trainer as any)?.full_name || 'Sin entrenador' : 'Sin entrenador',
+            trainer_email: assignment ? (assignment.trainer as any)?.email || '' : '',
+            assigned_at: assignment?.assigned_at,
             lastWeightEntry: weightEntries?.[0] ? {
               weight: Number(weightEntries[0].weight),
               date: weightEntries[0].date

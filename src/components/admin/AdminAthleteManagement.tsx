@@ -171,11 +171,8 @@ const AdminAthleteManagement = () => {
 
         <TabsContent value="individual">
           <AdminIndividualAthleteView
-            athleteId={selectedAthleteId || ''}
             athlete={selectedAthlete}
             onBack={handleBackToOverview}
-            allAthletes={athletesData}
-            onAthleteSelect={handleAthleteSelect}
           />
         </TabsContent>
       </Tabs>

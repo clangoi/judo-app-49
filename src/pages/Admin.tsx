@@ -4,7 +4,7 @@ import { useUserRoles } from "@/hooks/useUserRoles";
 import NavHeader from "@/components/NavHeader";
 import UserRoleManagement from "@/components/admin/UserRoleManagement";
 import TrainerAssignmentManagement from "@/components/admin/TrainerAssignmentManagement";
-import { AdminAthleteManagement } from "@/components/admin/AdminAthleteManagement";
+import AdminAthleteManagement from "@/components/admin/AdminAthleteManagement";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Shield, Loader2 } from "lucide-react";
