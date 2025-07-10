@@ -1,3 +1,4 @@
+
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -45,94 +46,57 @@ export const useAthleteManagement = (trainerId: string) => {
         return [];
       }
 
-      // First, get trainer assignments
-      const { data: assignments, error: assignError } = await supabase
-        .from('trainer_assignments')
-        .select('student_id, assigned_at')
-        .eq('trainer_id', trainerId);
+      // Usar la función de base de datos que ya funciona correctamente
+      const { data: trainerStudents, error: studentsError } = await supabase
+        .rpc('get_trainer_students', { _trainer_id: trainerId });
 
-      if (assignError) {
-        console.error('Error fetching assignments:', assignError);
-        throw assignError;
+      if (studentsError) {
+        console.error('Error fetching trainer students:', studentsError);
+        throw studentsError;
       }
 
-      if (!assignments || assignments.length === 0) {
-        console.log('No student assignments found for trainer:', trainerId);
+      if (!trainerStudents || trainerStudents.length === 0) {
+        console.log('No students found for trainer:', trainerId);
         return [];
       }
 
-      console.log('Assignments found:', assignments.length);
-      console.log('Student IDs:', assignments.map(a => a.student_id));
+      console.log('Students found:', trainerStudents.length);
 
-      // Get student IDs
-      const studentIds = assignments.map(a => a.student_id);
-
-      // Fetch profiles for all assigned students
-      const { data: profiles, error: profilesError } = await supabase
-        .from('profiles')
-        .select('*')
-        .in('user_id', studentIds);
-
-      if (profilesError) {
-        console.error('Error fetching profiles:', profilesError);
-        throw profilesError;
-      }
-
-      console.log('Profiles found:', profiles?.length || 0);
-      console.log('Profile data:', profiles);
-
-      // Check if we have any profiles at all
-      if (!profiles || profiles.length === 0) {
-        console.log('No profiles found for student IDs:', studentIds);
-        // Let's check if there are any profiles at all in the table
-        const { data: allProfilesCheck, error: allProfilesError } = await supabase
-          .from('profiles')
-          .select('user_id, full_name, email')
-          .limit(5);
-        
-        console.log('Sample profiles in database:', allProfilesCheck);
-        if (allProfilesError) {
-          console.error('Error checking all profiles:', allProfilesError);
-        }
-        
-        return [];
-      }
-
-      // For each profile, get their activity data
+      // Para cada estudiante, obtener sus datos de actividad
       const athletesWithData = await Promise.all(
-        profiles.map(async (profile) => {
-          // Get recent training sessions (last 30 days)
+        trainerStudents.map(async (student) => {
+          // Obtener sesiones de entrenamiento recientes (últimos 30 días)
           const thirtyDaysAgo = new Date();
           thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
           
           const { data: sessions } = await supabase
             .from('training_sessions')
             .select('*')
-            .eq('user_id', profile.user_id)
+            .eq('user_id', student.student_id)
             .gte('date', thirtyDaysAgo.toISOString().split('T')[0])
             .order('date', { ascending: false });
 
-          // Get techniques count
+          // Obtener conteo de técnicas
           const { data: techniques } = await supabase
             .from('techniques')
             .select('id')
-            .eq('user_id', profile.user_id);
+            .eq('user_id', student.student_id);
 
-          // Get tactical notes count
+          // Obtener conteo de notas tácticas
           const { data: tacticalNotes } = await supabase
             .from('tactical_notes')
             .select('id')
-            .eq('user_id', profile.user_id);
+            .eq('user_id', student.student_id);
 
-          // Get last weight entry
+          // Obtener última entrada de peso
           const { data: weightEntries } = await supabase
             .from('weight_entries')
             .select('*')
-            .eq('user_id', profile.user_id)
+            .eq('user_id', student.student_id)
             .order('date', { ascending: false })
             .limit(1);
 
-          // Calculate activity status
+          // Calcular estado de actividad
           const weeklySessionsCount = sessions?.filter(s => {
             const sessionDate = new Date(s.date);
             const weekAgo = new Date();
@@ -147,17 +111,24 @@ export const useAthleteManagement = (trainerId: string) => {
             activityStatus = 'moderate';
           }
 
+          // Obtener el perfil completo del estudiante
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('user_id', student.student_id)
+            .single();
+
           return {
-            id: profile.user_id,
-            full_name: profile.full_name || profile.email || 'Sin nombre',
-            email: profile.email || '',
-            club_name: profile.club_name || 'Sin club',
-            current_belt: profile.current_belt || 'white',
-            gender: profile.gender,
-            competition_category: profile.competition_category,
-            injuries: profile.injuries,
-            injury_description: profile.injury_description,
-            profile_image_url: profile.profile_image_url,
+            id: student.student_id,
+            full_name: student.full_name || profile?.full_name || 'Sin nombre',
+            email: student.email || profile?.email || '',
+            club_name: profile?.club_name || 'Sin club',
+            current_belt: profile?.current_belt || 'white',
+            gender: profile?.gender,
+            competition_category: profile?.competition_category,
+            injuries: profile?.injuries,
+            injury_description: profile?.injury_description,
+            profile_image_url: profile?.profile_image_url,
             activityStatus,
             weeklySessionsCount,
             totalTechniques: techniques?.length || 0,
