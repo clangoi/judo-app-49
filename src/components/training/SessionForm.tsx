@@ -1,3 +1,4 @@
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,6 +20,7 @@ interface ExerciseRecord {
   reps?: number;
   weight_kg?: number;
   duration_minutes?: number;
+  rest_seconds?: number;
   notes?: string;
   saved?: boolean;
 }

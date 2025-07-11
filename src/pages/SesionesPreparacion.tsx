@@ -29,6 +29,7 @@ interface ExerciseRecord {
   reps?: number;
   weight_kg?: number;
   duration_minutes?: number;
+  rest_seconds?: number;
   notes?: string;
   saved?: boolean;
 }
@@ -139,6 +140,7 @@ const SesionesPreparacion = () => {
         reps: record.reps,
         weight_kg: record.weight_kg,
         duration_minutes: record.duration_minutes,
+        rest_seconds: record.rest_seconds,
         notes: record.notes,
         saved: true
       }));
@@ -174,6 +176,7 @@ const SesionesPreparacion = () => {
       reps: 0,
       weight_kg: 0,
       duration_minutes: 0,
+      rest_seconds: 0,
       notes: "",
       saved: false
     }]);

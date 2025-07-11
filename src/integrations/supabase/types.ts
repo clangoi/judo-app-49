@@ -95,6 +95,38 @@ export type Database = {
         }
         Relationships: []
       }
+      notification_logs: {
+        Row: {
+          id: string
+          reminder_id: string
+          sent_at: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          reminder_id: string
+          sent_at?: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          reminder_id?: string
+          sent_at?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_logs_reminder_id_fkey"
+            columns: ["reminder_id"]
+            isOneToOne: false
+            referencedRelation: "training_reminders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       nutrition_entries: {
         Row: {
           calories: number | null
@@ -322,6 +354,45 @@ export type Database = {
           id?: string
           student_id?: string
           trainer_id?: string
+        }
+        Relationships: []
+      }
+      training_reminders: {
+        Row: {
+          created_at: string
+          days_of_week: number[]
+          id: string
+          is_active: boolean
+          message: string | null
+          time_of_day: string
+          title: string
+          training_type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          days_of_week: number[]
+          id?: string
+          is_active?: boolean
+          message?: string | null
+          time_of_day: string
+          title: string
+          training_type: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          days_of_week?: number[]
+          id?: string
+          is_active?: boolean
+          message?: string | null
+          time_of_day?: string
+          title?: string
+          training_type?: string
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }

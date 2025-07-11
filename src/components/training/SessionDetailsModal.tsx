@@ -2,7 +2,7 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Clock, Calendar, Zap, Edit, Trash2 } from "lucide-react";
+import { Clock, Calendar, Zap, Edit, Trash2, Timer } from "lucide-react";
 import { useTrainingSessions } from "@/hooks/useTrainingSessions";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -123,6 +123,12 @@ const SessionDetailsModal = ({ sesion, isOpen, onClose, onEdit, onDelete }: Sess
                         {record.reps && <span>Repeticiones: {record.reps}</span>}
                         {record.weight_kg && <span>Peso: {record.weight_kg}kg</span>}
                         {record.duration_minutes && <span>Duración: {record.duration_minutes}min</span>}
+                        {record.rest_seconds && (
+                          <span className="flex items-center gap-1">
+                            <Timer className="h-3 w-3" />
+                            Descanso: {record.rest_seconds}s
+                          </span>
+                        )}
                       </div>
                       {record.notes && (
                         <p className="text-sm text-[#575757] mt-2 italic">"{record.notes}"</p>

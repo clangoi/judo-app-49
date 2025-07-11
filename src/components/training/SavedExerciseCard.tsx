@@ -14,6 +14,7 @@ interface ExerciseRecord {
   reps?: number;
   weight_kg?: number;
   duration_minutes?: number;
+  rest_seconds?: number;
   notes?: string;
   saved?: boolean;
 }
@@ -38,6 +39,7 @@ const SavedExerciseCard = ({ ejercicio, index, ejercicios, onEdit, onDelete }: S
     if (ejercicio.reps) parts.push(`${ejercicio.reps} reps`);
     if (ejercicio.weight_kg) parts.push(`${ejercicio.weight_kg}kg`);
     if (ejercicio.duration_minutes) parts.push(`${ejercicio.duration_minutes}min`);
+    if (ejercicio.rest_seconds) parts.push(`${ejercicio.rest_seconds}s descanso`);
     return parts.join(' • ');
   };
 

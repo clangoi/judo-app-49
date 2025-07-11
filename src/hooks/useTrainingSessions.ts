@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -17,6 +18,7 @@ interface ExerciseRecord {
   reps?: number;
   weight_kg?: number;
   duration_minutes?: number;
+  rest_seconds?: number;
   notes?: string;
 }
 
@@ -88,6 +90,7 @@ export const useTrainingSessions = (userId: string | undefined) => {
             reps: ejercicio.reps,
             weight_kg: ejercicio.weight_kg,
             duration_minutes: ejercicio.duration_minutes,
+            rest_seconds: ejercicio.rest_seconds,
             notes: ejercicio.notes,
             training_session_id: sessionData.id,
             user_id: userId,
@@ -161,6 +164,7 @@ export const useTrainingSessions = (userId: string | undefined) => {
               reps: ejercicio.reps,
               weight_kg: ejercicio.weight_kg,
               duration_minutes: ejercicio.duration_minutes,
+              rest_seconds: ejercicio.rest_seconds,
               notes: ejercicio.notes,
               training_session_id: id,
               user_id: userId,
