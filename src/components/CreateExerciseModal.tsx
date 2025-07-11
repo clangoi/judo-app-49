@@ -39,7 +39,7 @@ const CreateExerciseModal = () => {
           className="border-[#C5A46C] text-[#C5A46C] hover:bg-[#C5A46C] hover:text-white"
         >
           <Plus className="h-4 w-4 mr-2" />
-          Crear Ejercicio
+          Ejercicio
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
