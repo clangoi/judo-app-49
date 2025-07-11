@@ -247,7 +247,7 @@ const SesionesPreparacion = () => {
                 className="bg-[#C5A46C] hover:bg-[#B8956A] text-white"
               >
                 <Plus className="h-4 w-4 mr-2" />
-                Sesión
+                Nueva Sesión
               </Button>
               <CreateExerciseModal />
             </div>
