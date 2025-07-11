@@ -335,7 +335,6 @@ const Peso = () => {
                             size="sm"
                           >
                             <Trash2 className="h-4 w-4 mr-2" />
-                            Eliminar
                           </Button>
                         </div>
                       </div>
