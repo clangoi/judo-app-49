@@ -318,7 +318,6 @@ const Peso = () => {
                             className="border-blue-500 text-blue-600 hover:bg-blue-50"
                           >
                             <Eye className="h-4 w-4 mr-2" />
-                            Ver
                           </Button>
                           <Button
                             onClick={() => iniciarEdicion(registro)}
@@ -327,7 +326,6 @@ const Peso = () => {
                             className="border-[#C5A46C] text-[#C5A46C] hover:bg-[#C5A46C] hover:text-white"
                           >
                             <Edit className="h-4 w-4 mr-2" />
-                            Editar
                           </Button>
                           <Button
                             onClick={() => handleEliminar(registro)}
