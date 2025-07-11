@@ -59,16 +59,14 @@ const SessionDetailsModal = ({ sesion, isOpen, onClose, onEdit, onDelete }: Sess
                 size="sm"
                 className="border-[#C5A46C] text-[#C5A46C] hover:bg-[#C5A46C] hover:text-white"
               >
-                <Edit className="h-4 w-4 mr-2" />
-                Editar
+                <Edit className="h-4 w-4" />
               </Button>
               <Button
                 onClick={handleDelete}
                 variant="destructive"
                 size="sm"
               >
-                <Trash2 className="h-4 w-4 mr-2" />
-                Eliminar
+                <Trash2 className="h-4 w-4" />
               </Button>
             </div>
           </DialogTitle>

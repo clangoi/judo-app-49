@@ -133,8 +133,7 @@ const ExerciseForm = ({ ejercicio, index, ejercicios, onUpdate, onDelete, onSave
               onClick={() => onSave(index)}
               className="bg-green-600 hover:bg-green-700 text-white"
             >
-              <Save className="h-4 w-4 mr-2" />
-              Guardar
+              <Save className="h-4 w-4" />
             </Button>
           )}
           <Button
@@ -142,8 +141,7 @@ const ExerciseForm = ({ ejercicio, index, ejercicios, onUpdate, onDelete, onSave
             onClick={() => onDelete(index)}
             variant="destructive"
           >
-            <Trash2 className="h-4 w-4 mr-2" />
-            Eliminar
+            <Trash2 className="h-4 w-4" />
           </Button>
         </div>
       </CardContent>

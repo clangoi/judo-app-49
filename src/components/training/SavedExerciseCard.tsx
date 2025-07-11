@@ -62,8 +62,7 @@ const SavedExerciseCard = ({ ejercicio, index, ejercicios, onEdit, onDelete }: S
               size="sm"
               className="border-orange-500 text-orange-600 hover:bg-orange-50 h-7 px-2"
             >
-              <Edit className="h-3 w-3 mr-1" />
-              <span className="text-xs">Editar</span>
+              <Edit className="h-3 w-3" />
             </Button>
             <Button
               type="button"
@@ -72,8 +71,7 @@ const SavedExerciseCard = ({ ejercicio, index, ejercicios, onEdit, onDelete }: S
               size="sm"
               className="h-7 px-2"
             >
-              <Trash2 className="h-3 w-3 mr-1" />
-              <span className="text-xs">Eliminar</span>
+              <Trash2 className="h-3 w-3" />
             </Button>
           </div>
         </div>

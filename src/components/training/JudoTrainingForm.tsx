@@ -5,9 +5,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Users, Loader2 } from "lucide-react";
-import VideoUpload from "@/components/VideoUpload";
+import { Users, Loader2, Save, X } from "lucide-react";
+import MediaUpload from "@/components/MediaUpload";
 import RandoriForm from "./RandoriForm";
+
+interface MediaFile {
+  url: string;
+  type: 'image' | 'video';
+  name: string;
+}
 
 interface RandoryInfo {
   oponente: string;
@@ -28,6 +34,7 @@ interface EntrenamientoJudo {
   comentarios?: string;
   randory?: RandoryInfo;
   videoUrl?: string;
+  mediaFiles?: MediaFile[];
 }
 
 interface JudoTrainingFormProps {
@@ -46,7 +53,7 @@ const JudoTrainingForm = ({ editandoEntrenamiento, onSubmit, onCancel, isLoading
     queFunciono: editandoEntrenamiento?.queFunciono || "",
     queNoFunciono: editandoEntrenamiento?.queNoFunciono || "",
     comentarios: editandoEntrenamiento?.comentarios || "",
-    videoUrl: editandoEntrenamiento?.videoUrl || ""
+    mediaFiles: editandoEntrenamiento?.mediaFiles || []
   });
   const [randoryData, setRandoryData] = useState({
     oponente: editandoEntrenamiento?.randory?.oponente || "",
@@ -56,12 +63,13 @@ const JudoTrainingForm = ({ editandoEntrenamiento, onSubmit, onCancel, isLoading
     tecnicasQueRecibio: editandoEntrenamiento?.randory?.tecnicasQueRecibio || ""
   });
 
-  const handleVideoUploaded = (videoUrl: string) => {
-    setNuevoEntrenamiento({...nuevoEntrenamiento, videoUrl});
+  const handleMediaUploaded = (mediaFiles: MediaFile[]) => {
+    setNuevoEntrenamiento({...nuevoEntrenamiento, mediaFiles});
   };
 
-  const handleRemoveVideo = () => {
-    setNuevoEntrenamiento({...nuevoEntrenamiento, videoUrl: ""});
+  const handleRemoveMedia = (index: number) => {
+    const updatedMediaFiles = nuevoEntrenamiento.mediaFiles.filter((_, i) => i !== index);
+    setNuevoEntrenamiento({...nuevoEntrenamiento, mediaFiles: updatedMediaFiles});
   };
 
   const handleSubmit = () => {
@@ -79,7 +87,7 @@ const JudoTrainingForm = ({ editandoEntrenamiento, onSubmit, onCancel, isLoading
       queNoFunciono: nuevoEntrenamiento.queNoFunciono,
       comentarios: nuevoEntrenamiento.comentarios,
       randory: incluirRandory ? randoryData : undefined,
-      videoUrl: nuevoEntrenamiento.videoUrl || undefined
+      mediaFiles: nuevoEntrenamiento.mediaFiles || []
     };
 
     console.log('Submitting training data:', entrenamientoData);
@@ -150,10 +158,10 @@ const JudoTrainingForm = ({ editandoEntrenamiento, onSubmit, onCancel, isLoading
           />
         </div>
         
-        <VideoUpload
-          onVideoUploaded={handleVideoUploaded}
-          currentVideoUrl={nuevoEntrenamiento.videoUrl}
-          onRemoveVideo={handleRemoveVideo}
+        <MediaUpload
+          onMediaUploaded={handleMediaUploaded}
+          currentMediaFiles={nuevoEntrenamiento.mediaFiles}
+          onRemoveMedia={handleRemoveMedia}
         />
         
         <div className="border-t pt-4">
@@ -186,11 +194,11 @@ const JudoTrainingForm = ({ editandoEntrenamiento, onSubmit, onCancel, isLoading
             {isLoading ? (
               <Loader2 className="h-4 w-4 animate-spin" />
             ) : (
-              editandoEntrenamiento ? "Actualizar" : "Guardar"
+              <Save className="h-4 w-4" />
             )}
           </Button>
           <Button variant="outline" onClick={onCancel}>
-            Cancelar
+            <X className="h-4 w-4" />
           </Button>
         </div>
       </CardContent>

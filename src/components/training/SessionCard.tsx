@@ -76,8 +76,7 @@ const SessionCard = ({ sesion, onView, onEdit, onDelete }: SessionCardProps) => 
               size="sm"
               className="border-blue-500 text-blue-600 hover:bg-blue-50"
             >
-              <Eye className="h-4 w-4 mr-2" />
-              Ver
+              <Eye className="h-4 w-4" />
             </Button>
             <Button
               onClick={(e) => {
@@ -88,16 +87,14 @@ const SessionCard = ({ sesion, onView, onEdit, onDelete }: SessionCardProps) => 
               size="sm"
               className="border-[#C5A46C] text-[#C5A46C] hover:bg-[#C5A46C] hover:text-white"
             >
-              <Edit className="h-4 w-4 mr-2" />
-              Editar
+              <Edit className="h-4 w-4" />
             </Button>
             <Button
               onClick={handleDelete}
               variant="destructive"
               size="sm"
             >
-              <Trash2 className="h-4 w-4 mr-2" />
-              Eliminar
+              <Trash2 className="h-4 w-4" />
             </Button>
           </div>
         </div>

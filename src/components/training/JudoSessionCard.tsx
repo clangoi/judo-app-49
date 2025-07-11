@@ -2,8 +2,14 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Clock, Users, Eye, Edit, Trash2, ChevronDown, ChevronUp, Target, CheckCircle, XCircle } from "lucide-react";
+import { Clock, Users, Eye, Edit, Trash2, ChevronDown, ChevronUp, Target, CheckCircle, XCircle, Image as ImageIcon, Play } from "lucide-react";
 import { useState } from "react";
+
+interface MediaFile {
+  url: string;
+  type: 'image' | 'video';
+  name: string;
+}
 
 interface RandoryInfo {
   oponente: string;
@@ -24,6 +30,7 @@ interface EntrenamientoJudo {
   comentarios?: string;
   randory?: RandoryInfo;
   videoUrl?: string;
+  mediaFiles?: MediaFile[];
 }
 
 interface JudoSessionCardProps {
@@ -40,6 +47,8 @@ const JudoSessionCard = ({ entrenamiento, onView, onEdit, onDelete, isDeleting }
   const toggleExpanded = () => {
     setIsExpanded(!isExpanded);
   };
+
+  const hasMedia = (entrenamiento.mediaFiles && entrenamiento.mediaFiles.length > 0) || entrenamiento.videoUrl;
 
   return (
     <Card className="mb-4 transition-all duration-200 hover:shadow-md">
@@ -112,16 +121,58 @@ const JudoSessionCard = ({ entrenamiento, onView, onEdit, onDelete, isDeleting }
       {isExpanded && (
         <CardContent>
           <div className="space-y-4">
-            {entrenamiento.videoUrl && (
-              <div className="bg-black rounded-lg overflow-hidden">
-                <video 
-                  controls 
-                  className="w-full h-64 object-contain"
-                  preload="metadata"
-                >
-                  <source src={entrenamiento.videoUrl} type="video/mp4" />
-                  Tu navegador no soporta videos HTML5.
-                </video>
+            {/* Media files display */}
+            {hasMedia && (
+              <div className="space-y-3">
+                {/* Legacy video support */}
+                {entrenamiento.videoUrl && (
+                  <div className="bg-black rounded-lg overflow-hidden">
+                    <video 
+                      controls 
+                      className="w-full h-64 object-contain"
+                      preload="metadata"
+                    >
+                      <source src={entrenamiento.videoUrl} type="video/mp4" />
+                      Tu navegador no soporta videos HTML5.
+                    </video>
+                  </div>
+                )}
+                
+                {/* New media files */}
+                {entrenamiento.mediaFiles && entrenamiento.mediaFiles.length > 0 && (
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                    {entrenamiento.mediaFiles.map((mediaFile, index) => (
+                      <div key={index} className="relative border rounded-lg overflow-hidden">
+                        {mediaFile.type === 'video' ? (
+                          <video 
+                            controls 
+                            className="w-full h-32 object-cover"
+                            preload="metadata"
+                          >
+                            <source src={mediaFile.url} type="video/mp4" />
+                            Tu navegador no soporta videos HTML5.
+                          </video>
+                        ) : (
+                          <img 
+                            src={mediaFile.url} 
+                            alt={mediaFile.name}
+                            className="w-full h-32 object-cover"
+                            onError={(e) => {
+                              e.currentTarget.src = '/placeholder.svg';
+                            }}
+                          />
+                        )}
+                        <div className="absolute bottom-1 left-1">
+                          {mediaFile.type === 'video' ? (
+                            <Play className="h-4 w-4 text-white bg-black bg-opacity-50 rounded-full p-0.5" />
+                          ) : (
+                            <ImageIcon className="h-4 w-4 text-white bg-black bg-opacity-50 rounded-full p-0.5" />
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
             
