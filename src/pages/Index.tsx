@@ -13,8 +13,7 @@ import {
   Scale, 
   BarChart3, 
   Users,
-  Shield,
-  Bell
+  Shield
 } from "lucide-react";
 
 const Index = () => {
@@ -77,13 +76,6 @@ const Index = () => {
       icon: Users,
       path: "/gestion",
       color: "bg-teal-500 hover:bg-teal-600"
-    },
-    {
-      title: "Recordatorios",
-      description: "Configura notificaciones de entrenamiento",
-      icon: Bell,
-      path: "/recordatorios",
-      color: "bg-pink-500 hover:bg-pink-600"
     },
     {
       title: "Administración",

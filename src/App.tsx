@@ -17,7 +17,6 @@ import Peso from "./pages/Peso";
 import Graficos from "./pages/Graficos";
 import Gestion from "./pages/Gestion";
 import Admin from "./pages/Admin";
-import Recordatorios from "./pages/Recordatorios";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -42,7 +41,6 @@ function App() {
               <Route path="/graficos" element={<AuthGuard><Graficos /></AuthGuard>} />
               <Route path="/gestion" element={<AuthGuard><Gestion /></AuthGuard>} />
               <Route path="/admin" element={<AuthGuard><Admin /></AuthGuard>} />
-              <Route path="/recordatorios" element={<AuthGuard><Recordatorios /></AuthGuard>} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
