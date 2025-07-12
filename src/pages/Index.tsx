@@ -36,7 +36,7 @@ const Index = () => {
       description: "Registra y administra tus sesiones de entrenamiento físico",
       icon: Dumbbell,
       path: "/sesiones-preparacion",
-      color: "bg-blue-500",
+      color: "bg-gray-700",
       roles: ['practicante', 'entrenador', 'admin']
     },
     {
@@ -44,7 +44,7 @@ const Index = () => {
       description: "Documenta tus sesiones de judo y randori",
       icon: Target,
       path: "/entrenamientos-judo",
-      color: "bg-green-500",
+      color: "bg-gray-700",
       roles: ['practicante', 'entrenador', 'admin']
     },
     {
@@ -52,7 +52,7 @@ const Index = () => {
       description: "Explora y aprende técnicas de judo por categorías",
       icon: Zap,
       path: "/tecnicas-judo",
-      color: "bg-yellow-500",
+      color: "bg-gray-700",
       roles: ['practicante', 'entrenador', 'admin']
     },
     {
@@ -60,7 +60,7 @@ const Index = () => {
       description: "Desarrolla estrategias y tácticas de combate",
       icon: Brain,
       path: "/tactica-judo",
-      color: "bg-purple-500",
+      color: "bg-gray-700",
       roles: ['practicante', 'entrenador', 'admin']
     },
     {
@@ -68,7 +68,7 @@ const Index = () => {
       description: "Monitorea tu peso y progreso físico",
       icon: Scale,
       path: "/peso",
-      color: "bg-red-500",
+      color: "bg-gray-700",
       roles: ['practicante', 'entrenador', 'admin']
     },
     {
@@ -76,7 +76,7 @@ const Index = () => {
       description: "Registra y planifica tu nutrición diaria",
       icon: Utensils,
       path: "/alimentacion",
-      color: "bg-orange-500",
+      color: "bg-gray-700",
       roles: ['practicante', 'entrenador', 'admin']
     },
     {
@@ -84,7 +84,7 @@ const Index = () => {
       description: "Visualiza tu progreso con gráficos detallados",
       icon: BarChart3,
       path: "/graficos",
-      color: "bg-indigo-500",
+      color: "bg-gray-700",
       roles: ['practicante', 'entrenador', 'admin']
     },
     {
@@ -92,7 +92,7 @@ const Index = () => {
       description: "Administra y monitorea el progreso de tus deportistas",
       icon: Users,
       path: "/gestion",
-      color: "bg-teal-500",
+      color: "bg-gray-700",
       roles: ['entrenador', 'admin']
     },
     {
@@ -100,7 +100,7 @@ const Index = () => {
       description: "Administra los clubes de tus deportistas",
       icon: Building,
       path: "/clubes",
-      color: "bg-cyan-500",
+      color: "bg-gray-700",
       roles: ['entrenador', 'admin']
     },
     {
