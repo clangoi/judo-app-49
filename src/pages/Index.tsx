@@ -1,183 +1,155 @@
+
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRoles } from "@/hooks/useUserRoles";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Weight, Activity, Users, Target, BookOpen, LogOut, BarChart3, Shield } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
-import { ProfileButton } from "@/components/ProfileButton";
+import { useNavigate } from "react-router-dom";
+import { 
+  Dumbbell, 
+  Target, 
+  Zap, 
+  Brain, 
+  Scale, 
+  Utensils, 
+  BarChart3, 
+  Users,
+  Shield,
+  Building
+} from "lucide-react";
+import NavHeader from "@/components/NavHeader";
 
 const Index = () => {
-  const { user, signOut } = useAuth();
+  const { user } = useAuth();
   const { currentUserRole } = useUserRoles(user?.id);
   const navigate = useNavigate();
 
-  const { data: profile } = useQuery({
-    queryKey: ['profile', user?.id],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('user_id', user!.id)
-        .single();
-      
-      if (error) throw error;
-      return data;
-    },
-    enabled: !!user,
-  });
-
   const getGreeting = () => {
-    // Use the gender_preference field from auth signup or fallback to 'masculino'
-    const genderPreference = (profile as any)?.gender_preference || 'masculino';
-    if (genderPreference === 'femenino') {
-      return 'Bienvenida';
-    } else if (genderPreference === 'neutro'){
-      return 'Bienvenide'
-    }
-    return 'Bienvenido';
+    const hour = new Date().getHours();
+    if (hour < 12) return "Buenos días";
+    if (hour < 18) return "Buenas tardes";
+    return "Buenas noches";
   };
 
-  const handleAdminPanel = () => {
-    navigate('/admin');
-  };
-
-  const handleGestionPanel = () => {
-    navigate('/gestion');
-  };
-
-  const cards = [
+  const menuItems = [
     {
-      title: "Peso Semanal",
-      description: "Seguimiento de peso corporal",
-      icon: Weight,
-      href: "/peso",
-      color: "bg-[#C5A46C]"
-    },
-    {
-      title: "Preparación Física",
-      description: "Sesiones de acondicionamiento",
-      icon: Activity,
-      href: "/sesiones-preparacion",
-      color: "bg-[#575757]"
+      title: "Sesiones de Preparación",
+      description: "Registra y administra tus sesiones de entrenamiento físico",
+      icon: Dumbbell,
+      path: "/sesiones-preparacion",
+      color: "bg-blue-500",
+      roles: ['practicante', 'entrenador', 'admin']
     },
     {
       title: "Entrenamientos de Judo",
-      description: "Registro de entrenamientos",
-      icon: Users,
-      href: "/entrenamientos-judo",
-      color: "bg-[#C5A46C]"
+      description: "Documenta tus sesiones de judo y randori",
+      icon: Target,
+      path: "/entrenamientos-judo",
+      color: "bg-green-500",
+      roles: ['practicante', 'entrenador', 'admin']
     },
     {
       title: "Técnicas de Judo",
-      description: "Biblioteca de técnicas",
-      icon: BookOpen,
-      href: "/tecnicas-judo",
-      color: "bg-[#575757]"
+      description: "Explora y aprende técnicas de judo por categorías",
+      icon: Zap,
+      path: "/tecnicas-judo",
+      color: "bg-yellow-500",
+      roles: ['practicante', 'entrenador', 'admin']
     },
     {
       title: "Táctica de Judo",
-      description: "Estrategias y planes tácticos",
-      icon: Target,
-      href: "/tactica-judo",
-      color: "bg-[#C5A46C]"
+      description: "Desarrolla estrategias y tácticas de combate",
+      icon: Brain,
+      path: "/tactica-judo",
+      color: "bg-purple-500",
+      roles: ['practicante', 'entrenador', 'admin']
     },
     {
-      title: "Gráficos y Progreso",
-      description: "Visualiza tu evolución",
+      title: "Control de Peso",
+      description: "Monitorea tu peso y progreso físico",
+      icon: Scale,
+      path: "/peso",
+      color: "bg-red-500",
+      roles: ['practicante', 'entrenador', 'admin']
+    },
+    {
+      title: "Alimentación",
+      description: "Registra y planifica tu nutrición diaria",
+      icon: Utensils,
+      path: "/alimentacion",
+      color: "bg-orange-500",
+      roles: ['practicante', 'entrenador', 'admin']
+    },
+    {
+      title: "Gráficos y Análisis",
+      description: "Visualiza tu progreso con gráficos detallados",
       icon: BarChart3,
-      href: "/graficos",
-      color: "bg-[#575757]"
+      path: "/graficos",
+      color: "bg-indigo-500",
+      roles: ['practicante', 'entrenador', 'admin']
+    },
+    {
+      title: "Gestión de Deportistas",
+      description: "Administra y monitorea el progreso de tus deportistas",
+      icon: Users,
+      path: "/gestion",
+      color: "bg-teal-500",
+      roles: ['entrenador', 'admin']
+    },
+    {
+      title: "Gestión de Clubes",
+      description: "Administra los clubes de tus deportistas",
+      icon: Building,
+      path: "/clubes",
+      color: "bg-cyan-500",
+      roles: ['entrenador', 'admin']
+    },
+    {
+      title: "Administración",
+      description: "Panel de administración del sistema",
+      icon: Shield,
+      path: "/admin",
+      color: "bg-gray-700",
+      roles: ['admin']
     }
   ];
 
+  const availableItems = menuItems.filter(item => 
+    item.roles.includes(currentUserRole as string)
+  );
+
   return (
     <div className="min-h-screen bg-[#1A1A1A]">
-      <div className="bg-white border-b border-[#C5A46C]">
-        <div className="max-w-6xl mx-auto px-4 py-4">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center gap-4">
-              <img 
-                src="/lovable-uploads/c6a3ed23-61eb-43e2-94de-c781c8d1107b.png" 
-                alt="Royal Strength Logo" 
-                className="w-12 h-12 rounded-full object-contain"
-              />
-              <div>
-                <h1 className="text-2xl font-bold text-[#1A1A1A]">
-                  Panel de Entrenamiento
-                </h1>
-                <p className="text-[#575757]">
-                  {getGreeting()}, {profile?.full_name || user?.email}
-                </p>
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <ProfileButton />
-              
-              {currentUserRole === 'entrenador' && (
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={handleGestionPanel}
-                  className="ml-2 border-[#C5A46C] text-[#C5A46C] hover:bg-[#C5A46C] hover:text-white"
-                >
-                  <Shield className="h-4 w-4 mr-2" />
-                  Gestión
-                </Button>
-              )}
-              
-              {currentUserRole === 'admin' && (
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={handleAdminPanel}
-                  className="ml-2 border-[#C5A46C] text-[#C5A46C] hover:bg-[#C5A46C] hover:text-white"
-                >
-                  <Shield className="h-4 w-4 mr-2" />
-                  Admin
-                </Button>
-              )}
-              
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={signOut}
-                className="ml-2 border-[#C5A46C] text-[#C5A46C] hover:bg-[#C5A46C] hover:text-white"
-              >
-                <LogOut className="h-4 w-4 mr-2" />
-                Cerrar Sesión
-              </Button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="max-w-6xl mx-auto p-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {cards.map((card) => {
-            const Icon = card.icon;
+      <NavHeader 
+        title={`${getGreeting()}, ${user?.email?.split('@')[0] || 'Usuario'}`}
+        subtitle="Selecciona una opción para comenzar"
+      />
+      
+      <div className="max-w-6xl mx-auto p-4">
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {availableItems.map((item) => {
+            const IconComponent = item.icon;
             return (
-              <Link key={card.href} to={card.href}>
-                <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full bg-white border-[#C5A46C]">
-                  <CardHeader>
-                    <div className="flex items-center space-x-3">
-                      <div className={`p-2 rounded-lg ${card.color}`}>
-                        <Icon className="h-6 w-6 text-white" />
-                      </div>
-                      <div>
-                        <CardTitle className="text-lg text-[#1A1A1A]">{card.title}</CardTitle>
-                        <CardDescription className="text-[#575757]">{card.description}</CardDescription>
-                      </div>
+              <Card key={item.path} className="bg-white hover:shadow-lg transition-shadow cursor-pointer border-[#C5A46C]">
+                <CardHeader className="pb-3">
+                  <div className="flex items-center gap-3">
+                    <div className={`p-2 rounded-lg ${item.color}`}>
+                      <IconComponent className="h-6 w-6 text-white" />
                     </div>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-sm text-[#575757]">
-                      Haz clic para acceder a {card.title.toLowerCase()}
-                    </p>
-                  </CardContent>
-                </Card>
-              </Link>
+                    <CardTitle className="text-[#1A1A1A]">{item.title}</CardTitle>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <CardDescription className="text-[#575757] mb-4">
+                    {item.description}
+                  </CardDescription>
+                  <Button 
+                    onClick={() => navigate(item.path)}
+                    className="w-full bg-[#C5A46C] hover:bg-[#A08B5A] text-white"
+                  >
+                    Acceder
+                  </Button>
+                </CardContent>
+              </Card>
             );
           })}
         </div>
