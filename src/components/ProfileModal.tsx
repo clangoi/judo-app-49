@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useClubs } from "@/hooks/useClubs";
@@ -152,7 +153,7 @@ export const ProfileModal = ({ isOpen, onClose }: ProfileModalProps) => {
           .update({
             full_name: values.full_name,
             profile_image_url: values.profile_image_url,
-            club_id: values.club_id || null,
+            club_id: values.club_id === "none" ? null : values.club_id || null,
             gender: values.gender,
             competition_category: values.competition_category,
             injuries: values.injuries,
@@ -169,7 +170,7 @@ export const ProfileModal = ({ isOpen, onClose }: ProfileModalProps) => {
             user_id: user.id,
             full_name: values.full_name,
             profile_image_url: values.profile_image_url,
-            club_id: values.club_id || null,
+            club_id: values.club_id === "none" ? null : values.club_id || null,
             gender: values.gender,
             competition_category: values.competition_category,
             injuries: values.injuries,
@@ -275,7 +276,7 @@ export const ProfileModal = ({ isOpen, onClose }: ProfileModalProps) => {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="">Sin club</SelectItem>
+                      <SelectItem value="none">Sin club</SelectItem>
                       {clubs.map((club) => (
                         <SelectItem key={club.id} value={club.id}>
                           {club.name}
