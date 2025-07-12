@@ -36,6 +36,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Plus, Edit, Trash2, Building } from "lucide-react";
+import type { Club } from "@/hooks/useClubs";
 
 const clubSchema = z.object({
   name: z.string().min(1, "El nombre es obligatorio"),
@@ -47,7 +48,7 @@ type ClubFormValues = z.infer<typeof clubSchema>;
 const ClubManagement = () => {
   const { clubs, isLoading, createClubMutation, updateClubMutation, deleteClubMutation } = useClubs();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [editingClub, setEditingClub] = useState<any>(null);
+  const [editingClub, setEditingClub] = useState<Club | null>(null);
 
   const form = useForm<ClubFormValues>({
     resolver: zodResolver(clubSchema),
@@ -61,17 +62,21 @@ const ClubManagement = () => {
     if (editingClub) {
       await updateClubMutation.mutateAsync({
         id: editingClub.id,
-        ...values,
+        name: values.name,
+        description: values.description,
       });
       setEditingClub(null);
     } else {
-      await createClubMutation.mutateAsync(values);
+      await createClubMutation.mutateAsync({
+        name: values.name,
+        description: values.description,
+      });
       setIsCreateModalOpen(false);
     }
     form.reset();
   };
 
-  const handleEdit = (club: any) => {
+  const handleEdit = (club: Club) => {
     setEditingClub(club);
     form.setValue('name', club.name);
     form.setValue('description', club.description || '');

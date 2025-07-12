@@ -130,11 +130,29 @@ export const useAdminAthleteManagement = () => {
             activityStatus = 'moderate';
           }
 
+          // Try to get club name if club_id exists
+          let clubName = profile.club_name || 'Sin club';
+          if ((profile as any)?.club_id) {
+            try {
+              const { data: clubData } = await (supabase as any)
+                .from('clubs')
+                .select('name')
+                .eq('id', (profile as any).club_id)
+                .single();
+              
+              if (clubData?.name) {
+                clubName = clubData.name;
+              }
+            } catch (error) {
+              console.log('Could not fetch club name, using fallback');
+            }
+          }
+
           return {
             id: profile.user_id,
             full_name: profile.full_name || profile.email || 'Sin nombre',
             email: profile.email || '',
-            club_name: profile.club_name || 'Sin club',
+            club_name: clubName,
             current_belt: profile.current_belt || 'white',
             gender: profile.gender,
             competition_category: profile.competition_category,

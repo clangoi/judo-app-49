@@ -31,7 +31,7 @@ import {
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { User, Camera, Shield } from "lucide-react";
+import { User, Camera } from "lucide-react";
 
 const profileSchema = z.object({
   full_name: z.string().min(1, "El nombre es obligatorio"),
@@ -122,12 +122,12 @@ export const ProfileModal = ({ isOpen, onClose }: ProfileModalProps) => {
         setProfile(data);
         form.reset({
           full_name: data.full_name || "",
-          profile_image_url: (data as any).profile_image_url || "",
-          club_id: data.club_id || "",
+          profile_image_url: data.profile_image_url || "",
+          club_id: (data as any).club_id || "",
           gender: data.gender || undefined,
-          competition_category: (data as any).competition_category || "",
-          injuries: (data as any).injuries || [],
-          injury_description: (data as any).injury_description || "",
+          competition_category: data.competition_category || "",
+          injuries: data.injuries || [],
+          injury_description: data.injury_description || "",
         });
       }
     } catch (error) {
@@ -158,7 +158,7 @@ export const ProfileModal = ({ isOpen, onClose }: ProfileModalProps) => {
             injuries: values.injuries,
             injury_description: values.injury_description,
             updated_at: new Date().toISOString(),
-          })
+          } as any)
           .eq("user_id", user.id);
 
         if (error) throw error;
@@ -174,7 +174,7 @@ export const ProfileModal = ({ isOpen, onClose }: ProfileModalProps) => {
             competition_category: values.competition_category,
             injuries: values.injuries,
             injury_description: values.injury_description,
-          });
+          } as any);
 
         if (error) throw error;
       }

@@ -1,3 +1,4 @@
+
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -110,23 +111,36 @@ export const useAthleteManagement = (trainerId: string) => {
             activityStatus = 'moderate';
           }
 
-          // Obtener el perfil completo del estudiante incluyendo el club
+          // Obtener el perfil completo del estudiante
           const { data: profile } = await supabase
             .from('profiles')
-            .select(`
-              *,
-              clubs (
-                name
-              )
-            `)
+            .select('*')
             .eq('user_id', student.student_id)
             .single();
+
+          // Try to get club name if club_id exists
+          let clubName = profile?.club_name || 'Sin club';
+          if ((profile as any)?.club_id) {
+            try {
+              const { data: clubData } = await (supabase as any)
+                .from('clubs')
+                .select('name')
+                .eq('id', (profile as any).club_id)
+                .single();
+              
+              if (clubData?.name) {
+                clubName = clubData.name;
+              }
+            } catch (error) {
+              console.log('Could not fetch club name, using fallback');
+            }
+          }
 
           return {
             id: student.student_id,
             full_name: student.full_name || profile?.full_name || 'Sin nombre',
             email: student.email || profile?.email || '',
-            club_name: profile?.clubs?.name || profile?.club_name || 'Sin club',
+            club_name: clubName,
             current_belt: profile?.current_belt || 'white',
             gender: profile?.gender,
             competition_category: profile?.competition_category,

@@ -20,25 +20,35 @@ export const useClubs = () => {
   const { data: clubs = [], isLoading } = useQuery({
     queryKey: ['clubs'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('clubs')
-        .select('*')
-        .order('name');
+      // Use raw SQL query since TypeScript types haven't been updated yet
+      const { data, error } = await supabase.rpc('get_clubs');
       
-      if (error) throw error;
-      return data as Club[];
+      if (error) {
+        // Fallback: try direct query with any type casting
+        const { data: fallbackData, error: fallbackError } = await (supabase as any)
+          .from('clubs')
+          .select('*')
+          .order('name');
+        
+        if (fallbackError) throw fallbackError;
+        return (fallbackData || []) as Club[];
+      }
+      
+      return (data || []) as Club[];
     },
   });
 
   // Crear nuevo club
   const createClubMutation = useMutation({
     mutationFn: async ({ name, description }: { name: string; description?: string }) => {
-      const { data, error } = await supabase
+      const { data: userData } = await supabase.auth.getUser();
+      
+      const { data, error } = await (supabase as any)
         .from('clubs')
         .insert({
           name,
           description,
-          created_by: (await supabase.auth.getUser()).data.user?.id
+          created_by: userData.user?.id
         })
         .select()
         .single();
@@ -65,7 +75,7 @@ export const useClubs = () => {
   // Actualizar club
   const updateClubMutation = useMutation({
     mutationFn: async ({ id, name, description }: { id: string; name: string; description?: string }) => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('clubs')
         .update({ name, description })
         .eq('id', id)
@@ -94,7 +104,7 @@ export const useClubs = () => {
   // Eliminar club
   const deleteClubMutation = useMutation({
     mutationFn: async (clubId: string) => {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('clubs')
         .delete()
         .eq('id', clubId);
