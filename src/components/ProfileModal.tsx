@@ -1,6 +1,6 @@
-
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
+import { useClubs } from "@/hooks/useClubs";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -36,7 +36,7 @@ import { User, Camera, Shield } from "lucide-react";
 const profileSchema = z.object({
   full_name: z.string().min(1, "El nombre es obligatorio"),
   profile_image_url: z.string().optional(),
-  club_name: z.string().optional(),
+  club_id: z.string().optional(),
   gender: z.enum(["male", "female"]).optional(),
   competition_category: z.string().optional(),
   injuries: z.array(z.string()).optional(),
@@ -52,7 +52,7 @@ interface ProfileModalProps {
 
 const commonInjuries = [
   "Lesión de rodilla",
-  "Lesión de hombro",
+  "Lesión de hombro", 
   "Lesión de espalda",
   "Lesión de muñeca",
   "Lesión de tobillo",
@@ -78,6 +78,7 @@ const femaleCategories = [
 
 export const ProfileModal = ({ isOpen, onClose }: ProfileModalProps) => {
   const { user } = useAuth();
+  const { clubs } = useClubs();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [profile, setProfile] = useState<any>(null);
@@ -87,7 +88,7 @@ export const ProfileModal = ({ isOpen, onClose }: ProfileModalProps) => {
     defaultValues: {
       full_name: "",
       profile_image_url: "",
-      club_name: "",
+      club_id: "",
       gender: undefined,
       competition_category: "",
       injuries: [],
@@ -122,7 +123,7 @@ export const ProfileModal = ({ isOpen, onClose }: ProfileModalProps) => {
         form.reset({
           full_name: data.full_name || "",
           profile_image_url: (data as any).profile_image_url || "",
-          club_name: data.club_name || "",
+          club_id: data.club_id || "",
           gender: data.gender || undefined,
           competition_category: (data as any).competition_category || "",
           injuries: (data as any).injuries || [],
@@ -151,7 +152,7 @@ export const ProfileModal = ({ isOpen, onClose }: ProfileModalProps) => {
           .update({
             full_name: values.full_name,
             profile_image_url: values.profile_image_url,
-            club_name: values.club_name,
+            club_id: values.club_id || null,
             gender: values.gender,
             competition_category: values.competition_category,
             injuries: values.injuries,
@@ -168,7 +169,7 @@ export const ProfileModal = ({ isOpen, onClose }: ProfileModalProps) => {
             user_id: user.id,
             full_name: values.full_name,
             profile_image_url: values.profile_image_url,
-            club_name: values.club_name,
+            club_id: values.club_id || null,
             gender: values.gender,
             competition_category: values.competition_category,
             injuries: values.injuries,
@@ -263,13 +264,25 @@ export const ProfileModal = ({ isOpen, onClose }: ProfileModalProps) => {
             {/* Club */}
             <FormField
               control={form.control}
-              name="club_name"
+              name="club_id"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Club</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Nombre del club" {...field} />
-                  </FormControl>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecciona tu club" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="">Sin club</SelectItem>
+                      {clubs.map((club) => (
+                        <SelectItem key={club.id} value={club.id}>
+                          {club.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}

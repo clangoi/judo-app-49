@@ -1,4 +1,3 @@
-
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -111,10 +110,15 @@ export const useAthleteManagement = (trainerId: string) => {
             activityStatus = 'moderate';
           }
 
-          // Obtener el perfil completo del estudiante
+          // Obtener el perfil completo del estudiante incluyendo el club
           const { data: profile } = await supabase
             .from('profiles')
-            .select('*')
+            .select(`
+              *,
+              clubs (
+                name
+              )
+            `)
             .eq('user_id', student.student_id)
             .single();
 
@@ -122,7 +126,7 @@ export const useAthleteManagement = (trainerId: string) => {
             id: student.student_id,
             full_name: student.full_name || profile?.full_name || 'Sin nombre',
             email: student.email || profile?.email || '',
-            club_name: profile?.club_name || 'Sin club',
+            club_name: profile?.clubs?.name || profile?.club_name || 'Sin club',
             current_belt: profile?.current_belt || 'white',
             gender: profile?.gender,
             competition_category: profile?.competition_category,

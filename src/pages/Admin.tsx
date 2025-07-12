@@ -5,6 +5,7 @@ import NavHeader from "@/components/NavHeader";
 import UserRoleManagement from "@/components/admin/UserRoleManagement";
 import TrainerAssignmentManagement from "@/components/admin/TrainerAssignmentManagement";
 import AdminAthleteManagement from "@/components/admin/AdminAthleteManagement";
+import ClubManagement from "@/components/admin/ClubManagement";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Shield, Loader2 } from "lucide-react";
@@ -51,9 +52,10 @@ const Admin = () => {
       
       <div className="max-w-6xl mx-auto p-4">
         <Tabs defaultValue="roles" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="roles">Gestión de Roles</TabsTrigger>
             <TabsTrigger value="assignments">Asignaciones</TabsTrigger>
+            <TabsTrigger value="clubs">Clubes</TabsTrigger>
             <TabsTrigger value="athletes">Gestión de Deportistas</TabsTrigger>
           </TabsList>
           
@@ -63,6 +65,10 @@ const Admin = () => {
           
           <TabsContent value="assignments" className="space-y-6">
             <TrainerAssignmentManagement />
+          </TabsContent>
+
+          <TabsContent value="clubs" className="space-y-6">
+            <ClubManagement />
           </TabsContent>
 
           <TabsContent value="athletes" className="space-y-6">
