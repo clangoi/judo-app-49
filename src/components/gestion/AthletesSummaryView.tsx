@@ -45,11 +45,11 @@ export const AthletesSummaryView = ({
       <div className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           {[...Array(4)].map((_, i) => (
-            <Card key={i}>
+            <Card key={i} className="bg-card border-primary/20">
               <CardContent className="p-6">
                 <div className="animate-pulse">
-                  <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
-                  <div className="h-8 bg-gray-200 rounded w-1/2"></div>
+                  <div className="h-4 bg-muted rounded w-3/4 mb-2"></div>
+                  <div className="h-8 bg-muted rounded w-1/2"></div>
                 </div>
               </CardContent>
             </Card>
@@ -63,22 +63,22 @@ export const AthletesSummaryView = ({
     <div className="space-y-6">
       {/* Estadísticas Principales */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <Card>
+        <Card className="bg-card border-primary/20">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Deportistas</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium text-foreground">Total Deportistas</CardTitle>
+            <Users className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{groupStats.totalAthletes}</div>
+            <div className="text-2xl font-bold text-foreground">{groupStats.totalAthletes}</div>
             <p className="text-xs text-muted-foreground">
               Asignados a tu cargo
             </p>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="bg-card border-primary/20">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Deportistas Activos</CardTitle>
+            <CardTitle className="text-sm font-medium text-foreground">Deportistas Activos</CardTitle>
             <Activity className="h-4 w-4 text-green-600" />
           </CardHeader>
           <CardContent>
@@ -89,22 +89,22 @@ export const AthletesSummaryView = ({
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="bg-card border-primary/20">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Promedio Semanal</CardTitle>
-            <TrendingUp className="h-4 w-4 text-blue-600" />
+            <CardTitle className="text-sm font-medium text-foreground">Promedio Semanal</CardTitle>
+            <TrendingUp className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-blue-600">{groupStats.averageWeeklySessions}</div>
+            <div className="text-2xl font-bold text-primary">{groupStats.averageWeeklySessions}</div>
             <p className="text-xs text-muted-foreground">
               Sesiones por deportista
             </p>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="bg-card border-primary/20">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Deportistas Inactivos</CardTitle>
+            <CardTitle className="text-sm font-medium text-foreground">Deportistas Inactivos</CardTitle>
             <Award className="h-4 w-4 text-red-600" />
           </CardHeader>
           <CardContent>
@@ -138,14 +138,14 @@ export const AthletesSummaryView = ({
 
       {/* Lista de Deportistas */}
       <div className="space-y-4">
-        <h3 className="text-lg font-semibold">
+        <h3 className="text-lg font-semibold text-foreground">
           Deportistas ({athletes.length})
         </h3>
         
         {athletes.length === 0 ? (
-          <Card>
+          <Card className="bg-card border-primary/20">
             <CardContent className="p-6 text-center">
-              <p className="text-gray-600">
+              <p className="text-muted-foreground">
                 No se encontraron deportistas con los filtros aplicados.
               </p>
             </CardContent>

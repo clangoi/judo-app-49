@@ -31,15 +31,15 @@ const Gestion = () => {
   // Verificar permisos
   if (currentUserRole !== 'entrenador' && currentUserRole !== 'admin') {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-background">
         <NavHeader title="Acceso Denegado" />
         <div className="max-w-4xl mx-auto p-6">
-          <Card>
+          <Card className="bg-card border-primary/20">
             <CardContent className="p-6 text-center">
-              <h2 className="text-xl font-semibold text-gray-800 mb-2">
+              <h2 className="text-xl font-semibold text-foreground mb-2">
                 Acceso Restringido
               </h2>
-              <p className="text-gray-600">
+              <p className="text-muted-foreground">
                 Esta sección está disponible solo para entrenadores.
               </p>
             </CardContent>
@@ -69,7 +69,7 @@ const Gestion = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       <NavHeader 
         title={currentView === 'summary' ? 'Gestión de Deportistas' : `Deportista: ${selectedAthlete?.full_name || 'Selección'}`}
         subtitle={currentView === 'summary' 
@@ -85,7 +85,7 @@ const Gestion = () => {
             <Button
               variant="outline"
               onClick={handleBackToSummary}
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 border-primary/20 text-foreground hover:bg-primary/10"
             >
               <ArrowLeft className="h-4 w-4" />
               Volver al Resumen
@@ -99,7 +99,7 @@ const Gestion = () => {
             <Button
               variant="outline"
               onClick={handleAdminPanel}
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 border-primary/20 text-foreground hover:bg-primary/10"
             >
               <Shield className="h-4 w-4" />
               Panel de Administración
@@ -113,14 +113,14 @@ const Gestion = () => {
           }
           setCurrentView(value as 'summary' | 'individual');
         }}>
-          <TabsList className="grid w-full grid-cols-2 max-w-md">
-            <TabsTrigger value="summary" className="flex items-center gap-2">
+          <TabsList className="grid w-full grid-cols-2 max-w-md bg-muted">
+            <TabsTrigger value="summary" className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
               <Users className="h-4 w-4" />
               Resumen General
             </TabsTrigger>
             <TabsTrigger 
               value="individual"
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
             >
               Deportista Individual
             </TabsTrigger>

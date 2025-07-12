@@ -53,24 +53,24 @@ export const AthleteCard = ({ athlete, onClick, isSelected = false }: AthleteCar
 
   return (
     <Card 
-      className={`cursor-pointer transition-all hover:shadow-md ${
-        isSelected ? 'ring-2 ring-blue-500 shadow-md' : ''
+      className={`cursor-pointer transition-all hover:shadow-md bg-card border-primary/20 ${
+        isSelected ? 'ring-2 ring-primary shadow-md' : ''
       }`}
       onClick={onClick}
     >
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
-              <User className="h-5 w-5 text-gray-500" />
+            <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
+              <User className="h-5 w-5 text-primary" />
             </div>
             <div>
-              <CardTitle className="text-base">{athlete.full_name}</CardTitle>
+              <CardTitle className="text-base text-foreground">{athlete.full_name}</CardTitle>
               <p className="text-sm text-muted-foreground">{athlete.email}</p>
             </div>
           </div>
           {!isSelected && (
-            <Button variant="ghost" size="sm">
+            <Button variant="ghost" size="sm" className="text-primary hover:bg-primary/10">
               <Eye className="h-4 w-4" />
             </Button>
           )}
@@ -92,8 +92,8 @@ export const AthleteCard = ({ athlete, onClick, isSelected = false }: AthleteCar
         <div className="grid grid-cols-3 gap-2 text-center">
           <div>
             <div className="flex items-center justify-center gap-1">
-              <Calendar className="h-3 w-3 text-blue-600" />
-              <span className="text-sm font-semibold text-blue-600">
+              <Calendar className="h-3 w-3 text-primary" />
+              <span className="text-sm font-semibold text-primary">
                 {athlete.weeklySessionsCount}
               </span>
             </div>
@@ -102,8 +102,8 @@ export const AthleteCard = ({ athlete, onClick, isSelected = false }: AthleteCar
           
           <div>
             <div className="flex items-center justify-center gap-1">
-              <Trophy className="h-3 w-3 text-green-600" />
-              <span className="text-sm font-semibold text-green-600">
+              <Trophy className="h-3 w-3 text-primary" />
+              <span className="text-sm font-semibold text-primary">
                 {athlete.totalTechniques}
               </span>
             </div>
@@ -112,8 +112,8 @@ export const AthleteCard = ({ athlete, onClick, isSelected = false }: AthleteCar
 
           <div>
             <div className="flex items-center justify-center gap-1">
-              <TrendingUp className="h-3 w-3 text-purple-600" />
-              <span className="text-sm font-semibold text-purple-600">
+              <TrendingUp className="h-3 w-3 text-primary" />
+              <span className="text-sm font-semibold text-primary">
                 {athlete.totalTacticalNotes}
               </span>
             </div>

@@ -46,17 +46,55 @@ export const useAthleteManagement = (trainerId: string) => {
         return [];
       }
 
-      // Usar la función de base de datos que ya funciona correctamente
-      const { data: trainerStudents, error: studentsError } = await supabase
-        .rpc('get_trainer_students', { _trainer_id: trainerId });
+      // Primero verificar si el usuario es admin
+      const { data: userRole } = await supabase
+        .rpc('get_user_role', { _user_id: trainerId });
 
-      if (studentsError) {
-        console.error('Error fetching trainer students:', studentsError);
-        throw studentsError;
+      console.log('User role:', userRole);
+
+      let trainerStudents;
+      
+      if (userRole === 'admin') {
+        // Si es admin, obtener todos los usuarios con rol de practicante
+        const { data: allStudents, error: studentsError } = await supabase
+          .from('user_roles')
+          .select(`
+            user_id,
+            profiles!inner(
+              user_id,
+              full_name,
+              email
+            )
+          `)
+          .eq('role', 'practicante');
+
+        if (studentsError) {
+          console.error('Error fetching all students:', studentsError);
+          throw studentsError;
+        }
+
+        // Transformar los datos para que coincidan con el formato esperado
+        trainerStudents = allStudents?.map(student => ({
+          student_id: student.user_id,
+          full_name: student.profiles?.full_name || 'Sin nombre',
+          email: student.profiles?.email || '',
+          assigned_at: new Date().toISOString()
+        })) || [];
+      } else {
+        // Si es entrenador, usar la función existente que solo devuelve sus estudiantes asignados
+        const { data: assignedStudents, error: studentsError } = await supabase
+          .rpc('get_trainer_students', { _trainer_id: trainerId });
+
+        if (studentsError) {
+          console.error('Error fetching trainer students:', studentsError);
+          throw studentsError;
+        }
+
+        trainerStudents = assignedStudents || [];
       }
 
       if (!trainerStudents || trainerStudents.length === 0) {
-        console.log('No students found for trainer:', trainerId);
+        console.log('No students found for trainer/admin:', trainerId);
         return [];
       }
 
