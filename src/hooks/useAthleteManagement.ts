@@ -1,4 +1,3 @@
-
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -58,14 +57,7 @@ export const useAthleteManagement = (trainerId: string) => {
         // Si es admin, obtener todos los usuarios con rol de practicante
         const { data: allStudents, error: studentsError } = await supabase
           .from('user_roles')
-          .select(`
-            user_id,
-            profiles!inner(
-              user_id,
-              full_name,
-              email
-            )
-          `)
+          .select('user_id')
           .eq('role', 'practicante');
 
         if (studentsError) {
@@ -73,11 +65,28 @@ export const useAthleteManagement = (trainerId: string) => {
           throw studentsError;
         }
 
+        if (!allStudents || allStudents.length === 0) {
+          console.log('No students found');
+          return [];
+        }
+
+        // Obtener los perfiles de estos estudiantes
+        const studentIds = allStudents.map(student => student.user_id);
+        const { data: studentsProfiles, error: profilesError } = await supabase
+          .from('profiles')
+          .select('user_id, full_name, email')
+          .in('user_id', studentIds);
+
+        if (profilesError) {
+          console.error('Error fetching student profiles:', profilesError);
+          throw profilesError;
+        }
+
         // Transformar los datos para que coincidan con el formato esperado
-        trainerStudents = allStudents?.map(student => ({
-          student_id: student.user_id,
-          full_name: student.profiles?.full_name || 'Sin nombre',
-          email: student.profiles?.email || '',
+        trainerStudents = studentsProfiles?.map(profile => ({
+          student_id: profile.user_id,
+          full_name: profile.full_name || 'Sin nombre',
+          email: profile.email || '',
           assigned_at: new Date().toISOString()
         })) || [];
       } else {
