@@ -34,7 +34,7 @@ const Gestion = () => {
       <div className="min-h-screen bg-background">
         <NavHeader title="Acceso Denegado" />
         <div className="max-w-4xl mx-auto p-6">
-          <Card className="bg-card border-primary/20">
+          <Card className="bg-card border-border">
             <CardContent className="p-6 text-center">
               <h2 className="text-xl font-semibold text-foreground mb-2">
                 Acceso Restringido
@@ -85,7 +85,7 @@ const Gestion = () => {
             <Button
               variant="outline"
               onClick={handleBackToSummary}
-              className="flex items-center gap-2 border-primary/20 text-foreground hover:bg-primary/10"
+              className="flex items-center gap-2 border-border text-foreground hover:bg-muted"
             >
               <ArrowLeft className="h-4 w-4" />
               Volver al Resumen
@@ -99,7 +99,7 @@ const Gestion = () => {
             <Button
               variant="outline"
               onClick={handleAdminPanel}
-              className="flex items-center gap-2 border-primary/20 text-foreground hover:bg-primary/10"
+              className="flex items-center gap-2 border-border text-foreground hover:bg-muted"
             >
               <Shield className="h-4 w-4" />
               Panel de Administración

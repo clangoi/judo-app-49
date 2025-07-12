@@ -45,7 +45,7 @@ export const AthletesSummaryView = ({
       <div className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           {[...Array(4)].map((_, i) => (
-            <Card key={i} className="bg-card border-primary/20">
+            <Card key={i} className="bg-card border-border">
               <CardContent className="p-6">
                 <div className="animate-pulse">
                   <div className="h-4 bg-muted rounded w-3/4 mb-2"></div>
@@ -63,7 +63,7 @@ export const AthletesSummaryView = ({
     <div className="space-y-6">
       {/* Estadísticas Principales */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <Card className="bg-card border-primary/20">
+        <Card className="bg-card border-border">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-foreground">Total Deportistas</CardTitle>
             <Users className="h-4 w-4 text-primary" />
@@ -76,20 +76,20 @@ export const AthletesSummaryView = ({
           </CardContent>
         </Card>
 
-        <Card className="bg-card border-primary/20">
+        <Card className="bg-card border-border">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-foreground">Deportistas Activos</CardTitle>
-            <Activity className="h-4 w-4 text-green-600" />
+            <Activity className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">{groupStats.activeAthletes}</div>
+            <div className="text-2xl font-bold text-primary">{groupStats.activeAthletes}</div>
             <p className="text-xs text-muted-foreground">
               Entrenaron esta semana
             </p>
           </CardContent>
         </Card>
 
-        <Card className="bg-card border-primary/20">
+        <Card className="bg-card border-border">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-foreground">Promedio Semanal</CardTitle>
             <TrendingUp className="h-4 w-4 text-primary" />
@@ -102,13 +102,13 @@ export const AthletesSummaryView = ({
           </CardContent>
         </Card>
 
-        <Card className="bg-card border-primary/20">
+        <Card className="bg-card border-border">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-foreground">Deportistas Inactivos</CardTitle>
-            <Award className="h-4 w-4 text-red-600" />
+            <Award className="h-4 w-4 text-destructive" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-red-600">{groupStats.inactiveAthletes}</div>
+            <div className="text-2xl font-bold text-destructive">{groupStats.inactiveAthletes}</div>
             <p className="text-xs text-muted-foreground">
               Requieren seguimiento
             </p>
@@ -143,7 +143,7 @@ export const AthletesSummaryView = ({
         </h3>
         
         {athletes.length === 0 ? (
-          <Card className="bg-card border-primary/20">
+          <Card className="bg-card border-border">
             <CardContent className="p-6 text-center">
               <p className="text-muted-foreground">
                 No se encontraron deportistas con los filtros aplicados.

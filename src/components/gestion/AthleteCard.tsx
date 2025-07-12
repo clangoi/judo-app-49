@@ -15,13 +15,13 @@ export const AthleteCard = ({ athlete, onClick, isSelected = false }: AthleteCar
   const getActivityColor = (status: string) => {
     switch (status) {
       case 'active':
-        return 'bg-green-100 text-green-800 border-green-200';
+        return 'bg-primary/20 text-primary border-primary/30';
       case 'moderate':
-        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+        return 'bg-muted text-muted-foreground border-border';
       case 'inactive':
-        return 'bg-red-100 text-red-800 border-red-200';
+        return 'bg-destructive/20 text-destructive border-destructive/30';
       default:
-        return 'bg-gray-100 text-gray-800 border-gray-200';
+        return 'bg-muted text-muted-foreground border-border';
     }
   };
 
@@ -40,20 +40,20 @@ export const AthleteCard = ({ athlete, onClick, isSelected = false }: AthleteCar
 
   const getBeltColor = (belt: string) => {
     const colors: Record<string, string> = {
-      white: 'bg-white text-gray-800 border-gray-300',
-      yellow: 'bg-yellow-100 text-yellow-800 border-yellow-300',
-      orange: 'bg-orange-100 text-orange-800 border-orange-300',
-      green: 'bg-green-100 text-green-800 border-green-300',
-      blue: 'bg-blue-100 text-blue-800 border-blue-300',
-      brown: 'bg-amber-100 text-amber-800 border-amber-300',
-      black: 'bg-gray-800 text-white border-gray-700'
+      white: 'bg-background text-foreground border-border',
+      yellow: 'bg-primary/10 text-primary border-primary/30',
+      orange: 'bg-primary/15 text-primary border-primary/30',
+      green: 'bg-primary/20 text-primary border-primary/30',
+      blue: 'bg-primary/25 text-primary border-primary/30',
+      brown: 'bg-primary/30 text-primary border-primary/30',
+      black: 'bg-foreground text-background border-foreground'
     };
     return colors[belt] || colors.white;
   };
 
   return (
     <Card 
-      className={`cursor-pointer transition-all hover:shadow-md bg-card border-primary/20 ${
+      className={`cursor-pointer transition-all hover:shadow-md bg-card border-border ${
         isSelected ? 'ring-2 ring-primary shadow-md' : ''
       }`}
       onClick={onClick}

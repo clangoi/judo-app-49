@@ -34,13 +34,13 @@ export const AthletesSummaryStats = ({ groupStats }: AthletesSummaryStatsProps) 
 
   const getBeltColor = (belt: string) => {
     const colors: Record<string, string> = {
-      white: 'bg-white text-gray-800 border-gray-300',
-      yellow: 'bg-yellow-100 text-yellow-800 border-yellow-300',
-      orange: 'bg-orange-100 text-orange-800 border-orange-300',
-      green: 'bg-green-100 text-green-800 border-green-300',
-      blue: 'bg-blue-100 text-blue-800 border-blue-300',
-      brown: 'bg-amber-100 text-amber-800 border-amber-300',
-      black: 'bg-gray-800 text-white border-gray-700'
+      white: 'bg-background text-foreground border-border',
+      yellow: 'bg-primary/10 text-primary border-primary/30',
+      orange: 'bg-primary/15 text-primary border-primary/30',
+      green: 'bg-primary/20 text-primary border-primary/30',
+      blue: 'bg-primary/25 text-primary border-primary/30',
+      brown: 'bg-primary/30 text-primary border-primary/30',
+      black: 'bg-foreground text-background border-foreground'
     };
     return colors[belt] || colors.white;
   };
@@ -48,18 +48,18 @@ export const AthletesSummaryStats = ({ groupStats }: AthletesSummaryStatsProps) 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {/* Tasa de Actividad */}
-      <Card>
+      <Card className="bg-card border-border">
         <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-2 text-base">
-            <Target className="h-4 w-4 text-green-600" />
+          <CardTitle className="flex items-center gap-2 text-base text-foreground">
+            <Target className="h-4 w-4 text-primary" />
             Tasa de Actividad
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
             <div className="flex justify-between items-center">
-              <span className="text-sm font-medium">Deportistas Activos</span>
-              <span className="text-lg font-bold text-green-600">{activityRate}%</span>
+              <span className="text-sm font-medium text-foreground">Deportistas Activos</span>
+              <span className="text-lg font-bold text-primary">{activityRate}%</span>
             </div>
             <Progress value={activityRate} className="h-2" />
             <div className="text-xs text-muted-foreground">
@@ -70,17 +70,17 @@ export const AthletesSummaryStats = ({ groupStats }: AthletesSummaryStatsProps) 
       </Card>
 
       {/* Promedio de Entrenamientos */}
-      <Card>
+      <Card className="bg-card border-border">
         <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-2 text-base">
-            <TrendingUp className="h-4 w-4 text-blue-600" />
+          <CardTitle className="flex items-center gap-2 text-base text-foreground">
+            <TrendingUp className="h-4 w-4 text-primary" />
             Promedio del Grupo
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
             <div className="text-center">
-              <div className="text-2xl font-bold text-blue-600">
+              <div className="text-2xl font-bold text-primary">
                 {groupStats.averageWeeklySessions}
               </div>
               <div className="text-sm text-muted-foreground">
@@ -95,18 +95,18 @@ export const AthletesSummaryStats = ({ groupStats }: AthletesSummaryStatsProps) 
       </Card>
 
       {/* Alerta de Inactividad */}
-      <Card>
+      <Card className="bg-card border-border">
         <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-2 text-base">
-            <AlertTriangle className="h-4 w-4 text-red-600" />
+          <CardTitle className="flex items-center gap-2 text-base text-foreground">
+            <AlertTriangle className="h-4 w-4 text-destructive" />
             Seguimiento Requerido
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
             <div className="flex justify-between items-center">
-              <span className="text-sm font-medium">Deportistas Inactivos</span>
-              <span className="text-lg font-bold text-red-600">{inactivityRate}%</span>
+              <span className="text-sm font-medium text-foreground">Deportistas Inactivos</span>
+              <span className="text-lg font-bold text-destructive">{inactivityRate}%</span>
             </div>
             <Progress value={inactivityRate} className="h-2" />
             <div className="text-xs text-muted-foreground">
@@ -117,10 +117,10 @@ export const AthletesSummaryStats = ({ groupStats }: AthletesSummaryStatsProps) 
       </Card>
 
       {/* Distribución de Cinturones */}
-      <Card className="md:col-span-2 lg:col-span-3">
+      <Card className="md:col-span-2 lg:col-span-3 bg-card border-border">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Trophy className="h-5 w-5" />
+          <CardTitle className="flex items-center gap-2 text-foreground">
+            <Trophy className="h-5 w-5 text-primary" />
             Distribución de Cinturones
           </CardTitle>
         </CardHeader>
