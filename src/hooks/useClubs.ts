@@ -20,20 +20,13 @@ export const useClubs = () => {
   const { data: clubs = [], isLoading } = useQuery({
     queryKey: ['clubs'],
     queryFn: async () => {
-      // Use raw SQL query since TypeScript types haven't been updated yet
-      const { data, error } = await supabase.rpc('get_clubs');
+      // Use direct query with type casting since TypeScript types haven't been updated yet
+      const { data, error } = await (supabase as any)
+        .from('clubs')
+        .select('*')
+        .order('name');
       
-      if (error) {
-        // Fallback: try direct query with any type casting
-        const { data: fallbackData, error: fallbackError } = await (supabase as any)
-          .from('clubs')
-          .select('*')
-          .order('name');
-        
-        if (fallbackError) throw fallbackError;
-        return (fallbackData || []) as Club[];
-      }
-      
+      if (error) throw error;
       return (data || []) as Club[];
     },
   });
