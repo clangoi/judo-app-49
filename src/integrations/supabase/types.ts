@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      clubs: {
+        Row: {
+          created_at: string
+          created_by: string
+          description: string | null
+          id: string
+          logo_url: string | null
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          description?: string | null
+          id?: string
+          logo_url?: string | null
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          id?: string
+          logo_url?: string | null
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       exercise_records: {
         Row: {
           created_at: string | null
@@ -168,6 +198,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          club_id: string | null
           club_name: string | null
           competition_category: string | null
           created_at: string | null
@@ -179,10 +210,12 @@ export type Database = {
           injuries: string[] | null
           injury_description: string | null
           profile_image_url: string | null
+          selected_club_logo_id: string | null
           updated_at: string | null
           user_id: string
         }
         Insert: {
+          club_id?: string | null
           club_name?: string | null
           competition_category?: string | null
           created_at?: string | null
@@ -194,10 +227,12 @@ export type Database = {
           injuries?: string[] | null
           injury_description?: string | null
           profile_image_url?: string | null
+          selected_club_logo_id?: string | null
           updated_at?: string | null
           user_id: string
         }
         Update: {
+          club_id?: string | null
           club_name?: string | null
           competition_category?: string | null
           created_at?: string | null
@@ -209,10 +244,26 @@ export type Database = {
           injuries?: string[] | null
           injury_description?: string | null
           profile_image_url?: string | null
+          selected_club_logo_id?: string | null
           updated_at?: string | null
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profiles_selected_club_logo_id_fkey"
+            columns: ["selected_club_logo_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       randori_sessions: {
         Row: {

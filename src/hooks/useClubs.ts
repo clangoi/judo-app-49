@@ -7,6 +7,7 @@ export interface Club {
   id: string;
   name: string;
   description?: string;
+  logo_url?: string;
   created_by: string;
   created_at: string;
   updated_at: string;
@@ -67,10 +68,10 @@ export const useClubs = () => {
 
   // Actualizar club
   const updateClubMutation = useMutation({
-    mutationFn: async ({ id, name, description }: { id: string; name: string; description?: string }) => {
+    mutationFn: async ({ id, name, description, logo_url }: { id: string; name: string; description?: string; logo_url?: string }) => {
       const { data, error } = await (supabase as any)
         .from('clubs')
-        .update({ name, description })
+        .update({ name, description, logo_url })
         .eq('id', id)
         .select()
         .single();
@@ -120,11 +121,55 @@ export const useClubs = () => {
     }
   });
 
+  // Subir logo de club
+  const uploadClubLogoMutation = useMutation({
+    mutationFn: async ({ file, clubId }: { file: File; clubId: string }) => {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${clubId}-${Math.random()}.${fileExt}`;
+      const filePath = fileName;
+
+      const { error: uploadError } = await supabase.storage
+        .from('club-logos')
+        .upload(filePath, file, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('club-logos')
+        .getPublicUrl(filePath);
+
+      // Actualizar el club con la URL del logo
+      const { error: updateError } = await (supabase as any)
+        .from('clubs')
+        .update({ logo_url: publicUrl })
+        .eq('id', clubId);
+
+      if (updateError) throw updateError;
+
+      return publicUrl;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['clubs'] });
+      toast({
+        title: "Logo subido",
+        description: "El logo del club ha sido subido exitosamente.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "No se pudo subir el logo.",
+        variant: "destructive",
+      });
+    }
+  });
+
   return {
     clubs,
     isLoading,
     createClubMutation,
     updateClubMutation,
     deleteClubMutation,
+    uploadClubLogoMutation,
   };
 };

@@ -13,26 +13,26 @@ const TrainerClubs = () => {
 
   if (isLoadingCurrentRole) {
     return (
-      <div className="min-h-screen bg-[#1A1A1A] flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-[#C5A46C]" />
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
 
   if (currentUserRole !== 'entrenador' && currentUserRole !== 'admin') {
     return (
-      <div className="min-h-screen bg-[#1A1A1A]">
+      <div className="min-h-screen bg-background">
         <NavHeader 
           title="Gestión de Clubes" 
           subtitle="Administra los clubes de tus deportistas"
         />
         
         <div className="max-w-4xl mx-auto p-4">
-          <Card className="bg-white border-[#C5A46C]">
+          <Card className="bg-background border-border">
             <CardContent className="p-8 text-center">
-              <Shield className="h-12 w-12 mx-auto text-[#575757] mb-4" />
-              <h2 className="text-xl font-semibold text-[#1A1A1A] mb-2">Acceso Denegado</h2>
-              <p className="text-[#575757]">No tienes permisos para gestionar clubes</p>
+              <Shield className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+              <h2 className="text-xl font-semibold text-foreground mb-2">Acceso Denegado</h2>
+              <p className="text-muted-foreground">No tienes permisos para gestionar clubes</p>
             </CardContent>
           </Card>
         </div>
@@ -41,7 +41,7 @@ const TrainerClubs = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#1A1A1A]">
+    <div className="min-h-screen bg-background">
       <NavHeader 
         title="Gestión de Clubes" 
         subtitle="Administra los clubes de tus deportistas"

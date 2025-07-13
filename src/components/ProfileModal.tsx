@@ -38,6 +38,7 @@ const profileSchema = z.object({
   full_name: z.string().min(1, "El nombre es obligatorio"),
   profile_image_url: z.string().optional(),
   club_id: z.string().optional(),
+  selected_club_logo_id: z.string().optional(),
   gender: z.enum(["male", "female"]).optional(),
   competition_category: z.string().optional(),
   injuries: z.array(z.string()).optional(),
@@ -90,6 +91,7 @@ export const ProfileModal = ({ isOpen, onClose }: ProfileModalProps) => {
       full_name: "",
       profile_image_url: "",
       club_id: "",
+      selected_club_logo_id: "",
       gender: undefined,
       competition_category: "",
       injuries: [],
@@ -125,6 +127,7 @@ export const ProfileModal = ({ isOpen, onClose }: ProfileModalProps) => {
           full_name: data.full_name || "",
           profile_image_url: data.profile_image_url || "",
           club_id: (data as any).club_id || "",
+          selected_club_logo_id: (data as any).selected_club_logo_id || "",
           gender: data.gender || undefined,
           competition_category: data.competition_category || "",
           injuries: data.injuries || [],
@@ -154,6 +157,7 @@ export const ProfileModal = ({ isOpen, onClose }: ProfileModalProps) => {
             full_name: values.full_name,
             profile_image_url: values.profile_image_url,
             club_id: values.club_id === "none" ? null : values.club_id || null,
+            selected_club_logo_id: values.selected_club_logo_id === "none" ? null : values.selected_club_logo_id || null,
             gender: values.gender,
             competition_category: values.competition_category,
             injuries: values.injuries,
@@ -171,6 +175,7 @@ export const ProfileModal = ({ isOpen, onClose }: ProfileModalProps) => {
             full_name: values.full_name,
             profile_image_url: values.profile_image_url,
             club_id: values.club_id === "none" ? null : values.club_id || null,
+            selected_club_logo_id: values.selected_club_logo_id === "none" ? null : values.selected_club_logo_id || null,
             gender: values.gender,
             competition_category: values.competition_category,
             injuries: values.injuries,
@@ -215,9 +220,9 @@ export const ProfileModal = ({ isOpen, onClose }: ProfileModalProps) => {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-background border-border">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
+          <DialogTitle className="flex items-center gap-2 text-foreground">
             <User className="h-5 w-5" />
             Configurar Perfil
           </DialogTitle>
@@ -231,9 +236,9 @@ export const ProfileModal = ({ isOpen, onClose }: ProfileModalProps) => {
               name="full_name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Nombre Completo *</FormLabel>
+                  <FormLabel className="text-foreground">Nombre Completo *</FormLabel>
                   <FormControl>
-                    <Input placeholder="Ingresa tu nombre completo" {...field} />
+                    <Input placeholder="Ingresa tu nombre completo" {...field} className="bg-background border-border text-foreground" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -246,7 +251,7 @@ export const ProfileModal = ({ isOpen, onClose }: ProfileModalProps) => {
               name="profile_image_url"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="flex items-center gap-2">
+                  <FormLabel className="flex items-center gap-2 text-foreground">
                     <Camera className="h-4 w-4" />
                     Foto de Perfil
                   </FormLabel>
@@ -255,6 +260,7 @@ export const ProfileModal = ({ isOpen, onClose }: ProfileModalProps) => {
                       placeholder="URL de la imagen" 
                       {...field} 
                       type="url"
+                      className="bg-background border-border text-foreground"
                     />
                   </FormControl>
                   <FormMessage />
@@ -268,18 +274,48 @@ export const ProfileModal = ({ isOpen, onClose }: ProfileModalProps) => {
               name="club_id"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Club</FormLabel>
+                  <FormLabel className="text-foreground">Club</FormLabel>
                   <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
-                      <SelectTrigger>
+                      <SelectTrigger className="bg-background border-border text-foreground">
                         <SelectValue placeholder="Selecciona tu club" />
                       </SelectTrigger>
                     </FormControl>
-                    <SelectContent>
+                    <SelectContent className="bg-background border-border">
                       <SelectItem value="none">Sin club</SelectItem>
                       {clubs.map((club) => (
                         <SelectItem key={club.id} value={club.id}>
                           {club.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Logo del Club (solo para entrenadores) */}
+            <FormField
+              control={form.control}
+              name="selected_club_logo_id"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-foreground">Logo del Club a Mostrar</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger className="bg-background border-border text-foreground">
+                        <SelectValue placeholder="Selecciona el logo a mostrar" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent className="bg-background border-border">
+                      <SelectItem value="none">Sin logo</SelectItem>
+                      {clubs.filter(club => club.logo_url).map((club) => (
+                        <SelectItem key={club.id} value={club.id}>
+                          <div className="flex items-center gap-2">
+                            <img src={club.logo_url} alt={club.name} className="h-4 w-4 object-contain" />
+                            {club.name}
+                          </div>
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -295,14 +331,14 @@ export const ProfileModal = ({ isOpen, onClose }: ProfileModalProps) => {
               name="gender"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Género</FormLabel>
+                  <FormLabel className="text-foreground">Género</FormLabel>
                   <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
-                      <SelectTrigger>
+                      <SelectTrigger className="bg-background border-border text-foreground">
                         <SelectValue placeholder="Selecciona tu género" />
                       </SelectTrigger>
                     </FormControl>
-                    <SelectContent>
+                    <SelectContent className="bg-background border-border">
                       <SelectItem value="male">Masculino</SelectItem>
                       <SelectItem value="female">Femenino</SelectItem>
                     </SelectContent>
@@ -319,14 +355,14 @@ export const ProfileModal = ({ isOpen, onClose }: ProfileModalProps) => {
                 name="competition_category"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Categoría de Competencia</FormLabel>
+                    <FormLabel className="text-foreground">Categoría de Competencia</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
-                        <SelectTrigger>
+                        <SelectTrigger className="bg-background border-border text-foreground">
                           <SelectValue placeholder="Selecciona tu categoría" />
                         </SelectTrigger>
                       </FormControl>
-                      <SelectContent>
+                      <SelectContent className="bg-background border-border">
                         {getCategoriesForGender().map((category) => (
                           <SelectItem key={category} value={category}>
                             {category}
@@ -342,7 +378,7 @@ export const ProfileModal = ({ isOpen, onClose }: ProfileModalProps) => {
 
             {/* Lesiones */}
             <div className="space-y-3">
-              <FormLabel>Lesiones Actuales</FormLabel>
+              <FormLabel className="text-foreground">Lesiones Actuales</FormLabel>
               <div className="grid grid-cols-2 gap-3">
                 {commonInjuries.map((injury) => (
                   <div key={injury} className="flex items-center space-x-2">
@@ -355,7 +391,7 @@ export const ProfileModal = ({ isOpen, onClose }: ProfileModalProps) => {
                     />
                     <label
                       htmlFor={injury}
-                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-foreground"
                     >
                       {injury}
                     </label>
@@ -370,11 +406,11 @@ export const ProfileModal = ({ isOpen, onClose }: ProfileModalProps) => {
               name="injury_description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Descripción de Lesiones</FormLabel>
+                  <FormLabel className="text-foreground">Descripción de Lesiones</FormLabel>
                   <FormControl>
                     <Textarea 
                       placeholder="Describe tus lesiones actuales o historial médico relevante"
-                      className="min-h-[100px]"
+                      className="min-h-[100px] bg-background border-border text-foreground"
                       {...field} 
                     />
                   </FormControl>
@@ -387,7 +423,7 @@ export const ProfileModal = ({ isOpen, onClose }: ProfileModalProps) => {
               <Button type="button" variant="outline" onClick={onClose}>
                 Cancelar
               </Button>
-              <Button type="submit" disabled={loading}>
+              <Button type="submit" disabled={loading} className="bg-primary hover:bg-primary/90 text-primary-foreground">
                 {loading ? "Guardando..." : "Guardar Cambios"}
               </Button>
             </div>

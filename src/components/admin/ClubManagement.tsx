@@ -35,7 +35,7 @@ import {
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Plus, Edit, Trash2, Building } from "lucide-react";
+import { Plus, Edit, Trash2, Building, Upload, Image } from "lucide-react";
 import type { Club } from "@/hooks/useClubs";
 
 const clubSchema = z.object({
@@ -46,9 +46,11 @@ const clubSchema = z.object({
 type ClubFormValues = z.infer<typeof clubSchema>;
 
 const ClubManagement = () => {
-  const { clubs, isLoading, createClubMutation, updateClubMutation, deleteClubMutation } = useClubs();
+  const { clubs, isLoading, createClubMutation, updateClubMutation, deleteClubMutation, uploadClubLogoMutation } = useClubs();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [editingClub, setEditingClub] = useState<Club | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [uploadingClubId, setUploadingClubId] = useState<string | null>(null);
 
   const form = useForm<ClubFormValues>({
     resolver: zodResolver(clubSchema),
@@ -92,31 +94,46 @@ const ClubManagement = () => {
     form.reset();
   };
 
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>, clubId: string) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      setSelectedFile(file);
+      setUploadingClubId(clubId);
+      handleUploadLogo(file, clubId);
+    }
+  };
+
+  const handleUploadLogo = async (file: File, clubId: string) => {
+    await uploadClubLogoMutation.mutateAsync({ file, clubId });
+    setSelectedFile(null);
+    setUploadingClubId(null);
+  };
+
   if (isLoading) {
-    return <div>Cargando clubes...</div>;
+    return <div className="text-foreground">Cargando clubes...</div>;
   }
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-[#1A1A1A]">Gestión de Clubes</h2>
-          <p className="text-[#575757]">Administra los clubes del sistema</p>
+          <h2 className="text-2xl font-bold text-foreground">Gestión de Clubes</h2>
+          <p className="text-muted-foreground">Administra los clubes del sistema</p>
         </div>
         
         <Dialog open={isCreateModalOpen || !!editingClub} onOpenChange={handleCloseModal}>
           <DialogTrigger asChild>
             <Button 
               onClick={() => setIsCreateModalOpen(true)}
-              className="bg-[#C5A46C] hover:bg-[#A08B5A] text-white"
+              className="bg-primary hover:bg-primary/90 text-primary-foreground"
             >
               <Plus className="h-4 w-4 mr-2" />
               Crear Club
             </Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="bg-background border-border">
             <DialogHeader>
-              <DialogTitle>
+              <DialogTitle className="text-foreground">
                 {editingClub ? 'Editar Club' : 'Crear Nuevo Club'}
               </DialogTitle>
             </DialogHeader>
@@ -128,9 +145,9 @@ const ClubManagement = () => {
                   name="name"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Nombre del Club</FormLabel>
+                      <FormLabel className="text-foreground">Nombre del Club</FormLabel>
                       <FormControl>
-                        <Input placeholder="Nombre del club..." {...field} />
+                        <Input placeholder="Nombre del club..." {...field} className="bg-background border-border text-foreground" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -142,11 +159,11 @@ const ClubManagement = () => {
                   name="description"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Descripción (opcional)</FormLabel>
+                      <FormLabel className="text-foreground">Descripción (opcional)</FormLabel>
                       <FormControl>
                         <Textarea 
                           placeholder="Descripción del club..."
-                          className="min-h-[100px]"
+                          className="min-h-[100px] bg-background border-border text-foreground"
                           {...field} 
                         />
                       </FormControl>
@@ -162,7 +179,7 @@ const ClubManagement = () => {
                   <Button 
                     type="submit"
                     disabled={createClubMutation.isPending || updateClubMutation.isPending}
-                    className="bg-[#C5A46C] hover:bg-[#A08B5A] text-white"
+                    className="bg-primary hover:bg-primary/90 text-primary-foreground"
                   >
                     {editingClub ? 'Actualizar' : 'Crear'}
                   </Button>
@@ -175,22 +192,32 @@ const ClubManagement = () => {
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {clubs.map((club) => (
-          <Card key={club.id} className="bg-white border-[#C5A46C]">
+          <Card key={club.id} className="bg-background border-border">
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
-                <CardTitle className="flex items-center gap-2 text-[#1A1A1A]">
-                  <Building className="h-5 w-5 text-[#C5A46C]" />
+                <CardTitle className="flex items-center gap-2 text-foreground">
+                  <Building className="h-5 w-5 text-primary" />
                   {club.name}
                 </CardTitle>
                 <Badge variant="secondary">Club</Badge>
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
-              {club.description && (
-                <p className="text-sm text-[#575757]">{club.description}</p>
+              {club.logo_url && (
+                <div className="flex justify-center">
+                  <img 
+                    src={club.logo_url} 
+                    alt={`Logo de ${club.name}`}
+                    className="h-16 w-16 object-contain rounded"
+                  />
+                </div>
               )}
               
-              <div className="text-xs text-[#575757]">
+              {club.description && (
+                <p className="text-sm text-muted-foreground">{club.description}</p>
+              )}
+              
+              <div className="text-xs text-muted-foreground">
                 Creado: {new Date(club.created_at).toLocaleDateString()}
               </div>
               
@@ -205,20 +232,41 @@ const ClubManagement = () => {
                   Editar
                 </Button>
                 
+                <div className="relative">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => handleFileSelect(e, club.id)}
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                    disabled={uploadClubLogoMutation.isPending && uploadingClubId === club.id}
+                  />
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={uploadClubLogoMutation.isPending && uploadingClubId === club.id}
+                  >
+                    {uploadClubLogoMutation.isPending && uploadingClubId === club.id ? (
+                      <Upload className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Image className="h-4 w-4" />
+                    )}
+                  </Button>
+                </div>
+                
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
                     <Button
                       variant="outline"
                       size="sm"
-                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                      className="text-destructive hover:text-destructive hover:bg-destructive/10"
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </AlertDialogTrigger>
-                  <AlertDialogContent>
+                  <AlertDialogContent className="bg-background border-border">
                     <AlertDialogHeader>
-                      <AlertDialogTitle>¿Eliminar club?</AlertDialogTitle>
-                      <AlertDialogDescription>
+                      <AlertDialogTitle className="text-foreground">¿Eliminar club?</AlertDialogTitle>
+                      <AlertDialogDescription className="text-muted-foreground">
                         Esta acción no se puede deshacer. El club será eliminado permanentemente.
                       </AlertDialogDescription>
                     </AlertDialogHeader>
@@ -226,7 +274,7 @@ const ClubManagement = () => {
                       <AlertDialogCancel>Cancelar</AlertDialogCancel>
                       <AlertDialogAction
                         onClick={() => handleDelete(club.id)}
-                        className="bg-red-600 hover:bg-red-700"
+                        className="bg-destructive hover:bg-destructive/90"
                       >
                         Eliminar
                       </AlertDialogAction>
@@ -240,13 +288,13 @@ const ClubManagement = () => {
       </div>
 
       {clubs.length === 0 && (
-        <Card className="bg-white border-[#C5A46C]">
+        <Card className="bg-background border-border">
           <CardContent className="p-8 text-center">
-            <Building className="h-12 w-12 mx-auto text-[#575757] mb-4" />
-            <h3 className="text-lg font-semibold text-[#1A1A1A] mb-2">
+            <Building className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+            <h3 className="text-lg font-semibold text-foreground mb-2">
               No hay clubes registrados
             </h3>
-            <p className="text-[#575757] mb-4">
+            <p className="text-muted-foreground mb-4">
               Crea el primer club para comenzar a organizar a los deportistas.
             </p>
           </CardContent>
