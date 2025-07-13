@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useClubs } from "@/hooks/useClubs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -47,7 +46,7 @@ type ClubFormValues = z.infer<typeof clubSchema>;
 
 const ClubManagement = () => {
   const { clubs, isLoading, createClubMutation, updateClubMutation, deleteClubMutation, uploadClubLogoMutation } = useClubs();
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingClub, setEditingClub] = useState<Club | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploadingClubId, setUploadingClubId] = useState<string | null>(null);
@@ -73,15 +72,22 @@ const ClubManagement = () => {
         name: values.name,
         description: values.description,
       });
-      setIsCreateModalOpen(false);
     }
     form.reset();
+    setIsModalOpen(false);
+  };
+
+  const handleCreateClub = () => {
+    setEditingClub(null);
+    form.reset();
+    setIsModalOpen(true);
   };
 
   const handleEdit = (club: Club) => {
     setEditingClub(club);
     form.setValue('name', club.name);
     form.setValue('description', club.description || '');
+    setIsModalOpen(true);
   };
 
   const handleDelete = async (clubId: string) => {
@@ -89,7 +95,7 @@ const ClubManagement = () => {
   };
 
   const handleCloseModal = () => {
-    setIsCreateModalOpen(false);
+    setIsModalOpen(false);
     setEditingClub(null);
     form.reset();
   };
@@ -121,74 +127,73 @@ const ClubManagement = () => {
           <p className="text-muted-foreground">Administra los clubes del sistema</p>
         </div>
         
-        <Dialog open={isCreateModalOpen || !!editingClub} onOpenChange={handleCloseModal}>
-          <DialogTrigger asChild>
-            <Button 
-              onClick={() => setIsCreateModalOpen(true)}
-              className="bg-primary hover:bg-primary/90 text-primary-foreground"
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Crear Club
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="bg-background border-border">
-            <DialogHeader>
-              <DialogTitle className="text-foreground">
-                {editingClub ? 'Editar Club' : 'Crear Nuevo Club'}
-              </DialogTitle>
-            </DialogHeader>
-            
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                <FormField
-                  control={form.control}
-                  name="name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-foreground">Nombre del Club</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Nombre del club..." {...field} className="bg-background border-border text-foreground" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <FormField
-                  control={form.control}
-                  name="description"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-foreground">Descripción (opcional)</FormLabel>
-                      <FormControl>
-                        <Textarea 
-                          placeholder="Descripción del club..."
-                          className="min-h-[100px] bg-background border-border text-foreground"
-                          {...field} 
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <div className="flex justify-end gap-3">
-                  <Button type="button" variant="outline" onClick={handleCloseModal}>
-                    Cancelar
-                  </Button>
-                  <Button 
-                    type="submit"
-                    disabled={createClubMutation.isPending || updateClubMutation.isPending}
-                    className="bg-primary hover:bg-primary/90 text-primary-foreground"
-                  >
-                    {editingClub ? 'Actualizar' : 'Crear'}
-                  </Button>
-                </div>
-              </form>
-            </Form>
-          </DialogContent>
-        </Dialog>
+        <Button 
+          onClick={handleCreateClub}
+          className="bg-primary hover:bg-primary/90 text-primary-foreground"
+        >
+          <Plus className="h-4 w-4 mr-2" />
+          Crear Club
+        </Button>
       </div>
+
+      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+        <DialogContent className="bg-background border-border">
+          <DialogHeader>
+            <DialogTitle className="text-foreground">
+              {editingClub ? 'Editar Club' : 'Crear Nuevo Club'}
+            </DialogTitle>
+          </DialogHeader>
+          
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-foreground">Nombre del Club</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Nombre del club..." {...field} className="bg-background border-border text-foreground" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-foreground">Descripción (opcional)</FormLabel>
+                    <FormControl>
+                      <Textarea 
+                        placeholder="Descripción del club..."
+                        className="min-h-[100px] bg-background border-border text-foreground"
+                        {...field} 
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <div className="flex justify-end gap-3">
+                <Button type="button" variant="outline" onClick={handleCloseModal}>
+                  Cancelar
+                </Button>
+                <Button 
+                  type="submit"
+                  disabled={createClubMutation.isPending || updateClubMutation.isPending}
+                  className="bg-primary hover:bg-primary/90 text-primary-foreground"
+                >
+                  {editingClub ? 'Actualizar' : 'Crear'}
+                </Button>
+              </div>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {clubs.map((club) => (
