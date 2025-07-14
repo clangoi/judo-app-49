@@ -581,6 +581,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   .from(weightEntries)
                   .where(eq(weightEntries.userId, userId));
                 qualifies = weightCount[0]?.count >= badge.criteriaValue;
+              } else if (badge.category === 'nutrition') {
+                const nutritionCount = await db
+                  .select({ count: sql<number>`count(*)` })
+                  .from(nutritionEntries)
+                  .where(eq(nutritionEntries.userId, userId));
+                qualifies = nutritionCount[0]?.count >= badge.criteriaValue;
               }
               break;
               

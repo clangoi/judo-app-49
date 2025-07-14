@@ -54,6 +54,8 @@ Preferred communication style: Simple, everyday language.
 - **Nutrition entries**: Meal and nutrition tracking
 - **Clubs**: Organization management
 - **Trainer assignments**: Trainer-athlete relationships
+- **Achievement badges**: Gamification milestone definitions
+- **User achievements**: Individual achievement progress and completion
 
 ### Core Features
 1. **Training Session Management**
@@ -80,6 +82,12 @@ Preferred communication style: Simple, everyday language.
    - Multi-club support with logo management
    - Trainer-athlete assignment system
    - Administrative oversight capabilities
+
+6. **Gamification System**
+   - Achievement badge system with multiple categories
+   - Automatic progress tracking and milestone detection
+   - Visual achievement notifications and progress statistics
+   - Badge categories: training, technique, consistency, weight, nutrition
 
 ## Data Flow
 
