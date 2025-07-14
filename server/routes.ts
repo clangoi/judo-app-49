@@ -68,6 +68,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get("/api/profiles/:userId", async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const result = await db.select().from(profiles).where(eq(profiles.id, userId)).limit(1);
+      if (result.length === 0) {
+        return res.status(404).json({ error: "Profile not found" });
+      }
+      res.json(result[0]);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch profile" });
+    }
+  });
+
   app.patch("/api/profiles/:id", async (req, res) => {
     try {
       const { id } = req.params;
@@ -300,6 +313,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(result);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch exercise records" });
+    }
+  });
+
+  app.post("/api/exercise-records", async (req, res) => {
+    try {
+      const validated = insertExerciseRecordSchema.parse(req.body);
+      const result = await db.insert(exerciseRecords).values(validated).returning();
+      res.json(result[0]);
+    } catch (error) {
+      res.status(400).json({ error: "Invalid exercise record data" });
+    }
+  });
+
+  app.get("/api/exercise-records/session/:sessionId", async (req, res) => {
+    try {
+      const { sessionId } = req.params;
+      const result = await db
+        .select({
+          exerciseRecord: exerciseRecords,
+          exercise: exercises
+        })
+        .from(exerciseRecords)
+        .leftJoin(exercises, eq(exerciseRecords.exerciseId, exercises.id))
+        .where(eq(exerciseRecords.trainingSessionId, sessionId));
+      res.json(result);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch session exercises" });
+    }
+  });
+
+  app.delete("/api/exercise-records/session/:sessionId", async (req, res) => {
+    try {
+      const { sessionId } = req.params;
+      await db.delete(exerciseRecords).where(eq(exerciseRecords.trainingSessionId, sessionId));
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to delete exercise records" });
     }
   });
 

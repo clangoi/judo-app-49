@@ -143,7 +143,54 @@ export const api = {
     return response.json();
   },
 
+  // Exercise Records
+  async getExerciseRecords(userId: string) {
+    const response = await fetch(`${API_BASE_URL}/api/exercise-records?user_id=${userId}`);
+    if (!response.ok) throw new Error('Failed to fetch exercise records');
+    return response.json();
+  },
+
+  async createExerciseRecord(data: any) {
+    const response = await fetch(`${API_BASE_URL}/api/exercise-records`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    if (!response.ok) throw new Error('Failed to create exercise record');
+    return response.json();
+  },
+
+  async deleteExerciseRecordsBySession(sessionId: string) {
+    const response = await fetch(`${API_BASE_URL}/api/exercise-records/session/${sessionId}`, {
+      method: 'DELETE'
+    });
+    if (!response.ok) throw new Error('Failed to delete exercise records');
+    return response.json();
+  },
+
+  async getSessionExercises(sessionId: string) {
+    const response = await fetch(`${API_BASE_URL}/api/exercise-records/session/${sessionId}`);
+    if (!response.ok) throw new Error('Failed to fetch session exercises');
+    return response.json();
+  },
+
   // User profiles
+  async getUserProfile(userId: string) {
+    const response = await fetch(`${API_BASE_URL}/api/profiles/${userId}`);
+    if (!response.ok) throw new Error('Failed to fetch user profile');
+    return response.json();
+  },
+
+  async updateUserProfile(id: string, data: any) {
+    const response = await fetch(`${API_BASE_URL}/api/profiles/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    if (!response.ok) throw new Error('Failed to update profile');
+    return response.json();
+  },
+
   async updateProfile(id: string, data: any) {
     const response = await fetch(`${API_BASE_URL}/api/profiles/${id}`, {
       method: 'PATCH',
