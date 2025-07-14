@@ -84,26 +84,67 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const signIn = async (email: string, password: string) => {
     try {
-      // Create a mock authentication for demo purposes
-      // In a real application, this would validate against your backend
-      const mockUser: User = {
-        id: `user-${Date.now()}`,
-        email,
-        fullName: "Demo User",
-        avatarUrl: null,
-        genderPreference: null,
-        clubId: null,
-        clubName: null,
-        currentBelt: "white",
-        gender: null,
-        competitionCategory: null,
-        injuries: null,
-        injuryDescription: null,
-        profileImageUrl: null,
-        selectedClubLogoId: null,
-        createdAt: new Date(),
-        updatedAt: new Date()
-      };
+      // Create different mock users based on email for testing roles
+      let mockUser: User;
+      
+      if (email.includes('admin')) {
+        mockUser = {
+          id: 'user-admin-1',
+          email,
+          fullName: "Admin User",
+          avatarUrl: null,
+          genderPreference: null,
+          clubId: null,
+          clubName: null,
+          currentBelt: "black",
+          gender: null,
+          competitionCategory: null,
+          injuries: null,
+          injuryDescription: null,
+          profileImageUrl: null,
+          selectedClubLogoId: null,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        };
+      } else if (email.includes('entrenador') || email.includes('trainer')) {
+        mockUser = {
+          id: 'user-trainer-1',
+          email,
+          fullName: "Entrenador User",
+          avatarUrl: null,
+          genderPreference: null,
+          clubId: null,
+          clubName: null,
+          currentBelt: "brown",
+          gender: null,
+          competitionCategory: null,
+          injuries: null,
+          injuryDescription: null,
+          profileImageUrl: null,
+          selectedClubLogoId: null,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        };
+      } else {
+        mockUser = {
+          id: 'user-deportista-1',
+          email,
+          fullName: "Deportista User",
+          avatarUrl: null,
+          genderPreference: null,
+          clubId: null,
+          clubName: null,
+          currentBelt: "white",
+          gender: null,
+          competitionCategory: null,
+          injuries: null,
+          injuryDescription: null,
+          profileImageUrl: null,
+          selectedClubLogoId: null,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        };
+      }
 
       localStorage.setItem('auth_user', JSON.stringify(mockUser));
       setUser(mockUser);

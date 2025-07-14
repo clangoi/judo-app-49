@@ -27,8 +27,15 @@ export const useUserRoles = (userId?: string) => {
     queryKey: ['user-role', userId],
     queryFn: async () => {
       if (!userId) throw new Error('Usuario no autenticado');
-      // Return default role for now
-      return 'practicante' as AppRole;
+      
+      // Determine role based on user ID for testing
+      if (userId.includes('admin')) {
+        return 'admin' as AppRole;
+      } else if (userId.includes('trainer') || userId.includes('entrenador')) {
+        return 'entrenador' as AppRole;
+      } else {
+        return 'practicante' as AppRole;
+      }
     },
     enabled: !!userId,
   });

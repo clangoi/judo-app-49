@@ -314,16 +314,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/nutrition-entries", async (req, res) => {
     try {
       const userId = req.query.user_id as string;
-      let query = db.select().from(nutritionEntries);
       
-      if (userId) {
-        query = query.where(eq(nutritionEntries.userId, userId));
+      if (!userId) {
+        return res.json([]);
       }
+      
+      let query = db.select().from(nutritionEntries);
+      query = query.where(eq(nutritionEntries.userId, userId));
       
       const result = await query.orderBy(desc(nutritionEntries.date));
       res.json(result);
     } catch (error) {
-      res.status(500).json({ error: "Failed to fetch nutrition entries" });
+      console.error('Nutrition entries error:', error);
+      res.status(500).json({ error: "Failed to fetch nutrition entries", details: error.message });
     }
   });
 
