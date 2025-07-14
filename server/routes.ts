@@ -842,7 +842,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       if (exerciseId) {
-        // Get progression for specific exercise
+        // Get progression for specific exercise (only records with weight > 0)
         const records = await db
           .select({
             date: exerciseRecords.date,
@@ -853,12 +853,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
           })
           .from(exerciseRecords)
           .innerJoin(exercises, eq(exerciseRecords.exerciseId, exercises.id))
-          .where(and(eq(exerciseRecords.userId, userId), eq(exerciseRecords.exerciseId, exerciseId)))
+          .where(and(
+            eq(exerciseRecords.userId, userId), 
+            eq(exerciseRecords.exerciseId, exerciseId),
+            sql`${exerciseRecords.weightKg} > 0`
+          ))
           .orderBy(exerciseRecords.date);
 
         res.json(records);
       } else {
-        // Get list of exercises with records for this user
+        // Get list of exercises with weight records (excluding bodyweight exercises)
         const exercisesList = await db
           .selectDistinct({
             exercise_id: exerciseRecords.exerciseId,
@@ -866,7 +870,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           })
           .from(exerciseRecords)
           .innerJoin(exercises, eq(exerciseRecords.exerciseId, exercises.id))
-          .where(eq(exerciseRecords.userId, userId))
+          .where(and(
+            eq(exerciseRecords.userId, userId),
+            sql`${exerciseRecords.weightKg} > 0`
+          ))
           .orderBy(exercises.name);
 
         res.json(exercisesList);
