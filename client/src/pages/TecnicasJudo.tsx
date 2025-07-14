@@ -150,8 +150,8 @@ const TecnicasJudo = () => {
   };
 
   const tecnicasFiltradas = techniques.filter(tecnica =>
-    tecnica.nombre.toLowerCase().includes(busqueda.toLowerCase()) ||
-    tecnica.categoria.toLowerCase().includes(busqueda.toLowerCase())
+    (tecnica.nombre?.toLowerCase() || '').includes(busqueda.toLowerCase()) ||
+    (tecnica.categoria?.toLowerCase() || '').includes(busqueda.toLowerCase())
   );
 
   const categorias = [...new Set(techniques.map(t => t.categoria))];
