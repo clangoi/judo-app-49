@@ -6,12 +6,29 @@ import { useAuth } from "@/hooks/useAuth";
 import NavHeader from "@/components/NavHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-import { Loader2, TrendingUp, Activity, Target } from "lucide-react";
+import { Loader2, TrendingUp, Activity, Target, ChevronDown, ChevronUp } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Button } from "@/components/ui/button";
 
 const Graficos = () => {
   const { user } = useAuth();
   const [selectedExercise, setSelectedExercise] = useState<string>('');
+  
+  // Estado para controlar qué gráficos están colapsados
+  const [collapsedCharts, setCollapsedCharts] = useState({
+    weight: false,
+    activity: false,
+    exercise: false,
+    nutrition: false
+  });
+
+  const toggleChart = (chartName: keyof typeof collapsedCharts) => {
+    setCollapsedCharts(prev => ({
+      ...prev,
+      [chartName]: !prev[chartName]
+    }));
+  };
 
   // Query para datos de peso
   const { data: weightData = [], isLoading: isLoadingWeight } = useQuery({
@@ -159,156 +176,216 @@ const Graficos = () => {
         </div>
 
         {/* Gráfico de Peso */}
-        <Card className="bg-white border-[#C5A46C]">
-          <CardHeader>
-            <CardTitle className="text-[#1A1A1A]">Evolución del Peso</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {weightData.length > 0 ? (
-              <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={weightData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="date" />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Line 
-                    type="monotone" 
-                    dataKey="peso" 
-                    stroke="#C5A46C" 
-                    strokeWidth={2}
-                    name="Peso (kg)"
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            ) : (
-              <div className="text-center py-8 text-[#575757]">
-                No hay datos de peso suficientes para mostrar el gráfico
-              </div>
-            )}
-          </CardContent>
-        </Card>
+        <Collapsible open={!collapsedCharts.weight} onOpenChange={() => toggleChart('weight')}>
+          <Card className="bg-white border-[#C5A46C]">
+            <CardHeader>
+              <CollapsibleTrigger asChild>
+                <Button variant="ghost" className="w-full p-0 h-auto justify-between hover:bg-transparent">
+                  <CardTitle className="text-[#1A1A1A] flex items-center">
+                    <TrendingUp className="mr-2 h-5 w-5 text-[#C5A46C]" />
+                    Evolución del Peso
+                  </CardTitle>
+                  {collapsedCharts.weight ? 
+                    <ChevronDown className="h-4 w-4 text-[#C5A46C]" /> : 
+                    <ChevronUp className="h-4 w-4 text-[#C5A46C]" />
+                  }
+                </Button>
+              </CollapsibleTrigger>
+            </CardHeader>
+            <CollapsibleContent>
+              <CardContent>
+                {weightData.length > 0 ? (
+                  <ResponsiveContainer width="100%" height={300}>
+                    <LineChart data={weightData}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="date" />
+                      <YAxis />
+                      <Tooltip />
+                      <Legend />
+                      <Line 
+                        type="monotone" 
+                        dataKey="peso" 
+                        stroke="#C5A46C" 
+                        strokeWidth={2}
+                        name="Peso (kg)"
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="text-center py-8 text-[#575757]">
+                    No hay datos de peso suficientes para mostrar el gráfico
+                  </div>
+                )}
+              </CardContent>
+            </CollapsibleContent>
+          </Card>
+        </Collapsible>
 
         {/* Gráfico de Progresión de Ejercicios */}
-        <Card className="bg-white border-[#C5A46C]">
-          <CardHeader>
-            <CardTitle className="text-[#1A1A1A] flex items-center justify-between">
-              Progresión de Ejercicios
-              <Select value={selectedExercise} onValueChange={setSelectedExercise}>
-                <SelectTrigger className="w-[200px]">
-                  <SelectValue placeholder="Seleccionar ejercicio" />
-                </SelectTrigger>
-                <SelectContent>
-                  {exercisesList.map((exercise: any) => (
-                    <SelectItem key={exercise.exercise_id} value={exercise.exercise_id}>
-                      {exercise.exercise_name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {isLoadingProgression ? (
-              <div className="flex justify-center py-8">
-                <Loader2 className="h-6 w-6 animate-spin text-[#C5A46C]" />
-              </div>
-            ) : exerciseProgression.length > 0 ? (
-              <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={exerciseProgression}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis 
-                    dataKey="date" 
-                    tickFormatter={(value) => new Date(value).toLocaleDateString('es-ES', { month: 'short', day: 'numeric' })}
-                  />
-                  <YAxis label={{ value: 'Peso (kg)', angle: -90, position: 'insideLeft' }} />
-                  <Tooltip 
-                    labelFormatter={(value) => new Date(value).toLocaleDateString('es-ES')}
-                    formatter={(value: any, name: string) => [
-                      name === 'weight_kg' ? `${value} kg` : value,
-                      name === 'weight_kg' ? 'Peso' : name
-                    ]}
-                  />
-                  <Legend />
-                  <Line 
-                    type="monotone" 
-                    dataKey="weight_kg" 
-                    stroke="#C5A46C" 
-                    strokeWidth={3}
-                    dot={{ fill: '#C5A46C', strokeWidth: 2, r: 4 }}
-                    name="Peso (kg)"
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            ) : (
-              <div className="text-center py-8 text-[#575757]">
-                {selectedExercise ? 'No hay datos de progresión para este ejercicio' : 'Selecciona un ejercicio para ver su progresión'}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+        <Collapsible open={!collapsedCharts.exercise} onOpenChange={() => toggleChart('exercise')}>
+          <Card className="bg-white border-[#C5A46C]">
+            <CardHeader>
+              <CollapsibleTrigger asChild>
+                <Button variant="ghost" className="w-full p-0 h-auto justify-between hover:bg-transparent">
+                  <CardTitle className="text-[#1A1A1A] flex items-center">
+                    <Activity className="mr-2 h-5 w-5 text-[#C5A46C]" />
+                    Progresión de Ejercicios
+                  </CardTitle>
+                  {collapsedCharts.exercise ? 
+                    <ChevronDown className="h-4 w-4 text-[#C5A46C]" /> : 
+                    <ChevronUp className="h-4 w-4 text-[#C5A46C]" />
+                  }
+                </Button>
+              </CollapsibleTrigger>
+            </CardHeader>
+            <CollapsibleContent>
+              <CardContent>
+                <div className="mb-4">
+                  <Select value={selectedExercise} onValueChange={setSelectedExercise}>
+                    <SelectTrigger className="w-[200px]">
+                      <SelectValue placeholder="Seleccionar ejercicio" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {exercisesList.map((exercise: any) => (
+                        <SelectItem key={exercise.exercise_id} value={exercise.exercise_id}>
+                          {exercise.exercise_name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                {isLoadingProgression ? (
+                  <div className="flex justify-center py-8">
+                    <Loader2 className="h-6 w-6 animate-spin text-[#C5A46C]" />
+                  </div>
+                ) : exerciseProgression.length > 0 ? (
+                  <ResponsiveContainer width="100%" height={300}>
+                    <LineChart data={exerciseProgression}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis 
+                        dataKey="date" 
+                        tickFormatter={(value) => new Date(value).toLocaleDateString('es-ES', { month: 'short', day: 'numeric' })}
+                      />
+                      <YAxis label={{ value: 'Peso (kg)', angle: -90, position: 'insideLeft' }} />
+                      <Tooltip 
+                        labelFormatter={(value) => new Date(value).toLocaleDateString('es-ES')}
+                        formatter={(value: any, name: string) => [
+                          name === 'weight_kg' ? `${value} kg` : value,
+                          name === 'weight_kg' ? 'Peso' : name
+                        ]}
+                      />
+                      <Legend />
+                      <Line 
+                        type="monotone" 
+                        dataKey="weight_kg" 
+                        stroke="#C5A46C" 
+                        strokeWidth={3}
+                        dot={{ fill: '#C5A46C', strokeWidth: 2, r: 4 }}
+                        name="Peso (kg)"
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="text-center py-8 text-[#575757]">
+                    {selectedExercise ? 'No hay datos de progresión para este ejercicio' : 'Selecciona un ejercicio para ver su progresión'}
+                  </div>
+                )}
+              </CardContent>
+            </CollapsibleContent>
+          </Card>
+        </Collapsible>
 
         {/* Gráfico de Nutrición */}
-        <Card className="bg-white border-[#C5A46C]">
-          <CardHeader>
-            <CardTitle className="text-[#1A1A1A]">Evolución Nutricional</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {nutritionData.length > 0 ? (
-              <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={nutritionData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="date" />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Line type="monotone" dataKey="calories" stroke="#ff7300" name="Calorías" />
-                  <Line type="monotone" dataKey="protein" stroke="#82ca9d" name="Proteínas (g)" />
-                  <Line type="monotone" dataKey="carbs" stroke="#8884d8" name="Carbohidratos (g)" />
-                  <Line type="monotone" dataKey="fats" stroke="#ffc658" name="Grasas (g)" />
-                </LineChart>
-              </ResponsiveContainer>
-            ) : (
-              <div className="text-center py-8 text-[#575757]">
-                No hay datos nutricionales suficientes para mostrar el gráfico
-              </div>
-            )}
-          </CardContent>
-        </Card>
+        <Collapsible open={!collapsedCharts.nutrition} onOpenChange={() => toggleChart('nutrition')}>
+          <Card className="bg-white border-[#C5A46C]">
+            <CardHeader>
+              <CollapsibleTrigger asChild>
+                <Button variant="ghost" className="w-full p-0 h-auto justify-between hover:bg-transparent">
+                  <CardTitle className="text-[#1A1A1A] flex items-center">
+                    <Target className="mr-2 h-5 w-5 text-[#C5A46C]" />
+                    Evolución Nutricional
+                  </CardTitle>
+                  {collapsedCharts.nutrition ? 
+                    <ChevronDown className="h-4 w-4 text-[#C5A46C]" /> : 
+                    <ChevronUp className="h-4 w-4 text-[#C5A46C]" />
+                  }
+                </Button>
+              </CollapsibleTrigger>
+            </CardHeader>
+            <CollapsibleContent>
+              <CardContent>
+                {nutritionData.length > 0 ? (
+                  <ResponsiveContainer width="100%" height={300}>
+                    <LineChart data={nutritionData}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="date" />
+                      <YAxis />
+                      <Tooltip />
+                      <Legend />
+                      <Line type="monotone" dataKey="calories" stroke="#ff7300" name="Calorías" />
+                      <Line type="monotone" dataKey="protein" stroke="#82ca9d" name="Proteínas (g)" />
+                      <Line type="monotone" dataKey="carbs" stroke="#8884d8" name="Carbohidratos (g)" />
+                      <Line type="monotone" dataKey="fats" stroke="#ffc658" name="Grasas (g)" />
+                    </LineChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="text-center py-8 text-[#575757]">
+                    No hay datos nutricionales suficientes para mostrar el gráfico
+                  </div>
+                )}
+              </CardContent>
+            </CollapsibleContent>
+          </Card>
+        </Collapsible>
 
         {/* Distribución de Actividades */}
-        <Card className="bg-white border-[#C5A46C]">
-          <CardHeader>
-            <CardTitle className="text-[#1A1A1A]">Distribución de Actividades</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {activityDistribution.length > 0 ? (
-              <ResponsiveContainer width="100%" height={300}>
-                <PieChart>
-                  <Pie
-                    data={activityDistribution}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                    outerRadius={80}
-                    fill="#8884d8"
-                    dataKey="value"
-                  >
-                    {activityDistribution.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                </PieChart>
-              </ResponsiveContainer>
-            ) : (
-              <div className="text-center py-8 text-[#575757]">
-                No hay datos de actividades suficientes para mostrar el gráfico
-              </div>
-            )}
-          </CardContent>
-        </Card>
+        <Collapsible open={!collapsedCharts.activity} onOpenChange={() => toggleChart('activity')}>
+          <Card className="bg-white border-[#C5A46C]">
+            <CardHeader>
+              <CollapsibleTrigger asChild>
+                <Button variant="ghost" className="w-full p-0 h-auto justify-between hover:bg-transparent">
+                  <CardTitle className="text-[#1A1A1A] flex items-center">
+                    <Activity className="mr-2 h-5 w-5 text-[#C5A46C]" />
+                    Distribución de Actividades
+                  </CardTitle>
+                  {collapsedCharts.activity ? 
+                    <ChevronDown className="h-4 w-4 text-[#C5A46C]" /> : 
+                    <ChevronUp className="h-4 w-4 text-[#C5A46C]" />
+                  }
+                </Button>
+              </CollapsibleTrigger>
+            </CardHeader>
+            <CollapsibleContent>
+              <CardContent>
+                {activityDistribution.length > 0 ? (
+                  <ResponsiveContainer width="100%" height={300}>
+                    <PieChart>
+                      <Pie
+                        data={activityDistribution}
+                        cx="50%"
+                        cy="50%"
+                        labelLine={false}
+                        label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                        outerRadius={80}
+                        fill="#8884d8"
+                        dataKey="value"
+                      >
+                        {activityDistribution.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                      </Pie>
+                      <Tooltip />
+                    </PieChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="text-center py-8 text-[#575757]">
+                    No hay datos de actividades suficientes para mostrar el gráfico
+                  </div>
+                )}
+              </CardContent>
+            </CollapsibleContent>
+          </Card>
+        </Collapsible>
       </div>
     </div>
   );
