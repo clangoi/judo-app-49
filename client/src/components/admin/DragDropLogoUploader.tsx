@@ -63,10 +63,8 @@ const DragDropLogoUploader: React.FC<DragDropLogoUploaderProps> = ({
   };
 
   const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    console.log('File input changed:', e.target.files);
     const file = e.target.files?.[0];
     if (file) {
-      console.log('File selected:', file.name);
       handleFileSelect(file);
     }
   };
@@ -247,13 +245,9 @@ const DragDropLogoUploader: React.FC<DragDropLogoUploaderProps> = ({
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
-                  console.log('Button clicked, looking for input:', `file-input-${clubId}`);
                   const input = document.getElementById(`file-input-${clubId}`) as HTMLInputElement;
                   if (input) {
-                    console.log('Input found, triggering click');
                     input.click();
-                  } else {
-                    console.error('Input not found!');
                   }
                 }}
                 disabled={isUploading}

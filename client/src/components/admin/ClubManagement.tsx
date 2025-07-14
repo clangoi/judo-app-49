@@ -37,6 +37,7 @@ import { z } from "zod";
 import { Plus, Edit, Trash2, Building, Upload, Image } from "lucide-react";
 import type { Club } from "@/hooks/useClubs";
 import DragDropLogoUploader from "./DragDropLogoUploader";
+import SmartSuggestionChips from "./SmartSuggestionChips";
 
 const clubSchema = z.object({
   name: z.string().min(1, "El nombre es obligatorio"),
@@ -123,6 +124,44 @@ const ClubManagement = () => {
     }
   };
 
+  const handleCreateClubFromSuggestion = (suggestion: any) => {
+    setEditingClub(null);
+    form.setValue('name', suggestion.name);
+    form.setValue('description', suggestion.description);
+    setIsModalOpen(true);
+  };
+
+  const handleApplySuggestion = (suggestion: any) => {
+    // Implementar acciones específicas basadas en el tipo de sugerencia
+    switch (suggestion.action) {
+      case 'add_logos':
+        // Encontrar el primer club sin logo y abrir su modal de edición
+        const clubWithoutLogo = clubs?.find(club => !club.logoUrl && !club.logo_url);
+        if (clubWithoutLogo) {
+          handleEdit(clubWithoutLogo);
+        }
+        break;
+      case 'setup_new_clubs':
+        // Abrir el primer club recién creado para configuración
+        const recentClub = clubs?.find(club => {
+          const createdDate = new Date(club.created_at || club.createdAt);
+          const weekAgo = new Date();
+          weekAgo.setDate(weekAgo.getDate() - 7);
+          return createdDate > weekAgo;
+        });
+        if (recentClub) {
+          handleEdit(recentClub);
+        }
+        break;
+      case 'analyze_performance':
+        // Redirigir a página de analytics (por implementar)
+        console.log('Navigate to analytics page');
+        break;
+      default:
+        console.log('Action not implemented:', suggestion.action);
+    }
+  };
+
   if (isLoading) {
     return <div className="text-foreground">Cargando clubes...</div>;
   }
@@ -143,6 +182,15 @@ const ClubManagement = () => {
           Crear Club
         </Button>
       </div>
+
+      {/* Smart Suggestion Chips */}
+      {clubs && clubs.length > 0 && (
+        <SmartSuggestionChips
+          clubs={clubs}
+          onCreateClub={handleCreateClubFromSuggestion}
+          onApplySuggestion={handleApplySuggestion}
+        />
+      )}
 
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
         <DialogContent className="bg-background border-border sm:max-w-[600px] max-h-[85vh] overflow-y-auto"
