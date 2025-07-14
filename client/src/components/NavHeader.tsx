@@ -28,14 +28,7 @@ const NavHeader = ({ title, subtitle }: NavHeaderProps) => {
     queryFn: async () => {
       if (!user?.id) return null;
       
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('selected_club_logo_id, club_id')
-        .eq('user_id', user.id)
-        .single();
-      
-      if (error) throw error;
-      return data;
+      return await api.getUserProfile(user.id);
     },
     enabled: !!user?.id,
   });

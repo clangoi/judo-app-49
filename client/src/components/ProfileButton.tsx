@@ -19,14 +19,7 @@ export const ProfileButton = () => {
     queryFn: async () => {
       if (!user?.id) return null;
       
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('user_id', user.id)
-        .single();
-      
-      if (error && error.code !== 'PGRST116') throw error;
-      return data;
+      return await api.getUserProfile(user.id);
     },
     enabled: !!user?.id,
   });

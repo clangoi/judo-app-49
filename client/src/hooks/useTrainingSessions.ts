@@ -39,15 +39,7 @@ export const useTrainingSessions = (userId: string | undefined) => {
     queryKey: ['exercises', userId],
     queryFn: async () => {
       if (!userId) throw new Error('Usuario no autenticado');
-      
-      const { data, error } = await supabase
-        .from('exercises')
-        .select('*')
-        .eq('user_id', userId)
-        .order('name');
-      
-      if (error) throw error;
-      return data;
+      return await api.getExercises(userId);
     },
     enabled: !!userId,
   });
@@ -59,43 +51,35 @@ export const useTrainingSessions = (userId: string | undefined) => {
     }) => {
       if (!userId) throw new Error('Usuario no autenticado');
       
-      const { data: sessionData, error: sessionError } = await supabase
-        .from('training_sessions')
-        .insert([{
-          ...sesion,
-          user_id: userId,
-          training_category: 'physical_preparation'
-        }])
-        .select()
-        .single();
-      
-      if (sessionError) throw sessionError;
+      const sessionResponse = await api.createTrainingSession({
+        userId,
+        date: sesion.date,
+        sessionType: sesion.session_type,
+        durationMinutes: sesion.duration_minutes,
+        notes: sesion.notes,
+        intensity: sesion.intensity,
+        trainingCategory: 'physical_preparation'
+      });
 
       // Create exercise records
       for (const ejercicio of ejerciciosRealizados) {
         if (ejercicio.exercise_id) {
-          const recordToInsert = {
-            exercise_id: ejercicio.exercise_id,
+          await api.createExerciseRecord({
+            exerciseId: ejercicio.exercise_id,
             sets: ejercicio.sets,
             reps: ejercicio.reps,
-            weight_kg: ejercicio.weight_kg,
-            duration_minutes: ejercicio.duration_minutes,
-            rest_seconds: ejercicio.rest_seconds,
+            weightKg: ejercicio.weight_kg,
+            durationMinutes: ejercicio.duration_minutes,
+            restSeconds: ejercicio.rest_seconds,
             notes: ejercicio.notes,
-            training_session_id: sessionData.id,
-            user_id: userId,
+            trainingSessionId: sessionResponse.id,
+            userId,
             date: sesion.date
-          };
-          
-          const { error: recordError } = await supabase
-            .from('exercise_records')
-            .insert([recordToInsert]);
-          
-          if (recordError) throw recordError;
+          });
         }
       }
       
-      return sessionData;
+      return sessionResponse;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['training_sessions', userId] });
@@ -122,50 +106,36 @@ export const useTrainingSessions = (userId: string | undefined) => {
     }) => {
       if (!userId) throw new Error('Usuario no autenticado');
       
-      const { data, error } = await supabase
-        .from('training_sessions')
-        .update({
-          ...sesion,
-          training_category: 'physical_preparation'
-        })
-        .eq('id', id)
-        .eq('user_id', userId)
-        .select()
-        .single();
-      
-      if (error) throw error;
+      const data = await api.updateTrainingSession(id, {
+        userId,
+        date: sesion.date,
+        sessionType: sesion.session_type,
+        durationMinutes: sesion.duration_minutes,
+        notes: sesion.notes,
+        intensity: sesion.intensity,
+        trainingCategory: 'physical_preparation'
+      });
 
       // If exercises are provided, update them
       if (ejerciciosRealizados) {
         // Delete existing exercise records for this session
-        const { error: deleteError } = await supabase
-          .from('exercise_records')
-          .delete()
-          .eq('training_session_id', id);
-        
-        if (deleteError) throw deleteError;
+        await api.deleteExerciseRecordsBySession(id);
 
         // Insert new exercise records
         for (const ejercicio of ejerciciosRealizados) {
           if (ejercicio.exercise_id) {
-            const recordToInsert = {
-              exercise_id: ejercicio.exercise_id,
+            await api.createExerciseRecord({
+              exerciseId: ejercicio.exercise_id,
               sets: ejercicio.sets,
               reps: ejercicio.reps,
-              weight_kg: ejercicio.weight_kg,
-              duration_minutes: ejercicio.duration_minutes,
-              rest_seconds: ejercicio.rest_seconds,
+              weightKg: ejercicio.weight_kg,
+              durationMinutes: ejercicio.duration_minutes,
+              restSeconds: ejercicio.rest_seconds,
               notes: ejercicio.notes,
-              training_session_id: id,
-              user_id: userId,
+              trainingSessionId: id,
+              userId,
               date: sesion.date
-            };
-            
-            const { error: recordError } = await supabase
-              .from('exercise_records')
-              .insert([recordToInsert]);
-            
-            if (recordError) throw recordError;
+            });
           }
         }
       }
@@ -193,22 +163,11 @@ export const useTrainingSessions = (userId: string | undefined) => {
     mutationFn: async (id: string) => {
       if (!userId) throw new Error('Usuario no autenticado');
       
-      // First delete exercise records
-      const { error: recordsError } = await supabase
-        .from('exercise_records')
-        .delete()
-        .eq('training_session_id', id);
+      // First delete all exercise records for this session
+      await api.deleteExerciseRecordsBySession(id);
       
-      if (recordsError) throw recordsError;
-
-      // Then delete the session
-      const { error } = await supabase
-        .from('training_sessions')
-        .delete()
-        .eq('id', id)
-        .eq('user_id', userId);
-      
-      if (error) throw error;
+      // Then delete the training session
+      await api.deleteTrainingSession(id);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['training_sessions', userId] });
@@ -233,19 +192,7 @@ export const useTrainingSessions = (userId: string | undefined) => {
       queryFn: async () => {
         if (!sessionId) return [];
         
-        const { data, error } = await supabase
-          .from('exercise_records')
-          .select(`
-            *,
-            exercises (
-              id,
-              name
-            )
-          `)
-          .eq('training_session_id', sessionId);
-        
-        if (error) throw error;
-        return data || [];
+        return await api.getSessionExercises(sessionId);
       },
       enabled: !!sessionId,
     });

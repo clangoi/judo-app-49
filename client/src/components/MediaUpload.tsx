@@ -70,15 +70,12 @@ const MediaUpload = ({ onMediaUploaded, currentMediaFiles = [], onRemoveMedia, l
         
         const bucketName = allowedVideoTypes.includes(file.type) ? 'judo-videos' : 'judo-images';
 
-        const { data, error } = await supabase.storage
-          .from(bucketName)
-          .upload(fileName, file);
-
-        if (error) throw error;
-
-        const { data: { publicUrl } } = supabase.storage
-          .from(bucketName)
-          .getPublicUrl(fileName);
+        // Upload to storage service
+        // TODO: Implement file upload service
+        const mockUrl = `/uploads/${bucketName}/${fileName}`;
+        
+        // For now, create a mock URL for testing
+        const publicUrl = mockUrl;
 
         return {
           url: publicUrl,

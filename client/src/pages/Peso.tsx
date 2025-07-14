@@ -66,18 +66,10 @@ const Peso = () => {
 
   const updateMutation = useMutation({
     mutationFn: async ({ id, registro }: { id: string, registro: Omit<RegistroPeso, 'id'> }) => {
-      const { data, error } = await supabase
-        .from('weight_entries')
-        .update({
-          date: registro.date,
-          weight: parseFloat(registro.weight.toString())
-        })
-        .eq('id', id)
-        .select()
-        .single();
-      
-      if (error) throw error;
-      return data;
+      return await api.updateWeightEntry(id, {
+        date: registro.date,
+        weight: parseFloat(registro.weight.toString())
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['weight_entries'] });
@@ -98,12 +90,7 @@ const Peso = () => {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
-        .from('weight_entries')
-        .delete()
-        .eq('id', id);
-      
-      if (error) throw error;
+      return await api.deleteWeightEntry(id);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['weight_entries'] });

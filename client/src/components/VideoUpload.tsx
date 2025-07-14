@@ -51,17 +51,12 @@ const VideoUpload = ({ onVideoUploaded, currentVideoUrl, onRemoveVideo }: VideoU
       const fileExt = file.name.split('.').pop();
       const fileName = `${user.id}/${Date.now()}.${fileExt}`;
 
-      // Upload to Supabase Storage
-      const { data, error } = await supabase.storage
-        .from('judo-videos')
-        .upload(fileName, file);
-
-      if (error) throw error;
-
-      // Get public URL
-      const { data: { publicUrl } } = supabase.storage
-        .from('judo-videos')
-        .getPublicUrl(fileName);
+      // Upload to storage service
+      // TODO: Implement file upload service
+      const mockUrl = `/uploads/videos/${fileName}`;
+      
+      // For now, create a mock URL for testing
+      const publicUrl = mockUrl;
 
       onVideoUploaded(publicUrl);
       

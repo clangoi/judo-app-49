@@ -111,15 +111,7 @@ export const ProfileModal = ({ isOpen, onClose }: ProfileModalProps) => {
     if (!user) return;
 
     try {
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("user_id", user.id)
-        .single();
-
-      if (error && error.code !== "PGRST116") {
-        throw error;
-      }
+      const data = await api.getUserProfile(user.id);
 
       if (data) {
         setProfile(data);
@@ -149,41 +141,17 @@ export const ProfileModal = ({ isOpen, onClose }: ProfileModalProps) => {
 
     setLoading(true);
     try {
-      // Si el perfil ya existe, usamos UPDATE, si no, usamos INSERT
-      if (profile) {
-        const { error } = await supabase
-          .from("profiles")
-          .update({
-            full_name: values.full_name,
-            profile_image_url: values.profile_image_url,
-            club_id: values.club_id === "none" ? null : values.club_id || null,
-            selected_club_logo_id: values.selected_club_logo_id === "none" ? null : values.selected_club_logo_id || null,
-            gender: values.gender,
-            competition_category: values.competition_category,
-            injuries: values.injuries,
-            injury_description: values.injury_description,
-            updated_at: new Date().toISOString(),
-          } as any)
-          .eq("user_id", user.id);
-
-        if (error) throw error;
-      } else {
-        const { error } = await supabase
-          .from("profiles")
-          .insert({
-            user_id: user.id,
-            full_name: values.full_name,
-            profile_image_url: values.profile_image_url,
-            club_id: values.club_id === "none" ? null : values.club_id || null,
-            selected_club_logo_id: values.selected_club_logo_id === "none" ? null : values.selected_club_logo_id || null,
-            gender: values.gender,
-            competition_category: values.competition_category,
-            injuries: values.injuries,
-            injury_description: values.injury_description,
-          } as any);
-
-        if (error) throw error;
-      }
+      // Update or create profile via API
+      await api.updateUserProfile(user.id, {
+        fullName: values.full_name,
+        profileImageUrl: values.profile_image_url,
+        clubId: values.club_id === "none" ? null : values.club_id || null,
+        selectedClubLogoId: values.selected_club_logo_id === "none" ? null : values.selected_club_logo_id || null,
+        gender: values.gender,
+        competitionCategory: values.competition_category,
+        injuries: values.injuries,
+        injuryDescription: values.injury_description,
+      });
 
       toast({
         title: "Éxito",
