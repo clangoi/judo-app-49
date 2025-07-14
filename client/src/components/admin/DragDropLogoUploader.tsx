@@ -141,8 +141,8 @@ const DragDropLogoUploader: React.FC<DragDropLogoUploaderProps> = ({
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
         onClick={(e) => {
-          e.preventDefault();
-          if (!isUploading && !localUploading) {
+          // Solo activar click si no hay preview y se hace click en área vacía
+          if (!preview && !isUploading && !localUploading && e.target === e.currentTarget) {
             document.getElementById(`file-input-${clubId}`)?.click();
           }
         }}
@@ -167,7 +167,10 @@ const DragDropLogoUploader: React.FC<DragDropLogoUploaderProps> = ({
               ) : (
                 <div className="flex gap-2 justify-center">
                   <Button
-                    onClick={handleUpload}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleUpload();
+                    }}
                     disabled={isUploading || localUploading}
                     size="sm"
                     className="bg-primary hover:bg-primary/90"
@@ -186,7 +189,10 @@ const DragDropLogoUploader: React.FC<DragDropLogoUploaderProps> = ({
                   </Button>
                   
                   <Button
-                    onClick={handleCancel}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleCancel();
+                    }}
                     variant="outline"
                     size="sm"
                     disabled={isUploading || localUploading}
@@ -227,6 +233,20 @@ const DragDropLogoUploader: React.FC<DragDropLogoUploaderProps> = ({
               <div className="text-xs text-muted-foreground">
                 PNG, JPG, GIF hasta 5MB
               </div>
+              
+              <Button
+                variant="outline"
+                size="sm"
+                className="mt-3"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  document.getElementById(`file-input-${clubId}`)?.click();
+                }}
+                disabled={isUploading}
+              >
+                <Upload className="h-4 w-4 mr-2" />
+                Seleccionar Archivo
+              </Button>
               
               <input
                 id={`file-input-${clubId}`}
