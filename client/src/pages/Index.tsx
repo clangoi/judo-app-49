@@ -15,8 +15,7 @@ import {
   Users,
   Shield,
   Building,
-  Trophy,
-  Share2
+  Trophy
 } from "lucide-react";
 import NavHeader from "@/components/NavHeader";
 import { AchievementTestButton } from "@/components/AchievementTestButton";
@@ -80,7 +79,7 @@ const Index = () => {
       icon: Utensils,
       path: "/alimentacion",
       color: "bg-gray-700",
-      roles: ['practicante', 'entrenador', 'admin']
+      roles: ['admin']
     },
     {
       title: "Gráficos y Análisis",
@@ -122,14 +121,7 @@ const Index = () => {
       color: "bg-gray-700",
       roles: ['admin']
     },
-    {
-      title: "Prueba Compartir en Redes",
-      description: "Prueba el sistema de compartir logros en redes sociales",
-      icon: Share2,
-      path: "/test-social-share",
-      color: "bg-blue-600",
-      roles: ['practicante', 'entrenador', 'admin']
-    }
+
   ];
 
   const availableItems = menuItems.filter(item => 
