@@ -131,7 +131,9 @@ export const useAchievements = () => {
     }, {} as Record<string, number>);
 
     const earnedCategoryCounts = userAchievements.reduce((acc, { badge }) => {
-      acc[badge.category] = (acc[badge.category] || 0) + 1;
+      if (badge && badge.category) {
+        acc[badge.category] = (acc[badge.category] || 0) + 1;
+      }
       return acc;
     }, {} as Record<string, number>);
 

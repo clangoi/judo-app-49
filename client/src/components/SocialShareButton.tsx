@@ -19,7 +19,9 @@ export const SocialShareButton = () => {
   const { user } = useAuth();
   const { userAchievements, isLoading } = useAchievements();
 
-  const earnedAchievements = userAchievements.filter(ua => ua.achievement.progress >= ua.badge.criteriaValue);
+  const earnedAchievements = userAchievements.filter(ua => 
+    ua.badge && ua.badge.criteriaValue && ua.achievement.progress >= ua.badge.criteriaValue
+  );
 
   if (!user) {
     return null;
