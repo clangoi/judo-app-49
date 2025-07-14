@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
+import { useAchievementNotifications } from "@/components/achievements/AchievementProvider";
 
 export interface AchievementBadge {
   id: string;
@@ -34,6 +35,7 @@ export const useAchievements = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { user } = useAuth();
+  const { showAchievement } = useAchievementNotifications();
 
   // Get all available achievement badges
   const { data: badges = [], isLoading: isLoadingBadges } = useQuery({
@@ -69,12 +71,13 @@ export const useAchievements = () => {
     },
     onSuccess: (data) => {
       if (data.newAchievements.length > 0) {
-        // Show notification for new achievements
+        // Show achievement notifications
         data.newAchievements.forEach(({ badge }) => {
+          showAchievement(badge);
           toast({
             title: "¡Nuevo logro desbloqueado!",
             description: `Has conseguido: ${badge.name}`,
-            duration: 5000,
+            duration: 3000,
           });
         });
         
