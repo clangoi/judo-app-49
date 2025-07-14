@@ -68,10 +68,63 @@ export const useJudoSessions = (userId?: string) => {
     },
   });
 
+  const updateSessionMutation = useMutation({
+    mutationFn: async ({ id, entrenamiento }: { id: string; entrenamiento: Omit<EntrenamientoJudo, 'id'> }) => {
+      if (!userId) throw new Error('Usuario no autenticado');
+      
+      return await api.updateTrainingSession(id, {
+        ...entrenamiento,
+        userId,
+        date: entrenamiento.fecha,
+        session_type: entrenamiento.tipo,
+        duration_minutes: entrenamiento.duracion,
+        notes: entrenamiento.comentarios || '',
+        training_category: 'judo',
+        video_url: entrenamiento.videoUrl || null,
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['judo-sessions'] });
+      toast({
+        title: "Sesión actualizada",
+        description: "La sesión de entrenamiento ha sido actualizada exitosamente.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "No se pudo actualizar la sesión.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const deleteSessionMutation = useMutation({
+    mutationFn: async (sessionId: string) => {
+      return await api.deleteTrainingSession(sessionId);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['judo-sessions'] });
+      toast({
+        title: "Sesión eliminada",
+        description: "La sesión de entrenamiento ha sido eliminada exitosamente.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "No se pudo eliminar la sesión.",
+        variant: "destructive",
+      });
+    },
+  });
+
   return {
     sessions,
     isLoading,
     refetch,
     createSessionMutation,
+    updateSessionMutation,
+    deleteSessionMutation,
   };
 };
