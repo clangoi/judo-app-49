@@ -99,7 +99,7 @@ export const NotificationButton: React.FC<NotificationButtonProps> = ({ classNam
       </DropdownMenuTrigger>
       
       <DropdownMenuContent 
-        className="w-80 max-h-96 p-0" 
+        className="w-80 p-0" 
         align="end"
         sideOffset={10}
       >
@@ -119,58 +119,60 @@ export const NotificationButton: React.FC<NotificationButtonProps> = ({ classNam
         
         <DropdownMenuSeparator />
         
-        <ScrollArea className="h-80">
-          {isLoading ? (
-            <div className="p-4 text-center text-muted-foreground">
-              Cargando notificaciones...
-            </div>
-          ) : notifications.length === 0 ? (
-            <div className="p-4 text-center text-muted-foreground">
-              <Bell className="h-8 w-8 mx-auto mb-2 opacity-50" />
-              <p>No tienes notificaciones</p>
-            </div>
-          ) : (
-            <div className="space-y-1">
-              {notifications.map((notification) => (
-                <DropdownMenuItem
-                  key={notification.id}
-                  className={cn(
-                    "flex items-start gap-3 p-4 cursor-pointer hover:bg-muted/50",
-                    !notification.isRead && "bg-blue-50 dark:bg-blue-950/30"
-                  )}
-                  onClick={() => !notification.isRead && handleMarkAsRead(notification.id)}
-                >
-                  <div className="flex-shrink-0 text-lg">
-                    {getNotificationIcon(notification.type)}
-                  </div>
-                  
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-start justify-between">
-                      <h4 className={cn(
-                        "text-sm font-medium truncate",
-                        !notification.isRead && "font-semibold"
-                      )}>
-                        {notification.title}
-                      </h4>
-                      
-                      {!notification.isRead && (
-                        <div className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0 mt-1" />
-                      )}
+        <div className="max-h-64">
+          <ScrollArea className="h-full">
+            {isLoading ? (
+              <div className="p-4 text-center text-muted-foreground">
+                Cargando notificaciones...
+              </div>
+            ) : notifications.length === 0 ? (
+              <div className="p-4 text-center text-muted-foreground">
+                <Bell className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                <p>No tienes notificaciones</p>
+              </div>
+            ) : (
+              <div className="space-y-1">
+                {notifications.map((notification) => (
+                  <DropdownMenuItem
+                    key={notification.id}
+                    className={cn(
+                      "flex items-start gap-3 p-4 cursor-pointer hover:bg-muted/50",
+                      !notification.isRead && "bg-blue-50 dark:bg-blue-950/30"
+                    )}
+                    onClick={() => !notification.isRead && handleMarkAsRead(notification.id)}
+                  >
+                    <div className="flex-shrink-0 text-lg">
+                      {getNotificationIcon(notification.type)}
                     </div>
                     
-                    <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
-                      {notification.message}
-                    </p>
-                    
-                    <p className="text-xs text-muted-foreground mt-2">
-                      {formatTimeAgo(notification.createdAt)}
-                    </p>
-                  </div>
-                </DropdownMenuItem>
-              ))}
-            </div>
-          )}
-        </ScrollArea>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-start justify-between">
+                        <h4 className={cn(
+                          "text-sm font-medium truncate",
+                          !notification.isRead && "font-semibold"
+                        )}>
+                          {notification.title}
+                        </h4>
+                        
+                        {!notification.isRead && (
+                          <div className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0 mt-1" />
+                        )}
+                      </div>
+                      
+                      <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                        {notification.message}
+                      </p>
+                      
+                      <p className="text-xs text-muted-foreground mt-2">
+                        {formatTimeAgo(notification.createdAt)}
+                      </p>
+                    </div>
+                  </DropdownMenuItem>
+                ))}
+              </div>
+            )}
+          </ScrollArea>
+        </div>
         
         <DropdownMenuSeparator />
         <div className="p-2 space-y-1">
