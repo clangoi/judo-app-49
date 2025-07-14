@@ -172,24 +172,20 @@ export const NotificationButton: React.FC<NotificationButtonProps> = ({ classNam
           )}
         </ScrollArea>
         
-        {notifications.length > 0 && (
-          <>
-            <DropdownMenuSeparator />
-            <div className="p-2 space-y-1">
-              <Button 
-                variant="ghost" 
-                className="w-full justify-center text-sm"
-                onClick={() => {
-                  setIsOpen(false);
-                  setIsSettingsOpen(true);
-                }}
-              >
-                <Settings className="h-4 w-4 mr-2" />
-                Configurar Notificaciones
-              </Button>
-            </div>
-          </>
-        )}
+        <DropdownMenuSeparator />
+        <div className="p-2 space-y-1">
+          <Button 
+            variant="ghost" 
+            className="w-full justify-center text-sm"
+            onClick={() => {
+              setIsOpen(false);
+              setIsSettingsOpen(true);
+            }}
+          >
+            <Settings className="h-4 w-4 mr-2" />
+            Configurar Notificaciones
+          </Button>
+        </div>
       </DropdownMenuContent>
       
       <NotificationSettingsModal 
