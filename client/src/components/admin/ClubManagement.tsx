@@ -36,6 +36,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Plus, Edit, Trash2, Building, Upload, Image } from "lucide-react";
 import type { Club } from "@/hooks/useClubs";
+import DragDropLogoUploader from "./DragDropLogoUploader";
 
 const clubSchema = z.object({
   name: z.string().min(1, "El nombre es obligatorio"),
@@ -177,6 +178,19 @@ const ClubManagement = () => {
                   </FormItem>
                 )}
               />
+
+              {/* Logo Upload Section */}
+              {editingClub && (
+                <div className="space-y-3">
+                  <label className="text-sm font-medium text-foreground">Logo del Club</label>
+                  <DragDropLogoUploader
+                    clubId={editingClub.id}
+                    currentLogoUrl={editingClub.logo_url}
+                    onUpload={handleUploadLogo}
+                    isUploading={uploadClubLogoMutation.isPending && uploadingClubId === editingClub.id}
+                  />
+                </div>
+              )}
               
               <div className="flex justify-end gap-3">
                 <Button type="button" variant="outline" onClick={handleCloseModal}>
@@ -208,22 +222,23 @@ const ClubManagement = () => {
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
-              {club.logo_url && (
-                <div className="flex justify-center">
-                  <img 
-                    src={club.logo_url} 
-                    alt={`Logo de ${club.name}`}
-                    className="h-16 w-16 object-contain rounded"
-                  />
-                </div>
-              )}
-              
               {club.description && (
                 <p className="text-sm text-muted-foreground">{club.description}</p>
               )}
               
               <div className="text-xs text-muted-foreground">
                 Creado: {new Date(club.created_at).toLocaleDateString()}
+              </div>
+
+              {/* Drag and Drop Logo Uploader */}
+              <div className="space-y-2">
+                <p className="text-xs font-medium text-foreground">Logo del Club</p>
+                <DragDropLogoUploader
+                  clubId={club.id}
+                  currentLogoUrl={club.logo_url}
+                  onUpload={handleUploadLogo}
+                  isUploading={uploadClubLogoMutation.isPending && uploadingClubId === club.id}
+                />
               </div>
               
               <div className="flex gap-2">
@@ -236,27 +251,6 @@ const ClubManagement = () => {
                   <Edit className="h-4 w-4 mr-1" />
                   Editar
                 </Button>
-                
-                <div className="relative">
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => handleFileSelect(e, club.id)}
-                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                    disabled={uploadClubLogoMutation.isPending && uploadingClubId === club.id}
-                  />
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    disabled={uploadClubLogoMutation.isPending && uploadingClubId === club.id}
-                  >
-                    {uploadClubLogoMutation.isPending && uploadingClubId === club.id ? (
-                      <Upload className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <Image className="h-4 w-4" />
-                    )}
-                  </Button>
-                </div>
                 
                 <AlertDialog>
                   <AlertDialogTrigger asChild>

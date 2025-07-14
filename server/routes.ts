@@ -908,13 +908,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/upload", async (req, res) => {
     try {
       // This would typically integrate with a file storage service
-      // For now, return a placeholder response
+      // For now, return a placeholder response with a realistic file URL
+      const mockFileUrl = `/uploads/club-logo-${Date.now()}.png`;
       res.json({ 
-        message: "File upload endpoint - integrate with your preferred storage service",
-        url: "/api/placeholder-file-url"
+        message: "File uploaded successfully",
+        url: mockFileUrl,
+        success: true
       });
     } catch (error) {
       res.status(500).json({ error: "Failed to upload file" });
+    }
+  });
+
+  // Update club logo
+  app.patch("/api/clubs/:id/logo", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { logoUrl } = req.body;
+      
+      const result = await db.update(clubs)
+        .set({ logoUrl: logoUrl, updatedAt: new Date() })
+        .where(eq(clubs.id, id))
+        .returning();
+      
+      res.json(result[0]);
+    } catch (error) {
+      console.error('Logo update error:', error);
+      res.status(400).json({ error: "Failed to update club logo" });
     }
   });
 

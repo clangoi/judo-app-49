@@ -354,5 +354,15 @@ export const api = {
     });
     if (!response.ok) throw new Error('Failed to delete club');
     return response.json();
+  },
+
+  async updateClubLogo(clubId: string, logoUrl: string) {
+    const response = await fetch(`${API_BASE_URL}/api/clubs/${clubId}/logo`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ logoUrl })
+    });
+    if (!response.ok) throw new Error('Failed to update club logo');
+    return response.json();
   }
 };

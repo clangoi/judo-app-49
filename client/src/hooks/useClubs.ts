@@ -48,7 +48,11 @@ export const useClubs = () => {
   // Subir logo
   const uploadLogoMutation = useMutation({
     mutationFn: async ({ file, clubId }: { file: File; clubId: string }) => {
-      return await api.uploadFile(file);
+      // First upload the file
+      const uploadResult = await api.uploadFile(file);
+      // Then update the club with the logo URL
+      const updatedClub = await api.updateClubLogo(clubId, uploadResult.url);
+      return updatedClub;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['clubs'] });
