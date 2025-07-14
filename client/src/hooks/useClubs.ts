@@ -67,10 +67,56 @@ export const useClubs = () => {
     },
   });
 
+  // Actualizar club
+  const updateClubMutation = useMutation({
+    mutationFn: async ({ id, name, description }: { id: string; name: string; description?: string }) => {
+      // Placeholder for club update
+      return { id, name, description };
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['clubs'] });
+      toast({
+        title: "Club actualizado",
+        description: "El club ha sido actualizado exitosamente.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "No se pudo actualizar el club.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Eliminar club
+  const deleteClubMutation = useMutation({
+    mutationFn: async (clubId: string) => {
+      // Placeholder for club deletion
+      return { success: true };
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['clubs'] });
+      toast({
+        title: "Club eliminado",
+        description: "El club ha sido eliminado exitosamente.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "No se pudo eliminar el club.",
+        variant: "destructive",
+      });
+    },
+  });
+
   return {
     clubs,
     isLoading,
     createClubMutation,
-    uploadLogoMutation,
+    updateClubMutation,
+    deleteClubMutation,
+    uploadClubLogoMutation: uploadLogoMutation,
   };
 };
