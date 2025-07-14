@@ -39,7 +39,7 @@ const Index = () => {
       icon: Dumbbell,
       path: "/sesiones-preparacion",
       color: "bg-gray-700",
-      roles: ['practicante', 'entrenador', 'admin']
+      roles: ['deportista', 'entrenador', 'admin']
     },
     {
       title: "Entrenamientos de Judo",
@@ -47,7 +47,7 @@ const Index = () => {
       icon: Target,
       path: "/entrenamientos-judo",
       color: "bg-gray-700",
-      roles: ['practicante', 'entrenador', 'admin']
+      roles: ['deportista', 'entrenador', 'admin']
     },
     {
       title: "Técnicas de Judo",
@@ -55,7 +55,7 @@ const Index = () => {
       icon: Zap,
       path: "/tecnicas-judo",
       color: "bg-gray-700",
-      roles: ['practicante', 'entrenador', 'admin']
+      roles: ['deportista', 'entrenador', 'admin']
     },
     {
       title: "Táctica de Judo",
@@ -63,7 +63,7 @@ const Index = () => {
       icon: Brain,
       path: "/tactica-judo",
       color: "bg-gray-700",
-      roles: ['practicante', 'entrenador', 'admin']
+      roles: ['deportista', 'entrenador', 'admin']
     },
     {
       title: "Control de Peso",
@@ -71,7 +71,7 @@ const Index = () => {
       icon: Scale,
       path: "/peso",
       color: "bg-gray-700",
-      roles: ['practicante', 'entrenador', 'admin']
+      roles: ['deportista', 'entrenador', 'admin']
     },
     {
       title: "Alimentación",
@@ -87,7 +87,7 @@ const Index = () => {
       icon: BarChart3,
       path: "/graficos",
       color: "bg-gray-700",
-      roles: ['practicante', 'entrenador', 'admin']
+      roles: ['deportista', 'entrenador', 'admin']
     },
     {
       title: "Logros y Insignias",
@@ -95,7 +95,7 @@ const Index = () => {
       icon: Trophy,
       path: "/logros",
       color: "bg-yellow-600",
-      roles: ['practicante', 'entrenador', 'admin']
+      roles: ['deportista', 'entrenador', 'admin']
     },
     {
       title: "Gestión de Deportistas",

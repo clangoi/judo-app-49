@@ -3,10 +3,10 @@ import { api } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 
 // Usar los tipos correctos de la base de datos
-export type AppRole = 'practicante' | 'entrenador' | 'admin';
+export type AppRole = 'deportista' | 'entrenador' | 'admin';
 
 // Database role type
-type DatabaseRole = 'practicante' | 'entrenador' | 'admin';
+type DatabaseRole = 'deportista' | 'entrenador' | 'admin';
 
 interface UserRole {
   id: string;
@@ -37,7 +37,7 @@ export const useUserRoles = (userId?: string) => {
       } else if (userId.includes('trainer') || userId.includes('entrenador') || userId === '550e8400-e29b-41d4-a716-446655440001') {
         return 'entrenador' as AppRole;
       } else {
-        return 'practicante' as AppRole;
+        return 'deportista' as AppRole;
       }
     },
     enabled: !!userId,

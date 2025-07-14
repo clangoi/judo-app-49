@@ -62,8 +62,8 @@ const NavHeader = ({ title, subtitle }: NavHeaderProps) => {
         return 'Administrador';
       case 'entrenador':
         return 'Entrenador';
-      case 'practicante':
-        return 'Practicante';
+      case 'deportista':
+        return 'Deportista';
       default:
         return role;
     }
@@ -75,7 +75,7 @@ const NavHeader = ({ title, subtitle }: NavHeaderProps) => {
         return 'destructive';
       case 'entrenador':
         return 'default';
-      case 'practicante':
+      case 'deportista':
         return 'secondary';
       default:
         return 'secondary';

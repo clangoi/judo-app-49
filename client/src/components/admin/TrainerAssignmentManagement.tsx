@@ -122,7 +122,7 @@ const TrainerAssignmentManagement = () => {
               </label>
               <Select value={selectedStudent} onValueChange={setSelectedStudent}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Elegir practicante..." />
+                  <SelectValue placeholder="Elegir deportista..." />
                 </SelectTrigger>
                 <SelectContent>
                   {students.map((student) => (

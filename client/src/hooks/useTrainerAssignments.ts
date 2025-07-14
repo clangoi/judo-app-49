@@ -36,7 +36,7 @@ export const useTrainerAssignments = () => {
     },
   });
 
-  // Obtener todos los usuarios con rol de practicante
+  // Obtener todos los usuarios con rol de deportista
   const { data: students = [], isLoading: isLoadingStudents } = useQuery({
     queryKey: ['students'],
     queryFn: async () => {
