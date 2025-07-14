@@ -6,10 +6,14 @@ export interface Club {
   id: string;
   name: string;
   description?: string;
-  logo_url?: string;
+  logoUrl?: string;
+  logo_url?: string; // Para compatibilidad
   created_by: string;
   created_at: string;
   updated_at: string;
+  createdBy: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export const useClubs = () => {

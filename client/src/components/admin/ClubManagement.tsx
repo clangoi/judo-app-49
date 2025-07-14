@@ -186,7 +186,7 @@ const ClubManagement = () => {
                   <label className="text-sm font-medium text-foreground">Logo del Club</label>
                   <DragDropLogoUploader
                     clubId={editingClub.id}
-                    currentLogoUrl={editingClub.logo_url}
+                    currentLogoUrl={editingClub.logoUrl || editingClub.logo_url}
                     onUpload={handleUploadLogo}
                     isUploading={uploadingClubs.has(editingClub.id)}
                   />
@@ -224,10 +224,10 @@ const ClubManagement = () => {
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
-              {club.logo_url && (
+              {(club.logoUrl || club.logo_url) && (
                 <div className="flex justify-center">
                   <img 
-                    src={club.logo_url} 
+                    src={club.logoUrl || club.logo_url} 
                     alt={`Logo de ${club.name}`}
                     className="h-16 w-16 object-contain rounded"
                   />
@@ -239,7 +239,7 @@ const ClubManagement = () => {
               )}
               
               <div className="text-xs text-muted-foreground">
-                Creado: {new Date(club.created_at).toLocaleDateString()}
+                Creado: {new Date(club.createdAt || club.created_at).toLocaleDateString()}
               </div>
               
               <div className="flex gap-2">
