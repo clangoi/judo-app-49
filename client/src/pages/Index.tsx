@@ -142,7 +142,6 @@ const Index = () => {
         title={`${getGreeting()}, ${user?.email?.split('@')[0] || 'Usuario'}`}
         subtitle="Selecciona una opción para comenzar"
       />
-      
       <div className="container mx-auto px-4 mb-4">
         <div className="flex justify-between items-center">
           <Button
@@ -157,7 +156,6 @@ const Index = () => {
           <AchievementTestButton />
         </div>
       </div>
-      
       <div className="max-w-6xl mx-auto p-4">
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {availableItems.map((item) => {
@@ -166,7 +164,7 @@ const Index = () => {
               <Card key={item.path} className="bg-white hover:shadow-lg transition-shadow cursor-pointer border-[#C5A46C]">
                 <CardHeader className="pb-3">
                   <div className="flex items-center gap-3">
-                    <div className={`p-2 rounded-lg ${item.color}`}>
+                    <div className="p-2 rounded-lg bg-[#283750]">
                       <IconComponent className="h-6 w-6 text-white" />
                     </div>
                     <CardTitle className="text-[#1A1A1A]">{item.title}</CardTitle>
