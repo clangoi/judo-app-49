@@ -79,11 +79,14 @@ const Graficos = () => {
 
   // Datos para el gráfico de distribución de actividades
   const activityDistribution = [
-    { name: 'Preparación Física', value: progressSummary.physicalTraining || 0, color: '#8884d8' },
-    { name: 'Judo', value: progressSummary.judoTraining || 0, color: '#C5A46C' },
-    { name: 'Técnicas', value: progressSummary.techniques || 0, color: '#82ca9d' },
-    { name: 'Táctica', value: progressSummary.tacticalNotes || 0, color: '#ffc658' }
+    { name: 'Preparación Física', value: Number(progressSummary.physicalTraining) || 0, color: '#8884d8' },
+    { name: 'Judo', value: Number(progressSummary.judoTraining) || 0, color: '#C5A46C' },
+    { name: 'Técnicas', value: Number(progressSummary.techniques) || 0, color: '#82ca9d' },
+    { name: 'Táctica', value: Number(progressSummary.tacticalNotes) || 0, color: '#ffc658' }
   ].filter(item => item.value > 0);
+
+  console.log('Progress Summary:', progressSummary);
+  console.log('Activity Distribution:', activityDistribution);
 
   if (isLoading) {
     return (

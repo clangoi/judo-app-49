@@ -744,7 +744,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const physicalSessions = await db
         .select({
           date: trainingSessions.date,
-          type: sql<string>`'physical'`,
           duration: trainingSessions.duration
         })
         .from(trainingSessions)
@@ -754,14 +753,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const judoSessions = await db
         .select({
           date: judoTrainingSessions.date,
-          type: sql<string>`'judo'`,
           duration: judoTrainingSessions.durationMinutes
         })
         .from(judoTrainingSessions)
         .where(eq(judoTrainingSessions.userId, userId))
         .orderBy(judoTrainingSessions.date);
 
-      const allSessions = [...physicalSessions, ...judoSessions]
+      // Add type after fetching data
+      const physicalWithType = physicalSessions.map(session => ({
+        ...session,
+        type: 'physical'
+      }));
+
+      const judoWithType = judoSessions.map(session => ({
+        ...session,
+        type: 'judo',
+        duration: session.duration // Rename durationMinutes to duration for consistency
+      }));
+
+      const allSessions = [...physicalWithType, ...judoWithType]
         .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
       res.json(allSessions);
