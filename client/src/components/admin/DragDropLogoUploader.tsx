@@ -63,8 +63,10 @@ const DragDropLogoUploader: React.FC<DragDropLogoUploaderProps> = ({
   };
 
   const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    console.log('File input changed:', e.target.files);
     const file = e.target.files?.[0];
     if (file) {
+      console.log('File selected:', file.name);
       handleFileSelect(file);
     }
   };
@@ -115,7 +117,11 @@ const DragDropLogoUploader: React.FC<DragDropLogoUploaderProps> = ({
           
           <div className="flex justify-center">
             <Button
-              onClick={() => onRemove(clubId)}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onRemove(clubId);
+              }}
               variant="outline"
               size="sm"
               className="text-red-600 hover:text-red-700 hover:bg-red-50"
@@ -239,10 +245,19 @@ const DragDropLogoUploader: React.FC<DragDropLogoUploaderProps> = ({
                 size="sm"
                 className="mt-3"
                 onClick={(e) => {
+                  e.preventDefault();
                   e.stopPropagation();
-                  document.getElementById(`file-input-${clubId}`)?.click();
+                  console.log('Button clicked, looking for input:', `file-input-${clubId}`);
+                  const input = document.getElementById(`file-input-${clubId}`) as HTMLInputElement;
+                  if (input) {
+                    console.log('Input found, triggering click');
+                    input.click();
+                  } else {
+                    console.error('Input not found!');
+                  }
                 }}
                 disabled={isUploading}
+                type="button"
               >
                 <Upload className="h-4 w-4 mr-2" />
                 Seleccionar Archivo
