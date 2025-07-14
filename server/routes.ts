@@ -105,7 +105,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           email: profiles.email
         })
         .from(userRoles)
-        .leftJoin(profiles, eq(userRoles.userId, profiles.id));
+        .leftJoin(profiles, eq(userRoles.userId, profiles.userId));
       res.json(result);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch user roles" });
