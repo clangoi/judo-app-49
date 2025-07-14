@@ -22,24 +22,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ error: "User not authenticated" });
       }
 
+      // Get user profile
       const user = await db.select().from(profiles).where(eq(profiles.id, userId));
-      const userWithRoles = await db
-        .select({
-          profile: profiles,
-          role: userRoles.role
-        })
-        .from(profiles)
-        .leftJoin(userRoles, eq(profiles.user_id, userRoles.user_id))
-        .where(eq(profiles.id, userId));
-
+      
       if (user.length === 0) {
         return res.status(404).json({ error: "User not found" });
       }
 
+      // Get user roles separately
+      const roles = await db
+        .select({ role: userRoles.role })
+        .from(userRoles)
+        .where(eq(userRoles.userId, user[0].userId));
+
       res.json({
         user: user[0],
         session: { user: user[0] },
-        roles: userWithRoles.map(r => r.role).filter(Boolean)
+        roles: roles.map(r => r.role).filter(Boolean)
       });
     } catch (error) {
       console.error("Error fetching user:", error);

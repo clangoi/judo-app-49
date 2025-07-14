@@ -29,9 +29,12 @@ export const useUserRoles = (userId?: string) => {
       if (!userId) throw new Error('Usuario no autenticado');
       
       // Determine role based on user ID for testing
-      if (userId.includes('admin')) {
+      // Special case for claudita06.99@gmail.com admin user
+      if (userId === '550e8400-e29b-41d4-a716-446655443322') {
         return 'admin' as AppRole;
-      } else if (userId.includes('trainer') || userId.includes('entrenador')) {
+      } else if (userId.includes('admin')) {
+        return 'admin' as AppRole;
+      } else if (userId.includes('trainer') || userId.includes('entrenador') || userId === '550e8400-e29b-41d4-a716-446655440001') {
         return 'entrenador' as AppRole;
       } else {
         return 'practicante' as AppRole;
