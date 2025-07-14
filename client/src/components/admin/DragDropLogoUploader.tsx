@@ -21,6 +21,7 @@ const DragDropLogoUploader: React.FC<DragDropLogoUploaderProps> = ({
   const [preview, setPreview] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploadSuccess, setUploadSuccess] = useState(false);
+  const [localUploading, setLocalUploading] = useState(false);
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -67,7 +68,8 @@ const DragDropLogoUploader: React.FC<DragDropLogoUploaderProps> = ({
   };
 
   const handleUpload = async () => {
-    if (selectedFile) {
+    if (selectedFile && !localUploading) {
+      setLocalUploading(true);
       try {
         await onUpload(selectedFile, clubId);
         setUploadSuccess(true);
@@ -75,9 +77,12 @@ const DragDropLogoUploader: React.FC<DragDropLogoUploaderProps> = ({
           setPreview(null);
           setSelectedFile(null);
           setUploadSuccess(false);
+          setLocalUploading(false);
         }, 2000);
       } catch (error) {
         console.error('Upload failed:', error);
+        setUploadSuccess(false);
+        setLocalUploading(false);
       }
     }
   };
@@ -140,11 +145,11 @@ const DragDropLogoUploader: React.FC<DragDropLogoUploaderProps> = ({
                 <div className="flex gap-2 justify-center">
                   <Button
                     onClick={handleUpload}
-                    disabled={isUploading}
+                    disabled={isUploading || localUploading}
                     size="sm"
                     className="bg-primary hover:bg-primary/90"
                   >
-                    {isUploading ? (
+                    {(isUploading || localUploading) ? (
                       <>
                         <Upload className="h-4 w-4 mr-2 animate-spin" />
                         Subiendo...
@@ -161,7 +166,7 @@ const DragDropLogoUploader: React.FC<DragDropLogoUploaderProps> = ({
                     onClick={handleCancel}
                     variant="outline"
                     size="sm"
-                    disabled={isUploading}
+                    disabled={isUploading || localUploading}
                   >
                     <X className="h-4 w-4 mr-2" />
                     Cancelar

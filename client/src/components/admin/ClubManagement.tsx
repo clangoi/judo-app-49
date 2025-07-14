@@ -49,9 +49,8 @@ const ClubManagement = () => {
   const { clubs, isLoading, createClubMutation, updateClubMutation, deleteClubMutation, uploadClubLogoMutation } = useClubs();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingClub, setEditingClub] = useState<Club | null>(null);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [uploadingClubId, setUploadingClubId] = useState<string | null>(null);
   const [pendingLogoFile, setPendingLogoFile] = useState<File | null>(null);
+  const [uploadingClubs, setUploadingClubs] = useState<Set<string>>(new Set());
 
   const form = useForm<ClubFormValues>({
     resolver: zodResolver(clubSchema),
@@ -107,19 +106,17 @@ const ClubManagement = () => {
     form.reset();
   };
 
-  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>, clubId: string) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      setSelectedFile(file);
-      setUploadingClubId(clubId);
-      handleUploadLogo(file, clubId);
-    }
-  };
-
   const handleUploadLogo = async (file: File, clubId: string) => {
-    await uploadClubLogoMutation.mutateAsync({ file, clubId });
-    setSelectedFile(null);
-    setUploadingClubId(null);
+    setUploadingClubs(prev => new Set(prev).add(clubId));
+    try {
+      await uploadClubLogoMutation.mutateAsync({ file, clubId });
+    } finally {
+      setUploadingClubs(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(clubId);
+        return newSet;
+      });
+    }
   };
 
   if (isLoading) {
@@ -193,7 +190,7 @@ const ClubManagement = () => {
                     clubId={editingClub.id}
                     currentLogoUrl={editingClub.logo_url}
                     onUpload={handleUploadLogo}
-                    isUploading={uploadClubLogoMutation.isPending && uploadingClubId === editingClub.id}
+                    isUploading={uploadingClubs.has(editingClub.id)}
                   />
                 ) : (
                   <PendingLogoUploader
@@ -248,7 +245,7 @@ const ClubManagement = () => {
                   clubId={club.id}
                   currentLogoUrl={club.logo_url}
                   onUpload={handleUploadLogo}
-                  isUploading={uploadClubLogoMutation.isPending && uploadingClubId === club.id}
+                  isUploading={uploadingClubs.has(club.id)}
                 />
               </div>
               
