@@ -140,6 +140,12 @@ const DragDropLogoUploader: React.FC<DragDropLogoUploaderProps> = ({
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
+        onClick={(e) => {
+          e.preventDefault();
+          if (!isUploading && !localUploading) {
+            document.getElementById(`file-input-${clubId}`)?.click();
+          }
+        }}
       >
         <div className="p-6 text-center space-y-4">
           {preview ? (
@@ -207,11 +213,14 @@ const DragDropLogoUploader: React.FC<DragDropLogoUploaderProps> = ({
                 <p className="text-sm font-medium text-foreground">
                   {isDragOver 
                     ? "Suelta la imagen aquí" 
-                    : "Arrastra y suelta una imagen aquí"
+                    : "Haz clic o arrastra una imagen aquí"
                   }
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  o haz clic para seleccionar un archivo
+                  {isDragOver 
+                    ? "Suelta para cargar la imagen" 
+                    : "Selecciona un archivo PNG, JPG o GIF"
+                  }
                 </p>
               </div>
               
@@ -220,10 +229,11 @@ const DragDropLogoUploader: React.FC<DragDropLogoUploaderProps> = ({
               </div>
               
               <input
+                id={`file-input-${clubId}`}
                 type="file"
                 accept="image/*"
                 onChange={handleFileInputChange}
-                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                className="hidden"
                 disabled={isUploading}
               />
             </div>
