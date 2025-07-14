@@ -42,14 +42,12 @@ export const useJudoSessions = (userId?: string) => {
       if (!userId) throw new Error('Usuario no autenticado');
       
       return await api.createTrainingSession({
-        ...sessionData,
         userId,
         date: sessionData.fecha,
-        session_type: sessionData.tipo,
-        duration_minutes: sessionData.duracion,
+        sessionType: sessionData.tipo,
+        durationMinutes: sessionData.duracion,
         notes: sessionData.comentarios || '',
-        training_category: 'judo',
-        video_url: sessionData.videoUrl || null,
+        trainingCategory: 'judo',
       });
     },
     onSuccess: () => {
@@ -73,14 +71,12 @@ export const useJudoSessions = (userId?: string) => {
       if (!userId) throw new Error('Usuario no autenticado');
       
       return await api.updateTrainingSession(id, {
-        ...entrenamiento,
         userId,
         date: entrenamiento.fecha,
-        session_type: entrenamiento.tipo,
-        duration_minutes: entrenamiento.duracion,
+        sessionType: entrenamiento.tipo,
+        durationMinutes: entrenamiento.duracion,
         notes: entrenamiento.comentarios || '',
-        training_category: 'judo',
-        video_url: entrenamiento.videoUrl || null,
+        trainingCategory: 'judo',
       });
     },
     onSuccess: () => {
