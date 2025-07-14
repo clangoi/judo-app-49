@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { LogOut, ArrowLeft, Settings, Shield } from "lucide-react";
 import { SocialShareButton } from "./SocialShareButton";
+import { NotificationButton } from "./NotificationButton";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 // Removed supabase import
@@ -149,6 +150,8 @@ const NavHeader = ({ title, subtitle }: NavHeaderProps) => {
               </Button>
             )}
 
+            <NotificationButton />
+            
             <SocialShareButton />
             
             <Button

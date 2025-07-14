@@ -15,6 +15,9 @@ import {
 } from "@shared/schema";
 import { eq, and, desc, sql, isNull, gte, lte } from "drizzle-orm";
 
+// Import notification tables
+import { notifications, notificationSettings } from "@shared/schema";
+
 export async function registerRoutes(app: Express): Promise<Server> {
   // Authentication and User Management
   app.get("/api/auth/user", async (req, res) => {
@@ -994,6 +997,164 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("File upload error:", error);
       res.status(500).json({ error: "Failed to upload file" });
+    }
+  });
+
+  // ========================================
+  // NOTIFICATION ROUTES
+  // ========================================
+
+  // Obtener notificaciones del usuario
+  app.get("/api/notifications/:userId", async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const result = await db
+        .select()
+        .from(notifications)
+        .where(eq(notifications.userId, userId))
+        .orderBy(desc(notifications.createdAt));
+      
+      res.json(result);
+    } catch (error) {
+      console.error("Error fetching notifications:", error);
+      res.status(500).json({ error: "Failed to fetch notifications" });
+    }
+  });
+
+  // Crear nueva notificación
+  app.post("/api/notifications", async (req, res) => {
+    try {
+      const validated = {
+        userId: req.body.userId,
+        type: req.body.type,
+        title: req.body.title,
+        message: req.body.message,
+        scheduledFor: req.body.scheduledFor ? new Date(req.body.scheduledFor) : null,
+      };
+      
+      const result = await db.insert(notifications).values(validated).returning();
+      res.json(result[0]);
+    } catch (error) {
+      console.error("Error creating notification:", error);
+      res.status(400).json({ error: "Invalid notification data" });
+    }
+  });
+
+  // Marcar notificación como leída
+  app.patch("/api/notifications/:notificationId/read", async (req, res) => {
+    try {
+      const { notificationId } = req.params;
+      const result = await db
+        .update(notifications)
+        .set({ 
+          isRead: true, 
+          readAt: new Date() 
+        })
+        .where(eq(notifications.id, notificationId))
+        .returning();
+        
+      if (result.length === 0) {
+        return res.status(404).json({ error: "Notification not found" });
+      }
+      
+      res.json(result[0]);
+    } catch (error) {
+      console.error("Error marking notification as read:", error);
+      res.status(500).json({ error: "Failed to mark notification as read" });
+    }
+  });
+
+  // Marcar todas las notificaciones como leídas
+  app.patch("/api/notifications/:userId/read-all", async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const result = await db
+        .update(notifications)
+        .set({ 
+          isRead: true, 
+          readAt: new Date() 
+        })
+        .where(and(
+          eq(notifications.userId, userId),
+          eq(notifications.isRead, false)
+        ))
+        .returning();
+        
+      res.json({ message: `Marked ${result.length} notifications as read` });
+    } catch (error) {
+      console.error("Error marking all notifications as read:", error);
+      res.status(500).json({ error: "Failed to mark notifications as read" });
+    }
+  });
+
+  // Obtener configuración de notificaciones del usuario
+  app.get("/api/notification-settings/:userId", async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const result = await db
+        .select()
+        .from(notificationSettings)
+        .where(eq(notificationSettings.userId, userId))
+        .limit(1);
+      
+      if (result.length === 0) {
+        return res.status(404).json({ error: "Notification settings not found" });
+      }
+      
+      res.json(result[0]);
+    } catch (error) {
+      console.error("Error fetching notification settings:", error);
+      res.status(500).json({ error: "Failed to fetch notification settings" });
+    }
+  });
+
+  // Crear configuración de notificaciones por defecto
+  app.post("/api/notification-settings", async (req, res) => {
+    try {
+      const validated = {
+        userId: req.body.userId,
+        trainingReminder: req.body.trainingReminder ?? true,
+        trainingReminderTime: req.body.trainingReminderTime ?? "18:00",
+        trainingReminderDays: req.body.trainingReminderDays ?? ['monday', 'wednesday', 'friday'],
+        weightReminder: req.body.weightReminder ?? true,
+        weightReminderTime: req.body.weightReminderTime ?? "08:00",
+        weightReminderDays: req.body.weightReminderDays ?? ['monday'],
+        nutritionReminder: req.body.nutritionReminder ?? true,
+        nutritionReminderTime: req.body.nutritionReminderTime ?? "20:00",
+        nutritionReminderDays: req.body.nutritionReminderDays ?? ['sunday'],
+      };
+      
+      const result = await db.insert(notificationSettings).values(validated).returning();
+      res.json(result[0]);
+    } catch (error) {
+      console.error("Error creating notification settings:", error);
+      res.status(400).json({ error: "Invalid notification settings data" });
+    }
+  });
+
+  // Actualizar configuración de notificaciones
+  app.patch("/api/notification-settings/:userId", async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const updateData = {
+        ...req.body,
+        updatedAt: new Date()
+      };
+      
+      const result = await db
+        .update(notificationSettings)
+        .set(updateData)
+        .where(eq(notificationSettings.userId, userId))
+        .returning();
+        
+      if (result.length === 0) {
+        return res.status(404).json({ error: "Notification settings not found" });
+      }
+      
+      res.json(result[0]);
+    } catch (error) {
+      console.error("Error updating notification settings:", error);
+      res.status(500).json({ error: "Failed to update notification settings" });
     }
   });
 

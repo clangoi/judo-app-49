@@ -197,6 +197,44 @@ export const userAchievements = pgTable("user_achievements", {
   isNotified: boolean("is_notified").default(false)
 });
 
+// Sistema de notificaciones
+export const notificationTypeEnum = pgEnum('notification_type', [
+  'training_reminder', 
+  'weight_reminder', 
+  'nutrition_reminder', 
+  'technique_reminder',
+  'achievement',
+  'general'
+]);
+
+export const notifications = pgTable("notifications", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id").notNull().references(() => profiles.id, { onDelete: "cascade" }),
+  type: notificationTypeEnum("type").notNull(),
+  title: text("title").notNull(),
+  message: text("message").notNull(),
+  isRead: boolean("is_read").default(false).notNull(),
+  scheduledFor: timestamp("scheduled_for"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  readAt: timestamp("read_at"),
+});
+
+export const notificationSettings = pgTable("notification_settings", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id").notNull().references(() => profiles.id, { onDelete: "cascade" }).unique(),
+  trainingReminder: boolean("training_reminder").default(true).notNull(),
+  trainingReminderTime: text("training_reminder_time").default("18:00").notNull(), // HH:MM format
+  trainingReminderDays: text("training_reminder_days").array().default(['monday', 'wednesday', 'friday']).notNull(),
+  weightReminder: boolean("weight_reminder").default(true).notNull(),
+  weightReminderTime: text("weight_reminder_time").default("08:00").notNull(),
+  weightReminderDays: text("weight_reminder_days").array().default(['monday']).notNull(),
+  nutritionReminder: boolean("nutrition_reminder").default(true).notNull(),
+  nutritionReminderTime: text("nutrition_reminder_time").default("20:00").notNull(),
+  nutritionReminderDays: text("nutrition_reminder_days").array().default(['sunday']).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 // Insert schemas
 export const insertProfileSchema = createInsertSchema(profiles);
 export const insertUserRoleSchema = createInsertSchema(userRoles);
@@ -213,6 +251,8 @@ export const insertTacticalNoteSchema = createInsertSchema(tacticalNotes);
 export const insertRandoriSessionSchema = createInsertSchema(randoriSessions);
 export const insertAchievementBadgeSchema = createInsertSchema(achievementBadges);
 export const insertUserAchievementSchema = createInsertSchema(userAchievements);
+export const insertNotificationSchema = createInsertSchema(notifications);
+export const insertNotificationSettingsSchema = createInsertSchema(notificationSettings);
 
 // Type exports
 export type Profile = typeof profiles.$inferSelect;
@@ -245,6 +285,10 @@ export type AchievementBadge = typeof achievementBadges.$inferSelect;
 export type InsertAchievementBadge = z.infer<typeof insertAchievementBadgeSchema>;
 export type UserAchievement = typeof userAchievements.$inferSelect;
 export type InsertUserAchievement = z.infer<typeof insertUserAchievementSchema>;
+export type Notification = typeof notifications.$inferSelect;
+export type InsertNotification = z.infer<typeof insertNotificationSchema>;
+export type NotificationSettings = typeof notificationSettings.$inferSelect;
+export type InsertNotificationSettings = z.infer<typeof insertNotificationSettingsSchema>;
 
 // Legacy exports for compatibility
 export const users = profiles;
