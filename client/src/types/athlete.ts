@@ -1,4 +1,3 @@
-
 export interface AthleteData {
   id: string;
   full_name: string;
@@ -14,6 +13,15 @@ export interface AthleteData {
   weeklySessionsCount: number;
   totalTechniques: number;
   totalTacticalNotes: number;
+  trainer?: {
+    id: string;
+    full_name: string;
+    email: string;
+    assigned_at: string;
+  };
+  trainer_name?: string;
+  trainer_email?: string;
+  assigned_at?: string;
   lastWeightEntry?: {
     weight: number;
     date: string;
@@ -24,27 +32,4 @@ export interface AthleteData {
   };
 }
 
-export interface ActivityFilter {
-  activity: 'all' | 'active' | 'moderate' | 'inactive';
-  belt: 'all' | 'white' | 'yellow' | 'orange' | 'green' | 'blue' | 'brown' | 'black';
-  trainingType: 'all' | 'judo' | 'physical_preparation';
-  period: 'week' | 'month' | 'quarter' | 'year';
-  search: string;
-}
-
-export interface GroupStats {
-  totalAthletes: number;
-  activeAthletes: number;
-  moderateAthletes: number;
-  inactiveAthletes: number;
-  averageWeeklySessions: number;
-  beltDistribution: Record<string, number>;
-}
-
-export interface ProfileStats {
-  totalAthletes: number;
-  genderDistribution: { male: number; female: number; unspecified: number };
-  clubDistribution: Record<string, number>;
-  injuryStats: { withInjuries: number; withoutInjuries: number };
-  categoryDistribution: Record<string, number>;
-}
+export type ActivityFilter = 'all' | 'active' | 'moderate' | 'inactive';

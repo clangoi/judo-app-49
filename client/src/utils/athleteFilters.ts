@@ -1,28 +1,26 @@
-
 import { AthleteData, ActivityFilter } from "@/types/athlete";
 
-export const filterAthletes = (athletes: AthleteData[], filters: ActivityFilter): AthleteData[] => {
-  return athletes.filter(athlete => {
-    // Activity filter
-    if (filters.activity !== 'all' && athlete.activityStatus !== filters.activity) {
-      return false;
-    }
+export const filterAthletes = (
+  athletes: AthleteData[],
+  filter: ActivityFilter,
+  searchQuery: string = ''
+): AthleteData[] => {
+  let filtered = athletes;
 
-    // Belt filter
-    if (filters.belt !== 'all' && athlete.current_belt !== filters.belt) {
-      return false;
-    }
+  // Apply activity filter
+  if (filter !== 'all') {
+    filtered = filtered.filter(athlete => athlete.activityStatus === filter);
+  }
 
-    // Search filter
-    if (filters.search) {
-      const searchLower = filters.search.toLowerCase();
-      if (!athlete.full_name.toLowerCase().includes(searchLower) &&
-          !athlete.email.toLowerCase().includes(searchLower) &&
-          !athlete.club_name.toLowerCase().includes(searchLower)) {
-        return false;
-      }
-    }
+  // Apply search filter
+  if (searchQuery) {
+    const query = searchQuery.toLowerCase();
+    filtered = filtered.filter(athlete => 
+      athlete.full_name.toLowerCase().includes(query) ||
+      athlete.email.toLowerCase().includes(query) ||
+      athlete.club_name.toLowerCase().includes(query)
+    );
+  }
 
-    return true;
-  });
+  return filtered;
 };

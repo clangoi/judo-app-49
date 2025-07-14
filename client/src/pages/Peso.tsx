@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/lib/api";
 import { useAuth } from "@/hooks/useAuth";
 import NavHeader from "@/components/NavHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -33,31 +33,19 @@ const Peso = () => {
   const { data: registros = [], isLoading } = useQuery({
     queryKey: ['weight_entries', user?.id],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('weight_entries')
-        .select('*')
-        .order('date', { ascending: false });
-      
-      if (error) throw error;
-      return data;
+      if (!user?.id) return [];
+      return await api.getWeightEntries(user.id);
     },
     enabled: !!user,
   });
 
   const createMutation = useMutation({
     mutationFn: async (registro: Omit<RegistroPeso, 'id'>) => {
-      const { data, error } = await supabase
-        .from('weight_entries')
-        .insert([{
-          ...registro,
-          user_id: user!.id,
-          weight: parseFloat(registro.weight.toString())
-        }])
-        .select()
-        .single();
-      
-      if (error) throw error;
-      return data;
+      return await api.createWeightEntry({
+        ...registro,
+        userId: user!.id,
+        weight: parseFloat(registro.weight.toString())
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['weight_entries'] });

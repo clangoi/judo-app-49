@@ -1,67 +1,61 @@
+import { AthleteData } from "@/types/athlete";
 
-import { AthleteData, GroupStats, ProfileStats } from "@/types/athlete";
+export interface GroupStats {
+  total: number;
+  active: number;
+  moderate: number;
+  inactive: number;
+  averageWeeklySessions: number;
+  totalTechniques: number;
+  totalTacticalNotes: number;
+}
+
+export interface ProfileStats {
+  weeklySessionsCount: number;
+  totalTechniques: number;
+  totalTacticalNotes: number;
+  activityStatus: 'active' | 'moderate' | 'inactive';
+  lastWeightEntry?: {
+    weight: number;
+    date: string;
+  };
+  lastTrainingSession?: {
+    session_type: string;
+    date: string;
+  };
+}
 
 export const getGroupStats = (athletes: AthleteData[]): GroupStats => {
-  const totalAthletes = athletes.length;
-  const activeAthletes = athletes.filter(a => a.activityStatus === 'active').length;
-  const moderateAthletes = athletes.filter(a => a.activityStatus === 'moderate').length;
-  const inactiveAthletes = athletes.filter(a => a.activityStatus === 'inactive').length;
+  const total = athletes.length;
+  const active = athletes.filter(a => a.activityStatus === 'active').length;
+  const moderate = athletes.filter(a => a.activityStatus === 'moderate').length;
+  const inactive = athletes.filter(a => a.activityStatus === 'inactive').length;
   
-  const averageWeeklySessions = Math.round(
-    athletes.reduce((sum, a) => sum + a.weeklySessionsCount, 0) / totalAthletes || 0
-  );
-
-  const beltDistribution = athletes.reduce((acc, athlete) => {
-    acc[athlete.current_belt] = (acc[athlete.current_belt] || 0) + 1;
-    return acc;
-  }, {} as Record<string, number>);
+  const averageWeeklySessions = total > 0 
+    ? athletes.reduce((sum, a) => sum + a.weeklySessionsCount, 0) / total 
+    : 0;
+  
+  const totalTechniques = athletes.reduce((sum, a) => sum + a.totalTechniques, 0);
+  const totalTacticalNotes = athletes.reduce((sum, a) => sum + a.totalTacticalNotes, 0);
 
   return {
-    totalAthletes,
-    activeAthletes,
-    moderateAthletes,
-    inactiveAthletes,
+    total,
+    active,
+    moderate,
+    inactive,
     averageWeeklySessions,
-    beltDistribution,
+    totalTechniques,
+    totalTacticalNotes,
   };
 };
 
-export const getProfileStats = (athletes: AthleteData[]): ProfileStats => {
-  const totalAthletes = athletes.length;
-  
-  const genderDistribution = athletes.reduce((acc, athlete) => {
-    if (athlete.gender === 'male') acc.male++;
-    else if (athlete.gender === 'female') acc.female++;
-    else acc.unspecified++;
-    return acc;
-  }, { male: 0, female: 0, unspecified: 0 });
-
-  const clubDistribution = athletes.reduce((acc, athlete) => {
-    const club = athlete.club_name || 'Sin club';
-    acc[club] = (acc[club] || 0) + 1;
-    return acc;
-  }, {} as Record<string, number>);
-
-  const injuryStats = athletes.reduce((acc, athlete) => {
-    if (athlete.injuries && athlete.injuries.length > 0) {
-      acc.withInjuries++;
-    } else {
-      acc.withoutInjuries++;
-    }
-    return acc;
-  }, { withInjuries: 0, withoutInjuries: 0 });
-
-  const categoryDistribution = athletes.reduce((acc, athlete) => {
-    const category = athlete.competition_category || 'Sin categoría';
-    acc[category] = (acc[category] || 0) + 1;
-    return acc;
-  }, {} as Record<string, number>);
-
+export const getProfileStats = (athlete: AthleteData): ProfileStats => {
   return {
-    totalAthletes,
-    genderDistribution,
-    clubDistribution,
-    injuryStats,
-    categoryDistribution,
+    weeklySessionsCount: athlete.weeklySessionsCount,
+    totalTechniques: athlete.totalTechniques,
+    totalTacticalNotes: athlete.totalTacticalNotes,
+    activityStatus: athlete.activityStatus,
+    lastWeightEntry: athlete.lastWeightEntry,
+    lastTrainingSession: athlete.lastTrainingSession,
   };
 };

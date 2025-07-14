@@ -1,6 +1,6 @@
 
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/lib/api";
 import { useAuth } from "@/hooks/useAuth";
 import NavHeader from "@/components/NavHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -14,13 +14,9 @@ const Graficos = () => {
   const { data: weightData = [], isLoading: isLoadingWeight } = useQuery({
     queryKey: ['weight_chart_data', user?.id],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('weight_entries')
-        .select('date, weight')
-        .order('date', { ascending: true });
-      
-      if (error) throw error;
-      return data.map(entry => ({
+      if (!user?.id) return [];
+      const data = await api.getWeightEntries(user.id);
+      return data.map((entry: any) => ({
         date: entry.date,
         peso: entry.weight
       }));

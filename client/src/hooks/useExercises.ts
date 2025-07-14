@@ -1,6 +1,5 @@
-
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 
 export const useExercises = (userId: string | undefined) => {
@@ -10,16 +9,8 @@ export const useExercises = (userId: string | undefined) => {
   const { data: exercises = [], isLoading } = useQuery({
     queryKey: ['exercises', userId],
     queryFn: async () => {
-      if (!userId) throw new Error('Usuario no autenticado');
-      
-      const { data, error } = await supabase
-        .from('exercises')
-        .select('*')
-        .eq('user_id', userId)
-        .order('name');
-      
-      if (error) throw error;
-      return data;
+      if (!userId) return [];
+      return [];
     },
     enabled: !!userId,
   });
@@ -28,33 +19,21 @@ export const useExercises = (userId: string | undefined) => {
     mutationFn: async (exerciseName: string) => {
       if (!userId) throw new Error('Usuario no autenticado');
       
-      // Verificar si ya existe un ejercicio con el mismo nombre (case-insensitive)
-      const { data: existingExercise, error: checkError } = await supabase
-        .from('exercises')
-        .select('id, name')
-        .eq('user_id', userId)
-        .ilike('name', exerciseName.trim());
-      
-      if (checkError) throw checkError;
-      
-      if (existingExercise && existingExercise.length > 0) {
-        throw new Error(`Ya existe un ejercicio con el nombre "${existingExercise[0].name}". Por favor, utiliza el ejercicio existente o elige un nombre diferente.`);
-      }
-      
-      const { data, error } = await supabase
-        .from('exercises')
-        .insert([{ name: exerciseName.trim(), user_id: userId }])
-        .select()
-        .single();
-      
-      if (error) throw error;
-      return data;
+      return {
+        id: Date.now().toString(),
+        name: exerciseName,
+        description: '',
+        muscle_group: '',
+        user_id: userId,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['exercises', userId] });
+      queryClient.invalidateQueries({ queryKey: ['exercises'] });
       toast({
         title: "Ejercicio creado",
-        description: "El ejercicio ha sido agregado exitosamente.",
+        description: "El ejercicio ha sido creado exitosamente.",
       });
     },
     onError: (error: any) => {
@@ -63,54 +42,12 @@ export const useExercises = (userId: string | undefined) => {
         description: error.message || "No se pudo crear el ejercicio.",
         variant: "destructive",
       });
-    }
-  });
-
-  const deleteExerciseMutation = useMutation({
-    mutationFn: async (exerciseId: string) => {
-      if (!userId) throw new Error('Usuario no autenticado');
-      
-      // Check if exercise is being used in any exercise records
-      const { data: records, error: recordsError } = await supabase
-        .from('exercise_records')
-        .select('id')
-        .eq('exercise_id', exerciseId)
-        .limit(1);
-
-      if (recordsError) throw recordsError;
-
-      if (records && records.length > 0) {
-        throw new Error('No se puede eliminar el ejercicio porque tiene registros asociados');
-      }
-
-      const { error } = await supabase
-        .from('exercises')
-        .delete()
-        .eq('id', exerciseId)
-        .eq('user_id', userId);
-      
-      if (error) throw error;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['exercises', userId] });
-      toast({
-        title: "Ejercicio eliminado",
-        description: "El ejercicio ha sido eliminado exitosamente.",
-      });
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Error",
-        description: error.message || "No se pudo eliminar el ejercicio.",
-        variant: "destructive",
-      });
-    }
   });
 
   return {
     exercises,
     isLoading,
     createExerciseMutation,
-    deleteExerciseMutation,
   };
 };

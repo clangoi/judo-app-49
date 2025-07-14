@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { ProfileModal } from "./ProfileModal";
 import { User } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+// Removed supabase import
 
 export const ProfileButton = () => {
   const { user } = useAuth();

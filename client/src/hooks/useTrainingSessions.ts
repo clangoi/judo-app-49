@@ -1,6 +1,6 @@
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 
 interface SesionPreparacion {
@@ -30,17 +30,7 @@ export const useTrainingSessions = (userId: string | undefined) => {
     queryKey: ['training_sessions', userId],
     queryFn: async () => {
       if (!userId) throw new Error('Usuario no autenticado');
-      
-      // Filtrar solo sesiones de preparación física usando training_category
-      const { data, error } = await supabase
-        .from('training_sessions')
-        .select('*')
-        .eq('user_id', userId)
-        .eq('training_category', 'physical_preparation')
-        .order('date', { ascending: false });
-      
-      if (error) throw error;
-      return data;
+      return await api.getTrainingSessions(userId);
     },
     enabled: !!userId,
   });

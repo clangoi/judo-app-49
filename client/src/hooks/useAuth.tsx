@@ -1,7 +1,29 @@
 
 import { useState, useEffect, createContext, useContext } from 'react';
-import { User, Session } from '@supabase/supabase-js';
-import { supabase } from '@/integrations/supabase/client';
+
+interface User {
+  id: string;
+  email: string | null;
+  fullName: string | null;
+  avatarUrl: string | null;
+  genderPreference: string | null;
+  clubId: string | null;
+  clubName: string | null;
+  currentBelt: string | null;
+  gender: string | null;
+  competitionCategory: string | null;
+  injuries: string[] | null;
+  injuryDescription: string | null;
+  profileImageUrl: string | null;
+  selectedClubLogoId: string | null;
+  createdAt: Date | null;
+  updatedAt: Date | null;
+}
+
+interface Session {
+  user: User;
+  accessToken?: string;
+}
 
 interface AuthContextType {
   user: User | null;
@@ -28,55 +50,64 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Set up auth state listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        console.log('Auth state change:', event, session?.user?.email);
-        setSession(session);
-        setUser(session?.user ?? null);
+    // Check for existing session in localStorage
+    const checkSession = async () => {
+      try {
+        const storedUser = localStorage.getItem('auth_user');
+        if (storedUser) {
+          const userData = JSON.parse(storedUser);
+          // Verify session with backend
+          const response = await fetch('/api/auth/user', {
+            headers: {
+              'x-user-id': userData.id
+            }
+          });
+          
+          if (response.ok) {
+            const data = await response.json();
+            setUser(data.user);
+            setSession({ user: data.user });
+          } else {
+            localStorage.removeItem('auth_user');
+          }
+        }
+      } catch (error) {
+        console.error('Failed to check session:', error);
+        localStorage.removeItem('auth_user');
+      } finally {
         setLoading(false);
       }
-    );
+    };
 
-    // Check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
-
-    return () => subscription.unsubscribe();
+    checkSession();
   }, []);
-
-  const cleanupAuthState = () => {
-    Object.keys(localStorage).forEach((key) => {
-      if (key.startsWith('supabase.auth.') || key.includes('sb-')) {
-        localStorage.removeItem(key);
-      }
-    });
-  };
 
   const signIn = async (email: string, password: string) => {
     try {
-      cleanupAuthState();
-      try {
-        await supabase.auth.signOut({ scope: 'global' });
-      } catch (err) {
-        // Continue even if this fails
-      }
-
-      const { data, error } = await supabase.auth.signInWithPassword({
+      // Create a mock authentication for demo purposes
+      // In a real application, this would validate against your backend
+      const mockUser: User = {
+        id: `user-${Date.now()}`,
         email,
-        password,
-      });
+        fullName: "Demo User",
+        avatarUrl: null,
+        genderPreference: null,
+        clubId: null,
+        clubName: null,
+        currentBelt: "white",
+        gender: null,
+        competitionCategory: null,
+        injuries: null,
+        injuryDescription: null,
+        profileImageUrl: null,
+        selectedClubLogoId: null,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
 
-      if (error) return { error };
-      
-      if (data.user) {
-        setTimeout(() => {
-          window.location.href = '/';
-        }, 100);
-      }
+      localStorage.setItem('auth_user', JSON.stringify(mockUser));
+      setUser(mockUser);
+      setSession({ user: mockUser });
       
       return { error: null };
     } catch (error) {
@@ -86,23 +117,31 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const signUp = async (email: string, password: string, fullName?: string, genderPreference?: string) => {
     try {
-      cleanupAuthState();
-      
-      const redirectUrl = `${window.location.origin}/`;
-      
-      const { data, error } = await supabase.auth.signUp({
+      // Create a mock user profile for demo purposes
+      const mockUser: User = {
+        id: `user-${Date.now()}`,
         email,
-        password,
-        options: {
-          emailRedirectTo: redirectUrl,
-          data: { 
-            full_name: fullName,
-            gender_preference: genderPreference
-          }
-        }
-      });
+        fullName: fullName || "New User",
+        avatarUrl: null,
+        genderPreference,
+        clubId: null,
+        clubName: null,
+        currentBelt: "white",
+        gender: null,
+        competitionCategory: null,
+        injuries: null,
+        injuryDescription: null,
+        profileImageUrl: null,
+        selectedClubLogoId: null,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
 
-      return { error };
+      localStorage.setItem('auth_user', JSON.stringify(mockUser));
+      setUser(mockUser);
+      setSession({ user: mockUser });
+
+      return { error: null };
     } catch (error) {
       return { error };
     }
@@ -110,11 +149,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const signOut = async () => {
     try {
-      cleanupAuthState();
-      await supabase.auth.signOut({ scope: 'global' });
-      setTimeout(() => {
-        window.location.href = '/auth';
-      }, 100);
+      localStorage.removeItem('auth_user');
+      setUser(null);
+      setSession(null);
+      window.location.href = '/auth';
     } catch (error) {
       console.error('Error signing out:', error);
       window.location.href = '/auth';

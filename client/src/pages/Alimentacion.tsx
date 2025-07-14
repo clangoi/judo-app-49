@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/lib/api";
 import { useAuth } from "@/hooks/useAuth";
 import NavHeader from "@/components/NavHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -40,14 +40,8 @@ const Alimentacion = () => {
   const { data: registros = [], isLoading } = useQuery({
     queryKey: ['nutrition_entries', user?.id],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('nutrition_entries')
-        .select('*')
-        .order('date', { ascending: false })
-        .order('created_at', { ascending: false });
-      
-      if (error) throw error;
-      return data;
+      if (!user?.id) return [];
+      return await api.getNutritionEntries(user.id);
     },
     enabled: !!user,
   });

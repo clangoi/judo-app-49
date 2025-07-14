@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { LogOut, ArrowLeft, Settings, Shield } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+// Removed supabase import
 
 interface NavHeaderProps {
   title: string;
