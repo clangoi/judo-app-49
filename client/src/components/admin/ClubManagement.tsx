@@ -289,11 +289,12 @@ const ClubManagement = () => {
               {(club.logoUrl || club.logo_url) && (
                 <div className="flex justify-center">
                   <img 
-                    src={club.logoUrl || club.logo_url} 
+                    src={`${club.logoUrl || club.logo_url}?t=${Date.now()}`}
                     alt={`Logo de ${club.name}`}
                     className="h-16 w-16 object-contain rounded border-2 border-blue-500"
                     onError={(e) => {
                       console.error('Error loading logo:', club.logoUrl || club.logo_url);
+                      console.error('Full URL tried:', `${club.logoUrl || club.logo_url}?t=${Date.now()}`);
                       console.error('Club data:', club);
                     }}
                     onLoad={() => {
@@ -308,6 +309,8 @@ const ClubManagement = () => {
                 Debug: logoUrl={club.logoUrl || 'null'}, logo_url={club.logo_url || 'null'}
                 <br/>
                 Show image: {(club.logoUrl || club.logo_url) ? 'YES' : 'NO'}
+                <br/>
+                Full URL: {`${club.logoUrl || club.logo_url}?t=${Date.now()}`}
               </div>
               
               {club.description && (
