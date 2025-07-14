@@ -287,7 +287,18 @@ const ClubManagement = () => {
                     src={club.logoUrl || club.logo_url} 
                     alt={`Logo de ${club.name}`}
                     className="h-16 w-16 object-contain rounded"
+                    onError={(e) => {
+                      console.error('Error loading logo:', club.logoUrl || club.logo_url);
+                      console.error('Club data:', club);
+                    }}
                   />
+                </div>
+              )}
+              
+              {/* Debug info - temporal */}
+              {(club.logoUrl || club.logo_url) && (
+                <div className="text-xs text-gray-500 bg-gray-100 p-2 rounded">
+                  Debug: {club.logoUrl || club.logo_url}
                 </div>
               )}
               
