@@ -242,6 +242,9 @@ const ClubManagement = () => {
               {editingClub && (
                 <div className="space-y-3">
                   <label className="text-sm font-medium text-foreground">Logo del Club</label>
+                  <div className="bg-yellow-100 p-2 rounded text-xs">
+                    DEBUG: Editing club {editingClub.id}, current logo: {editingClub.logoUrl || editingClub.logo_url || 'none'}
+                  </div>
                   <DragDropLogoUploader
                     clubId={editingClub.id}
                     currentLogoUrl={editingClub.logoUrl || editingClub.logo_url}
