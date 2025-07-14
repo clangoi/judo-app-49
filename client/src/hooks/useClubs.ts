@@ -119,7 +119,7 @@ export const useClubs = () => {
   // Eliminar logo del club
   const removeLogoMutation = useMutation({
     mutationFn: async (clubId: string) => {
-      return await api.updateClub(clubId, { logoUrl: null });
+      return await api.removeClubLogo(clubId);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['clubs'] });

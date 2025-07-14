@@ -1,6 +1,8 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { db } from "./db";
+import * as fs from "fs";
+import * as path from "path";
 import { 
   profiles, userRoles, clubs, trainerAssignments, trainingSessions, judoTrainingSessions,
   exercises, exerciseRecords, weightEntries, nutritionEntries, 
@@ -160,6 +162,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ success: true });
     } catch (error) {
       res.status(500).json({ error: "Failed to delete club" });
+    }
+  });
+
+  // Update club logo
+  app.patch("/api/clubs/:id/logo", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { logoUrl } = req.body;
+      
+      const result = await db
+        .update(clubs)
+        .set({ logo_url: logoUrl, updatedAt: new Date() })
+        .where(eq(clubs.id, id))
+        .returning();
+      
+      if (result.length === 0) {
+        return res.status(404).json({ error: "Club not found" });
+      }
+      
+      res.json(result[0]);
+    } catch (error) {
+      console.error("Failed to update club logo:", error);
+      res.status(500).json({ error: "Failed to update club logo" });
+    }
+  });
+
+  // Remove club logo
+  app.delete("/api/clubs/:id/logo", async (req, res) => {
+    try {
+      const { id } = req.params;
+      
+      const result = await db
+        .update(clubs)
+        .set({ logo_url: null, updatedAt: new Date() })
+        .where(eq(clubs.id, id))
+        .returning();
+      
+      if (result.length === 0) {
+        return res.status(404).json({ error: "Club not found" });
+      }
+      
+      res.json(result[0]);
+    } catch (error) {
+      console.error("Failed to remove club logo:", error);
+      res.status(500).json({ error: "Failed to remove club logo" });
     }
   });
 
@@ -907,15 +954,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // File Upload (for Supabase Storage replacement)
   app.post("/api/upload", async (req, res) => {
     try {
-      // This would typically integrate with a file storage service
-      // For now, return a placeholder response with a realistic file URL
-      const mockFileUrl = `/uploads/club-logo-${Date.now()}.png`;
-      res.json({ 
+      if (!req.files || !req.files.file) {
+        return res.status(400).json({ error: "No file uploaded" });
+      }
+
+      const file = req.files.file as any;
+      const allowedMimeTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/svg+xml'];
+      
+      if (!allowedMimeTypes.includes(file.mimetype)) {
+        return res.status(400).json({ error: "Invalid file type. Only images are allowed." });
+      }
+
+      // Generate a unique filename
+      const timestamp = Date.now();
+      const extension = file.name.split('.').pop();
+      const fileName = `logo-${timestamp}.${extension}`;
+      const uploadPath = path.join(process.cwd(), 'client', 'public', 'uploads', fileName);
+
+      // Ensure uploads directory exists
+      const uploadsDir = path.join(process.cwd(), 'client', 'public', 'uploads');
+      if (!fs.existsSync(uploadsDir)) {
+        fs.mkdirSync(uploadsDir, { recursive: true });
+      }
+
+      // Move the file to the uploads directory
+      await file.mv(uploadPath);
+
+      // Return the URL that can be used to access the file
+      const fileUrl = `/uploads/${fileName}`;
+      
+      res.json({
         message: "File uploaded successfully",
-        url: mockFileUrl,
+        url: fileUrl,
         success: true
       });
     } catch (error) {
+      console.error("File upload error:", error);
       res.status(500).json({ error: "Failed to upload file" });
     }
   });
@@ -926,15 +1000,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { id } = req.params;
       const { logoUrl } = req.body;
       
-      const result = await db.update(clubs)
-        .set({ logoUrl: logoUrl, updatedAt: new Date() })
+      const result = await db
+        .update(clubs)
+        .set({ logo_url: logoUrl, updatedAt: new Date() })
         .where(eq(clubs.id, id))
         .returning();
       
+      if (result.length === 0) {
+        return res.status(404).json({ error: "Club not found" });
+      }
+      
       res.json(result[0]);
     } catch (error) {
-      console.error('Logo update error:', error);
-      res.status(400).json({ error: "Failed to update club logo" });
+      console.error("Failed to update club logo:", error);
+      res.status(500).json({ error: "Failed to update club logo" });
+    }
+  });
+
+  // Remove club logo
+  app.delete("/api/clubs/:id/logo", async (req, res) => {
+    try {
+      const { id } = req.params;
+      
+      const result = await db
+        .update(clubs)
+        .set({ logo_url: null, updatedAt: new Date() })
+        .where(eq(clubs.id, id))
+        .returning();
+      
+      if (result.length === 0) {
+        return res.status(404).json({ error: "Club not found" });
+      }
+      
+      res.json(result[0]);
+    } catch (error) {
+      console.error("Failed to remove club logo:", error);
+      res.status(500).json({ error: "Failed to remove club logo" });
     }
   });
 
