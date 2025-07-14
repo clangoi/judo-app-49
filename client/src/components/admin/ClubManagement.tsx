@@ -46,7 +46,7 @@ const clubSchema = z.object({
 type ClubFormValues = z.infer<typeof clubSchema>;
 
 const ClubManagement = () => {
-  const { clubs, isLoading, createClubMutation, updateClubMutation, deleteClubMutation, uploadClubLogoMutation } = useClubs();
+  const { clubs, isLoading, createClubMutation, updateClubMutation, deleteClubMutation, uploadClubLogoMutation, removeLogoMutation } = useClubs();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingClub, setEditingClub] = useState<Club | null>(null);
 
@@ -112,6 +112,14 @@ const ClubManagement = () => {
         newSet.delete(clubId);
         return newSet;
       });
+    }
+  };
+
+  const handleRemoveLogo = async (clubId: string) => {
+    try {
+      await removeLogoMutation.mutateAsync(clubId);
+    } catch (error) {
+      console.error('Failed to remove logo:', error);
     }
   };
 
@@ -188,6 +196,7 @@ const ClubManagement = () => {
                     clubId={editingClub.id}
                     currentLogoUrl={editingClub.logoUrl || editingClub.logo_url}
                     onUpload={handleUploadLogo}
+                    onRemove={handleRemoveLogo}
                     isUploading={uploadingClubs.has(editingClub.id)}
                   />
                 </div>

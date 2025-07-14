@@ -116,6 +116,27 @@ export const useClubs = () => {
     },
   });
 
+  // Eliminar logo del club
+  const removeLogoMutation = useMutation({
+    mutationFn: async (clubId: string) => {
+      return await api.updateClub(clubId, { logoUrl: null });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['clubs'] });
+      toast({
+        title: "Logo eliminado",
+        description: "El logo del club ha sido eliminado exitosamente.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "No se pudo eliminar el logo.",
+        variant: "destructive",
+      });
+    },
+  });
+
   return {
     clubs,
     isLoading,
@@ -123,5 +144,6 @@ export const useClubs = () => {
     updateClubMutation,
     deleteClubMutation,
     uploadClubLogoMutation: uploadLogoMutation,
+    removeLogoMutation,
   };
 };

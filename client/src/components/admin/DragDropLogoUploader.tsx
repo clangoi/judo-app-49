@@ -8,6 +8,7 @@ interface DragDropLogoUploaderProps {
   clubId: string;
   currentLogoUrl?: string;
   onUpload: (file: File, clubId: string) => Promise<void>;
+  onRemove: (clubId: string) => Promise<void>;
   isUploading?: boolean;
 }
 
@@ -15,6 +16,7 @@ const DragDropLogoUploader: React.FC<DragDropLogoUploaderProps> = ({
   clubId,
   currentLogoUrl,
   onUpload,
+  onRemove,
   isUploading = false
 }) => {
   const [isDragOver, setIsDragOver] = useState(false);
@@ -97,16 +99,31 @@ const DragDropLogoUploader: React.FC<DragDropLogoUploaderProps> = ({
     <div className="space-y-4">
       {/* Current Logo Display */}
       {currentLogoUrl && !preview && (
-        <div className="flex justify-center">
-          <div className="relative">
-            <img 
-              src={currentLogoUrl} 
-              alt="Logo actual"
-              className="h-20 w-20 object-contain rounded-lg border border-border"
-            />
-            <div className="absolute -top-2 -right-2 bg-green-500 text-white rounded-full p-1">
-              <Check className="h-3 w-3" />
+        <div className="space-y-3">
+          <div className="flex justify-center">
+            <div className="relative">
+              <img 
+                src={currentLogoUrl} 
+                alt="Logo actual"
+                className="h-20 w-20 object-contain rounded-lg border border-border"
+              />
+              <div className="absolute -top-2 -right-2 bg-green-500 text-white rounded-full p-1">
+                <Check className="h-3 w-3" />
+              </div>
             </div>
+          </div>
+          
+          <div className="flex justify-center">
+            <Button
+              onClick={() => onRemove(clubId)}
+              variant="outline"
+              size="sm"
+              className="text-red-600 hover:text-red-700 hover:bg-red-50"
+              disabled={isUploading}
+            >
+              <X className="h-4 w-4 mr-2" />
+              Eliminar Logo
+            </Button>
           </div>
         </div>
       )}
