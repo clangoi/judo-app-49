@@ -832,6 +832,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get("/api/analytics/exercise-progression", async (req, res) => {
+    try {
+      const userId = req.query.user_id as string;
+      const exerciseId = req.query.exercise_id as string;
+      
+      if (!userId) {
+        return res.status(400).json({ error: "User ID is required" });
+      }
+
+      if (exerciseId) {
+        // Get progression for specific exercise
+        const records = await db
+          .select({
+            date: exerciseRecords.date,
+            weight_kg: exerciseRecords.weightKg,
+            sets: exerciseRecords.sets,
+            reps: exerciseRecords.reps,
+            exercise_name: exercises.name
+          })
+          .from(exerciseRecords)
+          .innerJoin(exercises, eq(exerciseRecords.exerciseId, exercises.id))
+          .where(and(eq(exerciseRecords.userId, userId), eq(exerciseRecords.exerciseId, exerciseId)))
+          .orderBy(exerciseRecords.date);
+
+        res.json(records);
+      } else {
+        // Get list of exercises with records for this user
+        const exercisesList = await db
+          .selectDistinct({
+            exercise_id: exerciseRecords.exerciseId,
+            exercise_name: exercises.name
+          })
+          .from(exerciseRecords)
+          .innerJoin(exercises, eq(exerciseRecords.exerciseId, exercises.id))
+          .where(eq(exerciseRecords.userId, userId))
+          .orderBy(exercises.name);
+
+        res.json(exercisesList);
+      }
+    } catch (error) {
+      console.error("Error fetching exercise progression:", error);
+      res.status(500).json({ error: "Failed to fetch exercise progression" });
+    }
+  });
+
   // File Upload (for Supabase Storage replacement)
   app.post("/api/upload", async (req, res) => {
     try {

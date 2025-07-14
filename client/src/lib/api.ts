@@ -271,6 +271,21 @@ export const api = {
     return response.json();
   },
 
+  async getExerciseProgression(userId: string, exerciseId?: string) {
+    const url = exerciseId 
+      ? `${API_BASE_URL}/api/analytics/exercise-progression?user_id=${userId}&exercise_id=${exerciseId}`
+      : `${API_BASE_URL}/api/analytics/exercise-progression?user_id=${userId}`;
+    const response = await fetch(url);
+    if (!response.ok) throw new Error('Failed to fetch exercise progression');
+    return response.json();
+  },
+
+  async getExercisesList(userId: string) {
+    const response = await fetch(`${API_BASE_URL}/api/exercises?user_id=${userId}`);
+    if (!response.ok) throw new Error('Failed to fetch exercises list');
+    return response.json();
+  },
+
   // File upload placeholder
   async uploadFile(file: File) {
     const formData = new FormData();

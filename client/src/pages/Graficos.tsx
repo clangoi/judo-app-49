@@ -1,4 +1,5 @@
 
+import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { useAuth } from "@/hooks/useAuth";
@@ -6,9 +7,11 @@ import NavHeader from "@/components/NavHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { Loader2, TrendingUp, Activity, Target } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const Graficos = () => {
   const { user } = useAuth();
+  const [selectedExercise, setSelectedExercise] = useState<string>('');
 
   // Query para datos de peso
   const { data: weightData = [], isLoading: isLoadingWeight } = useQuery({
@@ -46,7 +49,34 @@ const Graficos = () => {
     enabled: !!user,
   });
 
-  const isLoading = isLoadingWeight || isLoadingNutrition || isLoadingProgress;
+  // Query para lista de ejercicios
+  const { data: exercisesList = [], isLoading: isLoadingExercises } = useQuery({
+    queryKey: ['exercises_list', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return [];
+      return await api.getExerciseProgression(user.id);
+    },
+    enabled: !!user,
+  });
+
+  // Query para progresión del ejercicio seleccionado
+  const { data: exerciseProgression = [], isLoading: isLoadingProgression } = useQuery({
+    queryKey: ['exercise_progression', user?.id, selectedExercise],
+    queryFn: async () => {
+      if (!user?.id || !selectedExercise) return [];
+      return await api.getExerciseProgression(user.id, selectedExercise);
+    },
+    enabled: !!user && !!selectedExercise,
+  });
+
+  // Establecer ejercicio por defecto (el primero alfabéticamente)
+  React.useEffect(() => {
+    if (exercisesList.length > 0 && !selectedExercise) {
+      setSelectedExercise(exercisesList[0].exercise_id);
+    }
+  }, [exercisesList, selectedExercise]);
+
+  const isLoading = isLoadingWeight || isLoadingNutrition || isLoadingProgress || isLoadingExercises;
 
   // Training frequency chart removed as requested
 
@@ -159,7 +189,64 @@ const Graficos = () => {
           </CardContent>
         </Card>
 
-        {/* Training frequency chart removed as requested */}
+        {/* Gráfico de Progresión de Ejercicios */}
+        <Card className="bg-white border-[#C5A46C]">
+          <CardHeader>
+            <CardTitle className="text-[#1A1A1A] flex items-center justify-between">
+              Progresión de Ejercicios
+              <Select value={selectedExercise} onValueChange={setSelectedExercise}>
+                <SelectTrigger className="w-[200px]">
+                  <SelectValue placeholder="Seleccionar ejercicio" />
+                </SelectTrigger>
+                <SelectContent>
+                  {exercisesList.map((exercise: any) => (
+                    <SelectItem key={exercise.exercise_id} value={exercise.exercise_id}>
+                      {exercise.exercise_name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {isLoadingProgression ? (
+              <div className="flex justify-center py-8">
+                <Loader2 className="h-6 w-6 animate-spin text-[#C5A46C]" />
+              </div>
+            ) : exerciseProgression.length > 0 ? (
+              <ResponsiveContainer width="100%" height={300}>
+                <LineChart data={exerciseProgression}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis 
+                    dataKey="date" 
+                    tickFormatter={(value) => new Date(value).toLocaleDateString('es-ES', { month: 'short', day: 'numeric' })}
+                  />
+                  <YAxis label={{ value: 'Peso (kg)', angle: -90, position: 'insideLeft' }} />
+                  <Tooltip 
+                    labelFormatter={(value) => new Date(value).toLocaleDateString('es-ES')}
+                    formatter={(value: any, name: string) => [
+                      name === 'weight_kg' ? `${value} kg` : value,
+                      name === 'weight_kg' ? 'Peso' : name
+                    ]}
+                  />
+                  <Legend />
+                  <Line 
+                    type="monotone" 
+                    dataKey="weight_kg" 
+                    stroke="#C5A46C" 
+                    strokeWidth={3}
+                    dot={{ fill: '#C5A46C', strokeWidth: 2, r: 4 }}
+                    name="Peso (kg)"
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="text-center py-8 text-[#575757]">
+                {selectedExercise ? 'No hay datos de progresión para este ejercicio' : 'Selecciona un ejercicio para ver su progresión'}
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
         {/* Gráfico de Nutrición */}
         <Card className="bg-white border-[#C5A46C]">
