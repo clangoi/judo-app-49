@@ -4,7 +4,7 @@ import { api } from "@/lib/api";
 import { useAuth } from "@/hooks/useAuth";
 import NavHeader from "@/components/NavHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { Loader2, TrendingUp, Activity, Target } from "lucide-react";
 
 const Graficos = () => {
@@ -24,15 +24,7 @@ const Graficos = () => {
     enabled: !!user,
   });
 
-  // Query para frecuencia de entrenamientos
-  const { data: trainingFrequency = [], isLoading: isLoadingTraining } = useQuery({
-    queryKey: ['training_frequency', user?.id],
-    queryFn: async () => {
-      if (!user?.id) return [];
-      return await api.getTrainingFrequency(user.id);
-    },
-    enabled: !!user,
-  });
+  // Training frequency query removed as requested
 
   // Query para datos de nutrición
   const { data: nutritionData = [], isLoading: isLoadingNutrition } = useQuery({
@@ -54,28 +46,9 @@ const Graficos = () => {
     enabled: !!user,
   });
 
-  const isLoading = isLoadingWeight || isLoadingTraining || isLoadingNutrition || isLoadingProgress;
+  const isLoading = isLoadingWeight || isLoadingNutrition || isLoadingProgress;
 
-  // Preparar datos para el gráfico de frecuencia de entrenamientos
-  const trainingByWeek = trainingFrequency.reduce((acc: any, session: any) => {
-    const date = new Date(session.date);
-    const week = `${date.getFullYear()}-S${Math.ceil((date.getDate()) / 7)}`;
-    
-    if (!acc[week]) {
-      acc[week] = { week, physical: 0, judo: 0, total: 0 };
-    }
-    
-    if (session.type === 'physical') {
-      acc[week].physical += 1;
-    } else {
-      acc[week].judo += 1;
-    }
-    acc[week].total += 1;
-    
-    return acc;
-  }, {});
-
-  const trainingWeeklyData = Object.values(trainingByWeek).slice(-12); // Últimas 12 semanas
+  // Training frequency chart removed as requested
 
   // Datos para el gráfico de distribución de actividades
   const activityDistribution = [
@@ -186,31 +159,7 @@ const Graficos = () => {
           </CardContent>
         </Card>
 
-        {/* Gráfico de Frecuencia de Entrenamientos */}
-        <Card className="bg-white border-[#C5A46C]">
-          <CardHeader>
-            <CardTitle className="text-[#1A1A1A]">Frecuencia de Entrenamientos</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {trainingWeeklyData.length > 0 ? (
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={trainingWeeklyData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="week" />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Bar dataKey="physical" stackId="a" fill="#8884d8" name="Preparación Física" />
-                  <Bar dataKey="judo" stackId="a" fill="#C5A46C" name="Judo" />
-                </BarChart>
-              </ResponsiveContainer>
-            ) : (
-              <div className="text-center py-8 text-[#575757]">
-                No hay datos de entrenamientos suficientes para mostrar el gráfico
-              </div>
-            )}
-          </CardContent>
-        </Card>
+        {/* Training frequency chart removed as requested */}
 
         {/* Gráfico de Nutrición */}
         <Card className="bg-white border-[#C5A46C]">
