@@ -32,7 +32,7 @@ export const useJudoSessions = (userId?: string) => {
     queryKey: ['judo-sessions', userId],
     queryFn: async () => {
       if (!userId) return [];
-      const rawSessions = await api.getTrainingSessions(userId);
+      const rawSessions = await api.getJudoTrainingSessions(userId);
       
       // Transform database format to frontend format
       return rawSessions.map((session: any) => ({
@@ -40,9 +40,9 @@ export const useJudoSessions = (userId?: string) => {
         fecha: session.date,
         tipo: session.sessionType,
         duracion: session.durationMinutes || 0,
-        tecnicasPracticadas: '', // Not stored in database yet
-        queFunciono: '', // Not stored in database yet
-        queNoFunciono: '', // Not stored in database yet
+        tecnicasPracticadas: session.techniquesPracticed || '',
+        queFunciono: session.whatWorked || '',
+        queNoFunciono: session.whatDidntWork || '',
         comentarios: session.notes || '',
         videoUrl: session.videoUrl || '',
       }));
@@ -54,13 +54,16 @@ export const useJudoSessions = (userId?: string) => {
     mutationFn: async (sessionData: Omit<EntrenamientoJudo, 'id'>) => {
       if (!userId) throw new Error('Usuario no autenticado');
       
-      return await api.createTrainingSession({
+      return await api.createJudoTrainingSession({
         userId,
         date: sessionData.fecha,
         sessionType: sessionData.tipo,
         durationMinutes: sessionData.duracion,
+        techniquesPracticed: sessionData.tecnicasPracticadas || '',
+        whatWorked: sessionData.queFunciono || '',
+        whatDidntWork: sessionData.queNoFunciono || '',
         notes: sessionData.comentarios || '',
-        trainingCategory: 'judo',
+        videoUrl: sessionData.videoUrl || null,
       });
     },
     onSuccess: () => {
@@ -83,13 +86,16 @@ export const useJudoSessions = (userId?: string) => {
     mutationFn: async ({ id, entrenamiento }: { id: string; entrenamiento: Omit<EntrenamientoJudo, 'id'> }) => {
       if (!userId) throw new Error('Usuario no autenticado');
       
-      return await api.updateTrainingSession(id, {
+      return await api.updateJudoTrainingSession(id, {
         userId,
         date: entrenamiento.fecha,
         sessionType: entrenamiento.tipo,
         durationMinutes: entrenamiento.duracion,
+        techniquesPracticed: entrenamiento.tecnicasPracticadas || '',
+        whatWorked: entrenamiento.queFunciono || '',
+        whatDidntWork: entrenamiento.queNoFunciono || '',
         notes: entrenamiento.comentarios || '',
-        trainingCategory: 'judo',
+        videoUrl: entrenamiento.videoUrl || null,
       });
     },
     onSuccess: () => {
@@ -110,7 +116,7 @@ export const useJudoSessions = (userId?: string) => {
 
   const deleteSessionMutation = useMutation({
     mutationFn: async (sessionId: string) => {
-      return await api.deleteTrainingSession(sessionId);
+      return await api.deleteJudoTrainingSession(sessionId);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['judo-sessions'] });

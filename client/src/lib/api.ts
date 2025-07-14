@@ -108,6 +108,41 @@ export const api = {
     return response.json();
   },
 
+  // Judo Training Sessions (separate from physical preparation)
+  async getJudoTrainingSessions(userId: string) {
+    const response = await fetch(`${API_BASE_URL}/api/judo-training-sessions?user_id=${userId}`);
+    if (!response.ok) throw new Error('Failed to fetch judo training sessions');
+    return response.json();
+  },
+
+  async createJudoTrainingSession(data: any) {
+    const response = await fetch(`${API_BASE_URL}/api/judo-training-sessions`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    if (!response.ok) throw new Error('Failed to create judo training session');
+    return response.json();
+  },
+
+  async updateJudoTrainingSession(id: string, data: any) {
+    const response = await fetch(`${API_BASE_URL}/api/judo-training-sessions/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    if (!response.ok) throw new Error('Failed to update judo training session');
+    return response.json();
+  },
+
+  async deleteJudoTrainingSession(id: string) {
+    const response = await fetch(`${API_BASE_URL}/api/judo-training-sessions/${id}`, {
+      method: 'DELETE'
+    });
+    if (!response.ok) throw new Error('Failed to delete judo training session');
+    return response.json();
+  },
+
   // User profiles
   async updateProfile(id: string, data: any) {
     const response = await fetch(`${API_BASE_URL}/api/profiles/${id}`, {

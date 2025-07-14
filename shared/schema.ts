@@ -144,11 +144,26 @@ export const tacticalNotes = pgTable("tactical_notes", {
   updatedAt: timestamp("updated_at").defaultNow()
 });
 
-// Randori sessions table
+// Judo training sessions table (separate from physical preparation)
+export const judoTrainingSessions = pgTable("judo_training_sessions", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id").notNull(),
+  date: date("date").notNull(),
+  sessionType: text("session_type").notNull(), // tipo de entrenamiento
+  durationMinutes: integer("duration_minutes"),
+  techniquesPracticed: text("techniques_practiced"), // tecnicasPracticadas
+  whatWorked: text("what_worked"), // queFunciono
+  whatDidntWork: text("what_didnt_work"), // queNoFunciono
+  notes: text("notes"), // comentarios
+  videoUrl: text("video_url"),
+  createdAt: timestamp("created_at").defaultNow()
+});
+
+// Randori sessions table (linked to judo training sessions)
 export const randoriSessions = pgTable("randori_sessions", {
   id: uuid("id").primaryKey().defaultRandom(),
   userId: uuid("user_id").notNull(),
-  trainingSessionId: uuid("training_session_id"),
+  judoTrainingSessionId: uuid("judo_training_session_id"),
   opponentName: text("opponent_name").notNull(),
   techniquesAttempted: text("techniques_attempted").array(),
   techniquesSuccessful: text("techniques_successful").array(),
@@ -188,6 +203,7 @@ export const insertUserRoleSchema = createInsertSchema(userRoles);
 export const insertClubSchema = createInsertSchema(clubs);
 export const insertTrainerAssignmentSchema = createInsertSchema(trainerAssignments);
 export const insertTrainingSessionSchema = createInsertSchema(trainingSessions);
+export const insertJudoTrainingSessionSchema = createInsertSchema(judoTrainingSessions);
 export const insertExerciseSchema = createInsertSchema(exercises);
 export const insertExerciseRecordSchema = createInsertSchema(exerciseRecords);
 export const insertWeightEntrySchema = createInsertSchema(weightEntries);
@@ -209,6 +225,8 @@ export type TrainerAssignment = typeof trainerAssignments.$inferSelect;
 export type InsertTrainerAssignment = z.infer<typeof insertTrainerAssignmentSchema>;
 export type TrainingSession = typeof trainingSessions.$inferSelect;
 export type InsertTrainingSession = z.infer<typeof insertTrainingSessionSchema>;
+export type JudoTrainingSession = typeof judoTrainingSessions.$inferSelect;
+export type InsertJudoTrainingSession = z.infer<typeof insertJudoTrainingSessionSchema>;
 export type Exercise = typeof exercises.$inferSelect;
 export type InsertExercise = z.infer<typeof insertExerciseSchema>;
 export type ExerciseRecord = typeof exerciseRecords.$inferSelect;
