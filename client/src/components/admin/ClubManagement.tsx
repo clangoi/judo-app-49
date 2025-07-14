@@ -286,21 +286,24 @@ const ClubManagement = () => {
                   <img 
                     src={club.logoUrl || club.logo_url} 
                     alt={`Logo de ${club.name}`}
-                    className="h-16 w-16 object-contain rounded"
+                    className="h-16 w-16 object-contain rounded border-2 border-blue-500"
                     onError={(e) => {
                       console.error('Error loading logo:', club.logoUrl || club.logo_url);
                       console.error('Club data:', club);
+                    }}
+                    onLoad={() => {
+                      console.log('Logo loaded successfully:', club.logoUrl || club.logo_url);
                     }}
                   />
                 </div>
               )}
               
               {/* Debug info - temporal */}
-              {(club.logoUrl || club.logo_url) && (
-                <div className="text-xs text-gray-500 bg-gray-100 p-2 rounded">
-                  Debug: {club.logoUrl || club.logo_url}
-                </div>
-              )}
+              <div className="text-xs text-gray-500 bg-gray-100 p-2 rounded">
+                Debug: logoUrl={club.logoUrl || 'null'}, logo_url={club.logo_url || 'null'}
+                <br/>
+                Show image: {(club.logoUrl || club.logo_url) ? 'YES' : 'NO'}
+              </div>
               
               {club.description && (
                 <p className="text-sm text-muted-foreground">{club.description}</p>
