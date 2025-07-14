@@ -36,7 +36,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Plus, Edit, Trash2, Building, Upload, Image } from "lucide-react";
 import type { Club } from "@/hooks/useClubs";
-import DragDropLogoUploader, { PendingLogoUploader } from "./DragDropLogoUploader";
+import DragDropLogoUploader from "./DragDropLogoUploader";
 
 const clubSchema = z.object({
   name: z.string().min(1, "El nombre es obligatorio"),
@@ -49,7 +49,7 @@ const ClubManagement = () => {
   const { clubs, isLoading, createClubMutation, updateClubMutation, deleteClubMutation, uploadClubLogoMutation } = useClubs();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingClub, setEditingClub] = useState<Club | null>(null);
-  const [pendingLogoFile, setPendingLogoFile] = useState<File | null>(null);
+
   const [uploadingClubs, setUploadingClubs] = useState<Set<string>>(new Set());
 
   const form = useForm<ClubFormValues>({
@@ -73,12 +73,9 @@ const ClubManagement = () => {
         name: values.name,
         description: values.description,
       });
-      if (pendingLogoFile && newClub) {
-        await handleUploadLogo(pendingLogoFile, newClub.id);
-      }
+      // Logo se puede subir después usando la opción editar
     }
     form.reset();
-    setPendingLogoFile(null);
     setIsModalOpen(false);
   };
 
@@ -102,7 +99,6 @@ const ClubManagement = () => {
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setEditingClub(null);
-    setPendingLogoFile(null);
     form.reset();
   };
 
@@ -182,23 +178,18 @@ const ClubManagement = () => {
                 )}
               />
 
-              {/* Logo Upload Section */}
-              <div className="space-y-3">
-                <label className="text-sm font-medium text-foreground">Logo del Club (opcional)</label>
-                {editingClub ? (
+              {/* Logo Upload Section - Solo para edición */}
+              {editingClub && (
+                <div className="space-y-3">
+                  <label className="text-sm font-medium text-foreground">Logo del Club</label>
                   <DragDropLogoUploader
                     clubId={editingClub.id}
                     currentLogoUrl={editingClub.logo_url}
                     onUpload={handleUploadLogo}
                     isUploading={uploadingClubs.has(editingClub.id)}
                   />
-                ) : (
-                  <PendingLogoUploader
-                    onFileSelect={setPendingLogoFile}
-                    selectedFile={pendingLogoFile}
-                  />
-                )}
-              </div>
+                </div>
+              )}
               
               <div className="flex justify-end gap-3">
                 <Button type="button" variant="outline" onClick={handleCloseModal}>
@@ -230,23 +221,22 @@ const ClubManagement = () => {
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
+              {club.logo_url && (
+                <div className="flex justify-center">
+                  <img 
+                    src={club.logo_url} 
+                    alt={`Logo de ${club.name}`}
+                    className="h-16 w-16 object-contain rounded"
+                  />
+                </div>
+              )}
+              
               {club.description && (
                 <p className="text-sm text-muted-foreground">{club.description}</p>
               )}
               
               <div className="text-xs text-muted-foreground">
                 Creado: {new Date(club.created_at).toLocaleDateString()}
-              </div>
-
-              {/* Drag and Drop Logo Uploader */}
-              <div className="space-y-2">
-                <p className="text-xs font-medium text-foreground">Logo del Club</p>
-                <DragDropLogoUploader
-                  clubId={club.id}
-                  currentLogoUrl={club.logo_url}
-                  onUpload={handleUploadLogo}
-                  isUploading={uploadingClubs.has(club.id)}
-                />
               </div>
               
               <div className="flex gap-2">
