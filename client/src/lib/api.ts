@@ -252,6 +252,25 @@ export const api = {
     return response.json();
   },
 
+  // Analytics
+  async getTrainingFrequency(userId: string) {
+    const response = await fetch(`${API_BASE_URL}/api/analytics/training-frequency?user_id=${userId}`);
+    if (!response.ok) throw new Error('Failed to fetch training frequency');
+    return response.json();
+  },
+
+  async getNutritionSummary(userId: string) {
+    const response = await fetch(`${API_BASE_URL}/api/analytics/nutrition-summary?user_id=${userId}`);
+    if (!response.ok) throw new Error('Failed to fetch nutrition summary');
+    return response.json();
+  },
+
+  async getProgressSummary(userId: string) {
+    const response = await fetch(`${API_BASE_URL}/api/analytics/progress-summary?user_id=${userId}`);
+    if (!response.ok) throw new Error('Failed to fetch progress summary');
+    return response.json();
+  },
+
   // File upload placeholder
   async uploadFile(file: File) {
     const formData = new FormData();

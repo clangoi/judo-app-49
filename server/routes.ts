@@ -733,6 +733,115 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Analytics endpoints for graphs
+  app.get("/api/analytics/training-frequency", async (req, res) => {
+    try {
+      const userId = req.query.user_id as string;
+      if (!userId) {
+        return res.status(400).json({ error: "User ID is required" });
+      }
+
+      const physicalSessions = await db
+        .select({
+          date: trainingSessions.date,
+          type: sql<string>`'physical'`,
+          duration: trainingSessions.duration
+        })
+        .from(trainingSessions)
+        .where(eq(trainingSessions.userId, userId))
+        .orderBy(trainingSessions.date);
+
+      const judoSessions = await db
+        .select({
+          date: judoTrainingSessions.date,
+          type: sql<string>`'judo'`,
+          duration: judoTrainingSessions.durationMinutes
+        })
+        .from(judoTrainingSessions)
+        .where(eq(judoTrainingSessions.userId, userId))
+        .orderBy(judoTrainingSessions.date);
+
+      const allSessions = [...physicalSessions, ...judoSessions]
+        .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+      res.json(allSessions);
+    } catch (error) {
+      console.error("Error fetching training frequency:", error);
+      res.status(500).json({ error: "Failed to fetch training frequency" });
+    }
+  });
+
+  app.get("/api/analytics/nutrition-summary", async (req, res) => {
+    try {
+      const userId = req.query.user_id as string;
+      if (!userId) {
+        return res.status(400).json({ error: "User ID is required" });
+      }
+
+      const nutritionData = await db
+        .select({
+          date: nutritionEntries.date,
+          calories: nutritionEntries.calories,
+          protein: nutritionEntries.protein,
+          carbs: nutritionEntries.carbs,
+          fats: nutritionEntries.fats
+        })
+        .from(nutritionEntries)
+        .where(eq(nutritionEntries.userId, userId))
+        .orderBy(nutritionEntries.date);
+
+      // Group by date and sum values
+      const groupedData = nutritionData.reduce((acc: any, entry) => {
+        const dateKey = entry.date;
+        if (!acc[dateKey]) {
+          acc[dateKey] = {
+            date: dateKey,
+            calories: 0,
+            protein: 0,
+            carbs: 0,
+            fats: 0
+          };
+        }
+        acc[dateKey].calories += entry.calories || 0;
+        acc[dateKey].protein += Number(entry.protein) || 0;
+        acc[dateKey].carbs += Number(entry.carbs) || 0;
+        acc[dateKey].fats += Number(entry.fats) || 0;
+        return acc;
+      }, {});
+
+      res.json(Object.values(groupedData));
+    } catch (error) {
+      console.error("Error fetching nutrition summary:", error);
+      res.status(500).json({ error: "Failed to fetch nutrition summary" });
+    }
+  });
+
+  app.get("/api/analytics/progress-summary", async (req, res) => {
+    try {
+      const userId = req.query.user_id as string;
+      if (!userId) {
+        return res.status(400).json({ error: "User ID is required" });
+      }
+
+      const [trainingCount, judoCount, techniqueCount, tacticalCount] = await Promise.all([
+        db.select({ count: sql<number>`count(*)` }).from(trainingSessions).where(eq(trainingSessions.userId, userId)),
+        db.select({ count: sql<number>`count(*)` }).from(judoTrainingSessions).where(eq(judoTrainingSessions.userId, userId)),
+        db.select({ count: sql<number>`count(*)` }).from(techniques).where(eq(techniques.userId, userId)),
+        db.select({ count: sql<number>`count(*)` }).from(tacticalNotes).where(eq(tacticalNotes.userId, userId))
+      ]);
+
+      res.json({
+        physicalTraining: trainingCount[0]?.count || 0,
+        judoTraining: judoCount[0]?.count || 0,
+        techniques: techniqueCount[0]?.count || 0,
+        tacticalNotes: tacticalCount[0]?.count || 0
+      });
+    } catch (error) {
+      console.error("Error fetching progress summary:", error);
+      res.status(500).json({ error: "Failed to fetch progress summary" });
+    }
+  });
+
   // File Upload (for Supabase Storage replacement)
   app.post("/api/upload", async (req, res) => {
     try {
