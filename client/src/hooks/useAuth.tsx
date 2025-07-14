@@ -87,11 +87,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       // Create different mock users based on email for testing roles
       let mockUser: User;
       
-      if (email.includes('admin')) {
+      if (email.includes('admin') || email === 'claudita06.99@gmail.com') {
         mockUser = {
-          id: '550e8400-e29b-41d4-a716-446655440002',
+          id: '550e8400-e29b-41d4-a716-446655443322',
           email,
-          fullName: "Admin User",
+          fullName: email === 'claudita06.99@gmail.com' ? "Claudia Admin" : "Admin User",
           avatarUrl: null,
           genderPreference: null,
           clubId: null,

@@ -29,7 +29,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           role: userRoles.role
         })
         .from(profiles)
-        .leftJoin(userRoles, eq(profiles.id, userRoles.userId))
+        .leftJoin(userRoles, eq(profiles.user_id, userRoles.user_id))
         .where(eq(profiles.id, userId));
 
       if (user.length === 0) {
