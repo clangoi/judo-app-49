@@ -123,7 +123,7 @@ const Index = () => {
       roles: ['admin']
     },
     {
-      title: "🧪 Prueba Compartir en Redes",
+      title: "Prueba Compartir en Redes",
       description: "Prueba el sistema de compartir logros en redes sociales",
       icon: Share2,
       path: "/test-social-share",

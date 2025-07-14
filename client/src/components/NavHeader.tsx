@@ -5,6 +5,7 @@ import { useClubs } from "@/hooks/useClubs";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { LogOut, ArrowLeft, Settings, Shield } from "lucide-react";
+import { SocialShareButton } from "./SocialShareButton";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 // Removed supabase import
@@ -154,6 +155,8 @@ const NavHeader = ({ title, subtitle }: NavHeaderProps) => {
                 Clubes
               </Button>
             )}
+
+            <SocialShareButton />
             
             <Button
               variant="ghost"
