@@ -142,6 +142,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.patch("/api/clubs/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const validated = insertClubSchema.partial().parse(req.body);
+      const result = await db.update(clubs).set(validated).where(eq(clubs.id, id)).returning();
+      res.json(result[0]);
+    } catch (error) {
+      res.status(400).json({ error: "Failed to update club" });
+    }
+  });
+
+  app.delete("/api/clubs/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      await db.delete(clubs).where(eq(clubs.id, id));
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to delete club" });
+    }
+  });
+
   // Trainer Assignments
   app.get("/api/trainer-assignments", async (req, res) => {
     try {

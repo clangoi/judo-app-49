@@ -316,5 +316,43 @@ export const api = {
     
     if (!response.ok) throw new Error('Failed to upload file');
     return response.json();
+  },
+
+  // Clubs management
+  async getClubs() {
+    const response = await fetch(`${API_BASE_URL}/api/clubs`);
+    if (!response.ok) throw new Error('Failed to fetch clubs');
+    return response.json();
+  },
+
+  async createClub(data: { name: string; description?: string; createdBy?: string }) {
+    const response = await fetch(`${API_BASE_URL}/api/clubs`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        ...data,
+        createdBy: data.createdBy || '550e8400-e29b-41d4-a716-446655443322' // Default admin user
+      })
+    });
+    if (!response.ok) throw new Error('Failed to create club');
+    return response.json();
+  },
+
+  async updateClub(id: string, data: { name: string; description?: string }) {
+    const response = await fetch(`${API_BASE_URL}/api/clubs/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    if (!response.ok) throw new Error('Failed to update club');
+    return response.json();
+  },
+
+  async deleteClub(id: string) {
+    const response = await fetch(`${API_BASE_URL}/api/clubs/${id}`, {
+      method: 'DELETE'
+    });
+    if (!response.ok) throw new Error('Failed to delete club');
+    return response.json();
   }
 };

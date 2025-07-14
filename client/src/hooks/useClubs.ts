@@ -20,15 +20,14 @@ export const useClubs = () => {
   const { data: clubs = [], isLoading } = useQuery({
     queryKey: ['clubs'],
     queryFn: async () => {
-      return [];
+      return await api.getClubs();
     },
   });
 
   // Crear nuevo club
   const createClubMutation = useMutation({
     mutationFn: async ({ name, description }: { name: string; description?: string }) => {
-      // Placeholder for club creation
-      return { id: '1', name, description };
+      return await api.createClub({ name, description });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['clubs'] });
@@ -70,8 +69,7 @@ export const useClubs = () => {
   // Actualizar club
   const updateClubMutation = useMutation({
     mutationFn: async ({ id, name, description }: { id: string; name: string; description?: string }) => {
-      // Placeholder for club update
-      return { id, name, description };
+      return await api.updateClub(id, { name, description });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['clubs'] });
@@ -92,8 +90,7 @@ export const useClubs = () => {
   // Eliminar club
   const deleteClubMutation = useMutation({
     mutationFn: async (clubId: string) => {
-      // Placeholder for club deletion
-      return { success: true };
+      return await api.deleteClub(clubId);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['clubs'] });
