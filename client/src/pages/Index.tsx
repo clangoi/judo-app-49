@@ -15,7 +15,8 @@ import {
   Users,
   Shield,
   Building,
-  Trophy
+  Trophy,
+  Share2
 } from "lucide-react";
 import NavHeader from "@/components/NavHeader";
 import { AchievementTestButton } from "@/components/AchievementTestButton";
@@ -120,6 +121,14 @@ const Index = () => {
       path: "/admin",
       color: "bg-gray-700",
       roles: ['admin']
+    },
+    {
+      title: "🧪 Prueba Compartir en Redes",
+      description: "Prueba el sistema de compartir logros en redes sociales",
+      icon: Share2,
+      path: "/test-social-share",
+      color: "bg-blue-600",
+      roles: ['practicante', 'entrenador', 'admin']
     }
   ];
 

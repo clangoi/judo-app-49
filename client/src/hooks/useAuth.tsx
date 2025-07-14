@@ -89,7 +89,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       
       if (email.includes('admin')) {
         mockUser = {
-          id: 'user-admin-1',
+          id: '550e8400-e29b-41d4-a716-446655440002',
           email,
           fullName: "Admin User",
           avatarUrl: null,
@@ -108,7 +108,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         };
       } else if (email.includes('entrenador') || email.includes('trainer')) {
         mockUser = {
-          id: 'user-trainer-1',
+          id: '550e8400-e29b-41d4-a716-446655440001',
           email,
           fullName: "Entrenador User",
           avatarUrl: null,
@@ -127,7 +127,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         };
       } else {
         mockUser = {
-          id: 'user-deportista-1',
+          id: '550e8400-e29b-41d4-a716-446655440000',
           email,
           fullName: "Deportista User",
           avatarUrl: null,
