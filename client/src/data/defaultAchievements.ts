@@ -126,32 +126,5 @@ export const defaultAchievements: Omit<AchievementBadge, 'id' | 'createdAt'>[] =
     iconUrl: undefined
   },
 
-  // Nutrition achievements
-  {
-    name: "Nutrición Consciente",
-    description: "Registra tu primera comida",
-    category: "nutrition",
-    criteriaType: "count",
-    criteriaValue: 1,
-    isActive: true,
-    iconUrl: undefined
-  },
-  {
-    name: "Planificador Nutricional",
-    description: "Registra 20 comidas",
-    category: "nutrition",
-    criteriaType: "count",
-    criteriaValue: 20,
-    isActive: true,
-    iconUrl: undefined
-  },
-  {
-    name: "Experto en Nutrición",
-    description: "Registra 100 comidas",
-    category: "nutrition",
-    criteriaType: "count",
-    criteriaValue: 100,
-    isActive: true,
-    iconUrl: undefined
-  }
+
 ];
