@@ -6,9 +6,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { AchievementBadge } from "./AchievementBadge";
 import { useAchievements } from "@/hooks/useAchievements";
+import { useAuth } from "@/hooks/useAuth";
 import { Trophy, RefreshCw, TrendingUp, Calendar } from "lucide-react";
+import NavHeader from "@/components/NavHeader";
 
 export const AchievementsPage: React.FC = () => {
+  const { user } = useAuth();
   const {
     badges,
     userAchievements,
@@ -149,6 +152,8 @@ export const AchievementsPage: React.FC = () => {
                   isEarned={true}
                   earnedAt={achievement.earnedAt}
                   level={achievement.level}
+                  userEmail={user?.email || undefined}
+                  showSocialShare={true}
                 />
               ))}
             </div>
@@ -187,6 +192,8 @@ export const AchievementsPage: React.FC = () => {
                   isEarned={isEarned}
                   earnedAt={userAchievement?.achievement.earnedAt}
                   level={userAchievement?.achievement.level}
+                  userEmail={user?.email || undefined}
+                  showSocialShare={isEarned}
                 />
               );
             })}

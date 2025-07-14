@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Trophy, Target, Flame, Dumbbell, Apple, BookOpen } from "lucide-react";
 import { AchievementBadge as BadgeType } from "@/hooks/useAchievements";
 import { cn } from "@/lib/utils";
+import { SocialShare } from "./SocialShare";
 
 interface AchievementBadgeProps {
   badge: BadgeType;
@@ -11,6 +12,8 @@ interface AchievementBadgeProps {
   earnedAt?: string;
   level?: number;
   className?: string;
+  userEmail?: string;
+  showSocialShare?: boolean;
 }
 
 const getCategoryIcon = (category: string) => {
@@ -69,7 +72,9 @@ export const AchievementBadge: React.FC<AchievementBadgeProps> = ({
   isEarned = false,
   earnedAt,
   level = 1,
-  className
+  className,
+  userEmail,
+  showSocialShare = false
 }) => {
   const categoryIcon = getCategoryIcon(badge.category);
   const categoryColor = getCategoryColor(badge.category);
@@ -159,6 +164,13 @@ export const AchievementBadge: React.FC<AchievementBadgeProps> = ({
             <div className="w-6 h-6 bg-yellow-400 rounded-full flex items-center justify-center">
               <Trophy className="w-3 h-3 text-yellow-800" />
             </div>
+          </div>
+        )}
+        
+        {/* Social Share Button for earned achievements */}
+        {isEarned && showSocialShare && (
+          <div className="mt-3 pt-3 border-t border-gray-200">
+            <SocialShare badge={badge} userEmail={userEmail} />
           </div>
         )}
       </CardContent>

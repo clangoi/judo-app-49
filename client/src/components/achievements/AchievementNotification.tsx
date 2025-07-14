@@ -2,23 +2,28 @@ import React, { useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Trophy, X, Sparkles } from "lucide-react";
+import { Trophy, X, Sparkles, Share2 } from "lucide-react";
 import { AchievementBadge as BadgeType } from "@/hooks/useAchievements";
 import { cn } from "@/lib/utils";
+import { SocialShare } from "./SocialShare";
+import { useAuth } from "@/hooks/useAuth";
 
 interface AchievementNotificationProps {
   badge: BadgeType;
   isVisible: boolean;
   onClose: () => void;
   autoHideDelay?: number;
+  userEmail?: string;
 }
 
 export const AchievementNotification: React.FC<AchievementNotificationProps> = ({
   badge,
   isVisible,
   onClose,
-  autoHideDelay = 5000
+  autoHideDelay = 5000,
+  userEmail
 }) => {
+  const { user } = useAuth();
   const [isAnimating, setIsAnimating] = useState(false);
 
   useEffect(() => {
@@ -88,6 +93,11 @@ export const AchievementNotification: React.FC<AchievementNotificationProps> = (
             </div>
           </div>
 
+          {/* Social Share Section */}
+          <div className="mt-3 pt-3 border-t border-yellow-200 flex justify-center">
+            <SocialShare badge={badge} userEmail={userEmail || user?.email} />
+          </div>
+          
           {/* Progress animation effect */}
           <div className="mt-3 h-1 bg-yellow-200 rounded-full overflow-hidden">
             <div 

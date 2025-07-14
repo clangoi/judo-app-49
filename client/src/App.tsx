@@ -21,6 +21,7 @@ import Admin from "./pages/Admin";
 import TrainerClubs from "./pages/TrainerClubs";
 import Achievements from "./pages/Achievements";
 import NotificationTest from "./pages/NotificationTest";
+import SocialShareTest from "./pages/SocialShareTest";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -98,6 +99,11 @@ const App = () => (
               <Route path="/test-notifications" element={
                 <AuthGuard>
                   <NotificationTest />
+                </AuthGuard>
+              } />
+              <Route path="/test-social-share" element={
+                <AuthGuard>
+                  <SocialShareTest />
                 </AuthGuard>
               } />
               <Route path="/404" element={<NotFound />} />
