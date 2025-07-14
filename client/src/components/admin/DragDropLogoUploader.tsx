@@ -50,7 +50,7 @@ const DragDropLogoUploader: React.FC<DragDropLogoUploaderProps> = ({
     }
   }, []);
 
-  const handleFileSelect = (file: File) => {
+  const handleFileSelect = async (file: File) => {
     setSelectedFile(file);
     setUploadSuccess(false);
     
@@ -60,6 +60,21 @@ const DragDropLogoUploader: React.FC<DragDropLogoUploaderProps> = ({
       setPreview(e.target?.result as string);
     };
     reader.readAsDataURL(file);
+
+    // Auto upload the file immediately
+    setLocalUploading(true);
+    try {
+      console.log('Auto-uploading file for club:', clubId, 'file:', file.name);
+      await onUpload(file, clubId);
+      setUploadSuccess(true);
+      setSelectedFile(null);
+      console.log('Upload completed successfully');
+    } catch (error) {
+      console.error('Upload failed:', error);
+      setUploadSuccess(false);
+    } finally {
+      setLocalUploading(false);
+    }
   };
 
   const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -165,35 +180,18 @@ const DragDropLogoUploader: React.FC<DragDropLogoUploaderProps> = ({
                 />
               </div>
               
-              {uploadSuccess ? (
+              {(isUploading || localUploading) ? (
+                <div className="flex items-center justify-center gap-2 text-blue-600">
+                  <Upload className="h-5 w-5 animate-spin" />
+                  <span className="font-medium">Subiendo logo...</span>
+                </div>
+              ) : uploadSuccess ? (
                 <div className="flex items-center justify-center gap-2 text-green-600">
                   <Check className="h-5 w-5" />
                   <span className="font-medium">¡Logo subido exitosamente!</span>
                 </div>
               ) : (
-                <div className="flex gap-2 justify-center">
-                  <Button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleUpload();
-                    }}
-                    disabled={isUploading || localUploading}
-                    size="sm"
-                    className="bg-primary hover:bg-primary/90"
-                  >
-                    {(isUploading || localUploading) ? (
-                      <>
-                        <Upload className="h-4 w-4 mr-2 animate-spin" />
-                        Subiendo...
-                      </>
-                    ) : (
-                      <>
-                        <Upload className="h-4 w-4 mr-2" />
-                        Subir Logo
-                      </>
-                    )}
-                  </Button>
-                  
+                <div className="flex justify-center">
                   <Button
                     onClick={(e) => {
                       e.stopPropagation();
@@ -201,7 +199,6 @@ const DragDropLogoUploader: React.FC<DragDropLogoUploaderProps> = ({
                     }}
                     variant="outline"
                     size="sm"
-                    disabled={isUploading || localUploading}
                   >
                     <X className="h-4 w-4 mr-2" />
                     Cancelar

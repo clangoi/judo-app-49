@@ -242,9 +242,6 @@ const ClubManagement = () => {
               {editingClub && (
                 <div className="space-y-3">
                   <label className="text-sm font-medium text-foreground">Logo del Club</label>
-                  <div className="bg-yellow-100 p-2 rounded text-xs">
-                    DEBUG: Editing club {editingClub.id}, current logo: {editingClub.logoUrl || editingClub.logo_url || 'none'}
-                  </div>
                   <DragDropLogoUploader
                     clubId={editingClub.id}
                     currentLogoUrl={editingClub.logoUrl || editingClub.logo_url}
@@ -304,14 +301,7 @@ const ClubManagement = () => {
                 </div>
               )}
               
-              {/* Debug info - temporal */}
-              <div className="text-xs text-gray-500 bg-gray-100 p-2 rounded">
-                Debug: logoUrl={club.logoUrl || 'null'}, logo_url={club.logo_url || 'null'}
-                <br/>
-                Show image: {(club.logoUrl || club.logo_url) ? 'YES' : 'NO'}
-                <br/>
-                Full URL: {`${club.logoUrl || club.logo_url}?t=${Date.now()}`}
-              </div>
+
               
               {club.description && (
                 <p className="text-sm text-muted-foreground">{club.description}</p>
