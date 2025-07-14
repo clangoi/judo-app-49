@@ -252,6 +252,24 @@ export const api = {
     return response.json();
   },
 
+  async updateTacticalNote(id: string, data: any) {
+    const response = await fetch(`${API_BASE_URL}/api/tactical-notes/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    if (!response.ok) throw new Error('Failed to update tactical note');
+    return response.json();
+  },
+
+  async deleteTacticalNote(id: string) {
+    const response = await fetch(`${API_BASE_URL}/api/tactical-notes/${id}`, {
+      method: 'DELETE',
+    });
+    if (!response.ok) throw new Error('Failed to delete tactical note');
+    return response.json();
+  },
+
   // Analytics
   async getTrainingFrequency(userId: string) {
     const response = await fetch(`${API_BASE_URL}/api/analytics/training-frequency?user_id=${userId}`);
