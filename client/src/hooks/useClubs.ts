@@ -52,13 +52,22 @@ export const useClubs = () => {
   // Subir logo
   const uploadLogoMutation = useMutation({
     mutationFn: async ({ file, clubId }: { file: File; clubId: string }) => {
+      console.log('uploadLogoMutation executing with:', { fileName: file.name, clubId });
+      
       // First upload the file
+      console.log('Uploading file...');
       const uploadResult = await api.uploadFile(file);
+      console.log('File uploaded, result:', uploadResult);
+      
       // Then update the club with the logo URL
+      console.log('Updating club logo with URL:', uploadResult.url);
       const updatedClub = await api.updateClubLogo(clubId, uploadResult.url);
+      console.log('Club updated with logo:', updatedClub);
+      
       return updatedClub;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log('Upload mutation onSuccess called with data:', data);
       queryClient.invalidateQueries({ queryKey: ['clubs'] });
       toast({
         title: "Logo subido",
@@ -66,6 +75,7 @@ export const useClubs = () => {
       });
     },
     onError: (error: any) => {
+      console.error('Upload mutation onError called with error:', error);
       toast({
         title: "Error",
         description: error.message || "No se pudo subir el logo.",
