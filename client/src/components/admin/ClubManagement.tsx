@@ -137,15 +137,17 @@ const ClubManagement = () => {
       </div>
 
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="bg-background border-border">
+        <DialogContent className="bg-background border-border sm:max-w-[600px] max-h-[85vh] overflow-y-auto"
+                       onOpenAutoFocus={(e) => e.preventDefault()}>
           <DialogHeader>
             <DialogTitle className="text-foreground">
               {editingClub ? 'Editar Club' : 'Crear Nuevo Club'}
             </DialogTitle>
           </DialogHeader>
           
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <div className="space-y-4 pr-2"> {/* Container con padding para scroll */}
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <FormField
                 control={form.control}
                 name="name"
@@ -202,9 +204,10 @@ const ClubManagement = () => {
                 >
                   {editingClub ? 'Actualizar' : 'Crear'}
                 </Button>
-              </div>
-            </form>
-          </Form>
+                </div>
+              </form>
+            </Form>
+          </div>
         </DialogContent>
       </Dialog>
 
