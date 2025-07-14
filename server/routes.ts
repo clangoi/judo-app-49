@@ -42,6 +42,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         roles: userWithRoles.map(r => r.role).filter(Boolean)
       });
     } catch (error) {
+      console.error("Error fetching user:", error);
       res.status(500).json({ error: "Failed to fetch user" });
     }
   });
@@ -52,6 +53,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const result = await db.select().from(profiles);
       res.json(result);
     } catch (error) {
+      console.error("Error fetching profiles:", error);
       res.status(500).json({ error: "Failed to fetch profiles" });
     }
   });
