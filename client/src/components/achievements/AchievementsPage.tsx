@@ -56,24 +56,23 @@ export const AchievementsPage: React.FC = () => {
   const earnedBadgeIds = new Set(userAchievements.map(ua => ua.badge.id));
 
   return (
-    <div className="container mx-auto py-6 space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Logros y Insignias</h1>
-          <p className="text-gray-600 mt-2">
-            Desbloquea insignias completando entrenamientos y alcanzando metas
-          </p>
+    <div className="min-h-screen bg-[#1A1A1A]">
+      <NavHeader 
+        title="Logros y Insignias"
+        subtitle="Desbloquea insignias completando entrenamientos y alcanzando metas"
+      />
+      <div className="container mx-auto py-6 space-y-6">
+        {/* Action Button */}
+        <div className="flex justify-end">
+          <Button 
+            onClick={() => checkAchievements()}
+            disabled={isCheckingAchievements}
+            className="gap-2 bg-[#C5A46C] hover:bg-[#A08B5A] text-white"
+          >
+            <RefreshCw className={`w-4 h-4 ${isCheckingAchievements ? 'animate-spin' : ''}`} />
+            Verificar Logros
+          </Button>
         </div>
-        <Button 
-          onClick={() => checkAchievements()}
-          disabled={isCheckingAchievements}
-          className="gap-2"
-        >
-          <RefreshCw className={`w-4 h-4 ${isCheckingAchievements ? 'animate-spin' : ''}`} />
-          Verificar Logros
-        </Button>
-      </div>
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -207,6 +206,7 @@ export const AchievementsPage: React.FC = () => {
           )}
         </CardContent>
       </Card>
+      </div>
     </div>
   );
 };
