@@ -171,6 +171,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { id } = req.params;
       const { logoUrl } = req.body;
       
+      console.log(`Updating logo for club ${id} with URL: ${logoUrl}`);
+      
       const result = await db
         .update(clubs)
         .set({ logo_url: logoUrl, updatedAt: new Date() })
@@ -181,6 +183,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: "Club not found" });
       }
       
+      console.log("Updated club:", result[0]);
       res.json(result[0]);
     } catch (error) {
       console.error("Failed to update club logo:", error);
@@ -991,51 +994,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("File upload error:", error);
       res.status(500).json({ error: "Failed to upload file" });
-    }
-  });
-
-  // Update club logo
-  app.patch("/api/clubs/:id/logo", async (req, res) => {
-    try {
-      const { id } = req.params;
-      const { logoUrl } = req.body;
-      
-      const result = await db
-        .update(clubs)
-        .set({ logo_url: logoUrl, updatedAt: new Date() })
-        .where(eq(clubs.id, id))
-        .returning();
-      
-      if (result.length === 0) {
-        return res.status(404).json({ error: "Club not found" });
-      }
-      
-      res.json(result[0]);
-    } catch (error) {
-      console.error("Failed to update club logo:", error);
-      res.status(500).json({ error: "Failed to update club logo" });
-    }
-  });
-
-  // Remove club logo
-  app.delete("/api/clubs/:id/logo", async (req, res) => {
-    try {
-      const { id } = req.params;
-      
-      const result = await db
-        .update(clubs)
-        .set({ logo_url: null, updatedAt: new Date() })
-        .where(eq(clubs.id, id))
-        .returning();
-      
-      if (result.length === 0) {
-        return res.status(404).json({ error: "Club not found" });
-      }
-      
-      res.json(result[0]);
-    } catch (error) {
-      console.error("Failed to remove club logo:", error);
-      res.status(500).json({ error: "Failed to remove club logo" });
     }
   });
 

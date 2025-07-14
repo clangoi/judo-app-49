@@ -42,7 +42,7 @@ export const clubs = pgTable("clubs", {
   id: uuid("id").primaryKey().defaultRandom(),
   name: text("name").notNull(),
   description: text("description"),
-  logoUrl: text("logo_url"),
+  logo_url: text("logo_url"),
   createdBy: uuid("created_by").notNull(),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow()
