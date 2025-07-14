@@ -72,8 +72,10 @@ const DragDropLogoUploader: React.FC<DragDropLogoUploaderProps> = ({
   const handleUpload = async () => {
     if (selectedFile && !localUploading) {
       setLocalUploading(true);
+      console.log('Starting upload for club:', clubId, 'file:', selectedFile.name);
       try {
         await onUpload(selectedFile, clubId);
+        console.log('Upload completed successfully');
         setUploadSuccess(true);
         setTimeout(() => {
           setPreview(null);

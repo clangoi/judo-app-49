@@ -104,9 +104,11 @@ const ClubManagement = () => {
   };
 
   const handleUploadLogo = async (file: File, clubId: string) => {
+    console.log('handleUploadLogo called with:', { fileName: file.name, clubId });
     setUploadingClubs(prev => new Set(prev).add(clubId));
     try {
-      await uploadClubLogoMutation.mutateAsync({ file, clubId });
+      const result = await uploadClubLogoMutation.mutateAsync({ file, clubId });
+      console.log('Upload mutation result:', result);
     } finally {
       setUploadingClubs(prev => {
         const newSet = new Set(prev);
