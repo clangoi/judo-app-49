@@ -222,3 +222,144 @@ const DragDropLogoUploader: React.FC<DragDropLogoUploaderProps> = ({
 };
 
 export default DragDropLogoUploader;
+
+// Component for uploading logos when creating new clubs
+interface PendingLogoUploaderProps {
+  onFileSelect: (file: File | null) => void;
+  selectedFile: File | null;
+}
+
+export const PendingLogoUploader: React.FC<PendingLogoUploaderProps> = ({
+  onFileSelect,
+  selectedFile
+}) => {
+  const [isDragOver, setIsDragOver] = useState(false);
+  const [preview, setPreview] = useState<string | null>(null);
+
+  React.useEffect(() => {
+    if (selectedFile) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setPreview(e.target?.result as string);
+      };
+      reader.readAsDataURL(selectedFile);
+    } else {
+      setPreview(null);
+    }
+  }, [selectedFile]);
+
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(true);
+  }, []);
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(false);
+  }, []);
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(false);
+
+    const files = Array.from(e.dataTransfer.files);
+    const imageFile = files.find(file => file.type.startsWith('image/'));
+    
+    if (imageFile) {
+      onFileSelect(imageFile);
+    }
+  }, [onFileSelect]);
+
+  const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      onFileSelect(file);
+    }
+  };
+
+  const handleRemove = () => {
+    onFileSelect(null);
+  };
+
+  return (
+    <Card
+      className={cn(
+        "border-2 border-dashed transition-all duration-200 cursor-pointer",
+        isDragOver 
+          ? "border-primary bg-primary/5" 
+          : "border-border hover:border-primary/50"
+      )}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
+    >
+      <div className="p-6 text-center space-y-4">
+        {preview ? (
+          // Preview Section
+          <div className="space-y-4">
+            <div className="flex justify-center">
+              <img 
+                src={preview} 
+                alt="Vista previa del logo"
+                className="h-24 w-24 object-contain rounded-lg border border-border"
+              />
+            </div>
+            
+            <div className="flex gap-2 justify-center">
+              <Button
+                onClick={handleRemove}
+                variant="outline"
+                size="sm"
+              >
+                <X className="h-4 w-4 mr-2" />
+                Quitar
+              </Button>
+            </div>
+            
+            <p className="text-xs text-muted-foreground">
+              El logo se subirá al crear el club
+            </p>
+          </div>
+        ) : (
+          // Upload Area
+          <div className="space-y-3">
+            <div className="flex justify-center">
+              <div className={cn(
+                "p-3 rounded-full",
+                isDragOver ? "bg-primary text-primary-foreground" : "bg-muted"
+              )}>
+                <Image className="h-8 w-8" />
+              </div>
+            </div>
+            
+            <div className="space-y-1">
+              <p className="text-sm font-medium text-foreground">
+                {isDragOver 
+                  ? "Suelta la imagen aquí" 
+                  : "Arrastra y suelta una imagen aquí"
+                }
+              </p>
+              <p className="text-xs text-muted-foreground">
+                o haz clic para seleccionar un archivo
+              </p>
+            </div>
+            
+            <div className="text-xs text-muted-foreground">
+              PNG, JPG, GIF hasta 5MB
+            </div>
+            
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleFileInputChange}
+              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+            />
+          </div>
+        )}
+      </div>
+    </Card>
+  );
+};

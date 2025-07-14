@@ -36,7 +36,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Plus, Edit, Trash2, Building, Upload, Image } from "lucide-react";
 import type { Club } from "@/hooks/useClubs";
-import DragDropLogoUploader from "./DragDropLogoUploader";
+import DragDropLogoUploader, { PendingLogoUploader } from "./DragDropLogoUploader";
 
 const clubSchema = z.object({
   name: z.string().min(1, "El nombre es obligatorio"),
@@ -51,6 +51,7 @@ const ClubManagement = () => {
   const [editingClub, setEditingClub] = useState<Club | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploadingClubId, setUploadingClubId] = useState<string | null>(null);
+  const [pendingLogoFile, setPendingLogoFile] = useState<File | null>(null);
 
   const form = useForm<ClubFormValues>({
     resolver: zodResolver(clubSchema),
@@ -69,12 +70,16 @@ const ClubManagement = () => {
       });
       setEditingClub(null);
     } else {
-      await createClubMutation.mutateAsync({
+      const newClub = await createClubMutation.mutateAsync({
         name: values.name,
         description: values.description,
       });
+      if (pendingLogoFile && newClub) {
+        await handleUploadLogo(pendingLogoFile, newClub.id);
+      }
     }
     form.reset();
+    setPendingLogoFile(null);
     setIsModalOpen(false);
   };
 
@@ -98,6 +103,7 @@ const ClubManagement = () => {
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setEditingClub(null);
+    setPendingLogoFile(null);
     form.reset();
   };
 
@@ -180,17 +186,22 @@ const ClubManagement = () => {
               />
 
               {/* Logo Upload Section */}
-              {editingClub && (
-                <div className="space-y-3">
-                  <label className="text-sm font-medium text-foreground">Logo del Club</label>
+              <div className="space-y-3">
+                <label className="text-sm font-medium text-foreground">Logo del Club (opcional)</label>
+                {editingClub ? (
                   <DragDropLogoUploader
                     clubId={editingClub.id}
                     currentLogoUrl={editingClub.logo_url}
                     onUpload={handleUploadLogo}
                     isUploading={uploadClubLogoMutation.isPending && uploadingClubId === editingClub.id}
                   />
-                </div>
-              )}
+                ) : (
+                  <PendingLogoUploader
+                    onFileSelect={setPendingLogoFile}
+                    selectedFile={pendingLogoFile}
+                  />
+                )}
+              </div>
               
               <div className="flex justify-end gap-3">
                 <Button type="button" variant="outline" onClick={handleCloseModal}>
