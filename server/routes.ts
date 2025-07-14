@@ -4,14 +4,14 @@ import { db } from "./db";
 import { 
   profiles, userRoles, clubs, trainerAssignments, trainingSessions, 
   exercises, exerciseRecords, weightEntries, nutritionEntries, 
-  techniques, tacticalNotes, randoriSessions,
+  techniques, tacticalNotes, randoriSessions, achievementBadges, userAchievements,
   insertProfileSchema, insertUserRoleSchema, insertClubSchema,
   insertTrainerAssignmentSchema, insertTrainingSessionSchema,
   insertExerciseSchema, insertExerciseRecordSchema, insertWeightEntrySchema,
   insertNutritionEntrySchema, insertTechniqueSchema, insertTacticalNoteSchema,
-  insertRandoriSessionSchema
+  insertRandoriSessionSchema, insertAchievementBadgeSchema, insertUserAchievementSchema
 } from "@shared/schema";
-import { eq, and, desc, sql, isNull } from "drizzle-orm";
+import { eq, and, desc, sql, isNull, gte, lte } from "drizzle-orm";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Authentication and User Management
@@ -481,6 +481,148 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(result[0]);
     } catch (error) {
       res.status(400).json({ error: "Invalid randori session data" });
+    }
+  });
+
+  // Achievement Badges
+  app.get("/api/achievement-badges", async (req, res) => {
+    try {
+      const result = await db.select().from(achievementBadges).where(eq(achievementBadges.isActive, true));
+      res.json(result);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch achievement badges" });
+    }
+  });
+
+  app.post("/api/achievement-badges", async (req, res) => {
+    try {
+      const validated = insertAchievementBadgeSchema.parse(req.body);
+      const result = await db.insert(achievementBadges).values(validated).returning();
+      res.json(result[0]);
+    } catch (error) {
+      res.status(400).json({ error: "Invalid achievement badge data" });
+    }
+  });
+
+  // User Achievements
+  app.get("/api/user-achievements", async (req, res) => {
+    try {
+      const userId = req.query.user_id as string;
+      if (!userId) {
+        return res.status(400).json({ error: "User ID is required" });
+      }
+
+      const result = await db
+        .select({
+          achievement: userAchievements,
+          badge: achievementBadges
+        })
+        .from(userAchievements)
+        .leftJoin(achievementBadges, eq(userAchievements.badgeId, achievementBadges.id))
+        .where(eq(userAchievements.userId, userId))
+        .orderBy(desc(userAchievements.earnedAt));
+
+      res.json(result);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch user achievements" });
+    }
+  });
+
+  app.post("/api/user-achievements", async (req, res) => {
+    try {
+      const validated = insertUserAchievementSchema.parse(req.body);
+      const result = await db.insert(userAchievements).values(validated).returning();
+      res.json(result[0]);
+    } catch (error) {
+      res.status(400).json({ error: "Invalid user achievement data" });
+    }
+  });
+
+  // Check and award achievements for a user
+  app.post("/api/check-achievements/:userId", async (req, res) => {
+    try {
+      const { userId } = req.params;
+      
+      // Get all active badges
+      const badges = await db.select().from(achievementBadges).where(eq(achievementBadges.isActive, true));
+      
+      // Get user's existing achievements
+      const existingAchievements = await db
+        .select()
+        .from(userAchievements)
+        .where(eq(userAchievements.userId, userId));
+
+      const newAchievements = [];
+
+      for (const badge of badges) {
+        const hasAchievement = existingAchievements.some(a => a.badgeId === badge.id);
+        
+        if (!hasAchievement) {
+          let qualifies = false;
+          
+          // Check different criteria types
+          switch (badge.criteriaType) {
+            case 'count':
+              if (badge.category === 'training') {
+                const sessionCount = await db
+                  .select({ count: sql<number>`count(*)` })
+                  .from(trainingSessions)
+                  .where(eq(trainingSessions.userId, userId));
+                qualifies = sessionCount[0]?.count >= badge.criteriaValue;
+              } else if (badge.category === 'technique') {
+                const techniqueCount = await db
+                  .select({ count: sql<number>`count(*)` })
+                  .from(techniques)
+                  .where(eq(techniques.userId, userId));
+                qualifies = techniqueCount[0]?.count >= badge.criteriaValue;
+              } else if (badge.category === 'weight') {
+                const weightCount = await db
+                  .select({ count: sql<number>`count(*)` })
+                  .from(weightEntries)
+                  .where(eq(weightEntries.userId, userId));
+                qualifies = weightCount[0]?.count >= badge.criteriaValue;
+              }
+              break;
+              
+            case 'streak':
+              // For simplicity, check recent training sessions
+              if (badge.category === 'training') {
+                const recentSessions = await db
+                  .select()
+                  .from(trainingSessions)
+                  .where(eq(trainingSessions.userId, userId))
+                  .orderBy(desc(trainingSessions.date))
+                  .limit(badge.criteriaValue);
+                qualifies = recentSessions.length >= badge.criteriaValue;
+              }
+              break;
+          }
+          
+          if (qualifies) {
+            const newAchievement = await db
+              .insert(userAchievements)
+              .values({
+                userId,
+                badgeId: badge.id,
+                earnedAt: new Date(),
+                progress: 0,
+                level: 1,
+                isNotified: false
+              })
+              .returning();
+            
+            newAchievements.push({
+              achievement: newAchievement[0],
+              badge
+            });
+          }
+        }
+      }
+
+      res.json({ newAchievements });
+    } catch (error) {
+      console.error('Error checking achievements:', error);
+      res.status(500).json({ error: "Failed to check achievements" });
     }
   });
 

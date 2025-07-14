@@ -158,6 +158,30 @@ export const randoriSessions = pgTable("randori_sessions", {
   createdAt: timestamp("created_at").defaultNow()
 });
 
+// Achievement badges table
+export const achievementBadges = pgTable("achievement_badges", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  name: text("name").notNull(),
+  description: text("description").notNull(),
+  iconUrl: text("icon_url"),
+  category: text("category").notNull(), // 'training', 'technique', 'consistency', 'weight', 'nutrition'
+  criteriaType: text("criteria_type").notNull(), // 'count', 'streak', 'milestone', 'achievement'
+  criteriaValue: integer("criteria_value").notNull(),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow()
+});
+
+// User achievements table
+export const userAchievements = pgTable("user_achievements", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id").notNull(),
+  badgeId: uuid("badge_id").notNull(),
+  earnedAt: timestamp("earned_at").defaultNow(),
+  progress: integer("progress").default(0), // Current progress towards next level
+  level: integer("level").default(1), // Achievement level (for repeatable badges)
+  isNotified: boolean("is_notified").default(false)
+});
+
 // Insert schemas
 export const insertProfileSchema = createInsertSchema(profiles);
 export const insertUserRoleSchema = createInsertSchema(userRoles);
@@ -171,6 +195,8 @@ export const insertNutritionEntrySchema = createInsertSchema(nutritionEntries);
 export const insertTechniqueSchema = createInsertSchema(techniques);
 export const insertTacticalNoteSchema = createInsertSchema(tacticalNotes);
 export const insertRandoriSessionSchema = createInsertSchema(randoriSessions);
+export const insertAchievementBadgeSchema = createInsertSchema(achievementBadges);
+export const insertUserAchievementSchema = createInsertSchema(userAchievements);
 
 // Type exports
 export type Profile = typeof profiles.$inferSelect;
@@ -197,6 +223,10 @@ export type TacticalNote = typeof tacticalNotes.$inferSelect;
 export type InsertTacticalNote = z.infer<typeof insertTacticalNoteSchema>;
 export type RandoriSession = typeof randoriSessions.$inferSelect;
 export type InsertRandoriSession = z.infer<typeof insertRandoriSessionSchema>;
+export type AchievementBadge = typeof achievementBadges.$inferSelect;
+export type InsertAchievementBadge = z.infer<typeof insertAchievementBadgeSchema>;
+export type UserAchievement = typeof userAchievements.$inferSelect;
+export type InsertUserAchievement = z.infer<typeof insertUserAchievementSchema>;
 
 // Legacy exports for compatibility
 export const users = profiles;

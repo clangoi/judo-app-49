@@ -14,7 +14,8 @@ import {
   BarChart3, 
   Users,
   Shield,
-  Building
+  Building,
+  Trophy
 } from "lucide-react";
 import NavHeader from "@/components/NavHeader";
 
@@ -85,6 +86,14 @@ const Index = () => {
       icon: BarChart3,
       path: "/graficos",
       color: "bg-gray-700",
+      roles: ['practicante', 'entrenador', 'admin']
+    },
+    {
+      title: "Logros y Insignias",
+      description: "Desbloquea logros y ve tu progreso gamificado",
+      icon: Trophy,
+      path: "/logros",
+      color: "bg-yellow-600",
       roles: ['practicante', 'entrenador', 'admin']
     },
     {
