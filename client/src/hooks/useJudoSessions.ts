@@ -32,7 +32,20 @@ export const useJudoSessions = (userId?: string) => {
     queryKey: ['judo-sessions', userId],
     queryFn: async () => {
       if (!userId) return [];
-      return await api.getTrainingSessions(userId);
+      const rawSessions = await api.getTrainingSessions(userId);
+      
+      // Transform database format to frontend format
+      return rawSessions.map((session: any) => ({
+        id: session.id,
+        fecha: session.date,
+        tipo: session.sessionType,
+        duracion: session.durationMinutes || 0,
+        tecnicasPracticadas: '', // Not stored in database yet
+        queFunciono: '', // Not stored in database yet
+        queNoFunciono: '', // Not stored in database yet
+        comentarios: session.notes || '',
+        videoUrl: session.videoUrl || '',
+      }));
     },
     enabled: !!userId,
   });
