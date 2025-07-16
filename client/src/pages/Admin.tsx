@@ -8,7 +8,9 @@ import AdminAthleteManagement from "@/components/admin/AdminAthleteManagement";
 import ClubManagement from "@/components/admin/ClubManagement";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Shield, Loader2 } from "lucide-react";
+import { Shield, Loader2, Settings } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
 
 const Admin = () => {
   const { user } = useAuth();
@@ -51,6 +53,23 @@ const Admin = () => {
       />
       
       <div className="max-w-6xl mx-auto p-4">
+        {/* Quick Access Section */}
+        <div className="mb-6">
+          <Card className="bg-white border-[#C5A46C]">
+            <CardContent className="p-6">
+              <h3 className="text-lg font-semibold text-[#1A1A1A] mb-4">Acceso Rápido</h3>
+              <div className="flex gap-4">
+                <Link to="/admin/deportes">
+                  <Button className="flex items-center gap-2">
+                    <Settings className="h-4 w-4" />
+                    Gestión de Deportes
+                  </Button>
+                </Link>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
         <Tabs defaultValue="roles" className="space-y-6">
           <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="roles">Gestión de Roles</TabsTrigger>

@@ -4,14 +4,15 @@ import { db } from "./db";
 import * as fs from "fs";
 import * as path from "path";
 import { 
-  profiles, userRoles, clubs, trainerAssignments, trainingSessions, judoTrainingSessions,
+  profiles, userRoles, clubs, sports, sportTrainerAssignments, trainerAssignments, trainingSessions, judoTrainingSessions,
   exercises, exerciseRecords, weightEntries, nutritionEntries, 
   techniques, tacticalNotes, randoriSessions, achievementBadges, userAchievements,
-  insertProfileSchema, insertUserRoleSchema, insertClubSchema,
-  insertTrainerAssignmentSchema, insertTrainingSessionSchema, insertJudoTrainingSessionSchema,
-  insertExerciseSchema, insertExerciseRecordSchema, insertWeightEntrySchema,
-  insertNutritionEntrySchema, insertTechniqueSchema, insertTacticalNoteSchema,
-  insertRandoriSessionSchema, insertAchievementBadgeSchema, insertUserAchievementSchema
+  insertProfileSchema, insertUserRoleSchema, insertClubSchema, insertSportSchema,
+  insertSportTrainerAssignmentSchema, insertTrainerAssignmentSchema, insertTrainingSessionSchema, 
+  insertJudoTrainingSessionSchema, insertExerciseSchema, insertExerciseRecordSchema, 
+  insertWeightEntrySchema, insertNutritionEntrySchema, insertTechniqueSchema, 
+  insertTacticalNoteSchema, insertRandoriSessionSchema, insertAchievementBadgeSchema, 
+  insertUserAchievementSchema
 } from "@shared/schema";
 import { eq, and, desc, sql, isNull, gte, lte } from "drizzle-orm";
 
@@ -1260,6 +1261,305 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error toggling notification alarm:", error);
       res.status(500).json({ error: "Failed to toggle notification alarm" });
+    }
+  });
+
+  // SPORTS MANAGEMENT ROUTES
+
+  // Get all sports
+  app.get("/api/sports", async (req, res) => {
+    try {
+      const result = await db.select().from(sports).where(eq(sports.isActive, true));
+      res.json(result);
+    } catch (error) {
+      console.error("Error fetching sports:", error);
+      res.status(500).json({ error: "Failed to fetch sports" });
+    }
+  });
+
+  // Get sport by ID
+  app.get("/api/sports/:sportId", async (req, res) => {
+    try {
+      const { sportId } = req.params;
+      const result = await db.select().from(sports).where(eq(sports.id, sportId));
+      
+      if (result.length === 0) {
+        return res.status(404).json({ error: "Sport not found" });
+      }
+      
+      res.json(result[0]);
+    } catch (error) {
+      console.error("Error fetching sport:", error);
+      res.status(500).json({ error: "Failed to fetch sport" });
+    }
+  });
+
+  // Create new sport (Admin only)
+  app.post("/api/sports", async (req, res) => {
+    try {
+      const userId = req.headers["x-user-id"] as string;
+      if (!userId) {
+        return res.status(401).json({ error: "User not authenticated" });
+      }
+
+      // Check if user is admin
+      const userRole = await db
+        .select({ role: userRoles.role })
+        .from(userRoles)
+        .where(eq(userRoles.userId, userId));
+
+      if (!userRole.length || !userRole.some(r => r.role === 'admin')) {
+        return res.status(403).json({ error: "Admin access required" });
+      }
+
+      const sportData = {
+        ...req.body,
+        createdBy: userId
+      };
+
+      const validated = insertSportSchema.parse(sportData);
+      const result = await db.insert(sports).values(validated).returning();
+      res.json(result[0]);
+    } catch (error) {
+      console.error("Error creating sport:", error);
+      res.status(400).json({ error: "Invalid sport data" });
+    }
+  });
+
+  // Update sport (Admin only)
+  app.patch("/api/sports/:sportId", async (req, res) => {
+    try {
+      const userId = req.headers["x-user-id"] as string;
+      const { sportId } = req.params;
+
+      if (!userId) {
+        return res.status(401).json({ error: "User not authenticated" });
+      }
+
+      // Check if user is admin
+      const userRole = await db
+        .select({ role: userRoles.role })
+        .from(userRoles)
+        .where(eq(userRoles.userId, userId));
+
+      if (!userRole.length || !userRole.some(r => r.role === 'admin')) {
+        return res.status(403).json({ error: "Admin access required" });
+      }
+
+      const updateData = {
+        ...req.body,
+        updatedAt: new Date()
+      };
+
+      const result = await db
+        .update(sports)
+        .set(updateData)
+        .where(eq(sports.id, sportId))
+        .returning();
+
+      if (result.length === 0) {
+        return res.status(404).json({ error: "Sport not found" });
+      }
+
+      res.json(result[0]);
+    } catch (error) {
+      console.error("Error updating sport:", error);
+      res.status(500).json({ error: "Failed to update sport" });
+    }
+  });
+
+  // Delete sport (Admin only)
+  app.delete("/api/sports/:sportId", async (req, res) => {
+    try {
+      const userId = req.headers["x-user-id"] as string;
+      const { sportId } = req.params;
+
+      if (!userId) {
+        return res.status(401).json({ error: "User not authenticated" });
+      }
+
+      // Check if user is admin
+      const userRole = await db
+        .select({ role: userRoles.role })
+        .from(userRoles)
+        .where(eq(userRoles.userId, userId));
+
+      if (!userRole.length || !userRole.some(r => r.role === 'admin')) {
+        return res.status(403).json({ error: "Admin access required" });
+      }
+
+      // Soft delete by setting isActive to false
+      const result = await db
+        .update(sports)
+        .set({ 
+          isActive: false,
+          updatedAt: new Date()
+        })
+        .where(eq(sports.id, sportId))
+        .returning();
+
+      if (result.length === 0) {
+        return res.status(404).json({ error: "Sport not found" });
+      }
+
+      res.json({ success: true, message: "Sport deactivated successfully" });
+    } catch (error) {
+      console.error("Error deleting sport:", error);
+      res.status(500).json({ error: "Failed to delete sport" });
+    }
+  });
+
+  // SPORT TRAINER ASSIGNMENT ROUTES
+
+  // Get trainers assigned to a sport
+  app.get("/api/sports/:sportId/trainers", async (req, res) => {
+    try {
+      const { sportId } = req.params;
+      
+      const result = await db
+        .select({
+          assignmentId: sportTrainerAssignments.id,
+          trainerId: sportTrainerAssignments.trainerId,
+          trainerName: profiles.fullName,
+          trainerEmail: profiles.email,
+          assignedAt: sportTrainerAssignments.assignedAt,
+          isActive: sportTrainerAssignments.isActive
+        })
+        .from(sportTrainerAssignments)
+        .leftJoin(profiles, eq(profiles.id, sportTrainerAssignments.trainerId))
+        .where(and(
+          eq(sportTrainerAssignments.sportId, sportId),
+          eq(sportTrainerAssignments.isActive, true)
+        ));
+
+      res.json(result);
+    } catch (error) {
+      console.error("Error fetching sport trainers:", error);
+      res.status(500).json({ error: "Failed to fetch sport trainers" });
+    }
+  });
+
+  // Assign trainer to sport (Admin only)
+  app.post("/api/sports/:sportId/trainers", async (req, res) => {
+    try {
+      const userId = req.headers["x-user-id"] as string;
+      const { sportId } = req.params;
+      const { trainerId } = req.body;
+
+      if (!userId) {
+        return res.status(401).json({ error: "User not authenticated" });
+      }
+
+      // Check if user is admin
+      const userRole = await db
+        .select({ role: userRoles.role })
+        .from(userRoles)
+        .where(eq(userRoles.userId, userId));
+
+      if (!userRole.length || !userRole.some(r => r.role === 'admin')) {
+        return res.status(403).json({ error: "Admin access required" });
+      }
+
+      // Check if assignment already exists
+      const existing = await db
+        .select()
+        .from(sportTrainerAssignments)
+        .where(and(
+          eq(sportTrainerAssignments.sportId, sportId),
+          eq(sportTrainerAssignments.trainerId, trainerId),
+          eq(sportTrainerAssignments.isActive, true)
+        ));
+
+      if (existing.length > 0) {
+        return res.status(400).json({ error: "Trainer already assigned to this sport" });
+      }
+
+      const assignmentData = {
+        sportId,
+        trainerId,
+        assignedBy: userId
+      };
+
+      const validated = insertSportTrainerAssignmentSchema.parse(assignmentData);
+      const result = await db.insert(sportTrainerAssignments).values(validated).returning();
+      res.json(result[0]);
+    } catch (error) {
+      console.error("Error assigning trainer to sport:", error);
+      res.status(400).json({ error: "Failed to assign trainer to sport" });
+    }
+  });
+
+  // Remove trainer from sport (Admin only)
+  app.delete("/api/sports/:sportId/trainers/:trainerId", async (req, res) => {
+    try {
+      const userId = req.headers["x-user-id"] as string;
+      const { sportId, trainerId } = req.params;
+
+      if (!userId) {
+        return res.status(401).json({ error: "User not authenticated" });
+      }
+
+      // Check if user is admin
+      const userRole = await db
+        .select({ role: userRoles.role })
+        .from(userRoles)
+        .where(eq(userRoles.userId, userId));
+
+      if (!userRole.length || !userRole.some(r => r.role === 'admin')) {
+        return res.status(403).json({ error: "Admin access required" });
+      }
+
+      const result = await db
+        .update(sportTrainerAssignments)
+        .set({ 
+          isActive: false,
+          assignedAt: new Date()
+        })
+        .where(and(
+          eq(sportTrainerAssignments.sportId, sportId),
+          eq(sportTrainerAssignments.trainerId, trainerId)
+        ))
+        .returning();
+
+      if (result.length === 0) {
+        return res.status(404).json({ error: "Assignment not found" });
+      }
+
+      res.json({ success: true, message: "Trainer removed from sport successfully" });
+    } catch (error) {
+      console.error("Error removing trainer from sport:", error);
+      res.status(500).json({ error: "Failed to remove trainer from sport" });
+    }
+  });
+
+  // Get sports assigned to a trainer
+  app.get("/api/trainers/:trainerId/sports", async (req, res) => {
+    try {
+      const { trainerId } = req.params;
+      
+      const result = await db
+        .select({
+          assignmentId: sportTrainerAssignments.id,
+          sportId: sports.id,
+          sportName: sports.name,
+          sportDescription: sports.description,
+          belts: sports.belts,
+          genderCategories: sports.genderCategories,
+          ageCategories: sports.ageCategories,
+          assignedAt: sportTrainerAssignments.assignedAt
+        })
+        .from(sportTrainerAssignments)
+        .leftJoin(sports, eq(sports.id, sportTrainerAssignments.sportId))
+        .where(and(
+          eq(sportTrainerAssignments.trainerId, trainerId),
+          eq(sportTrainerAssignments.isActive, true),
+          eq(sports.isActive, true)
+        ));
+
+      res.json(result);
+    } catch (error) {
+      console.error("Error fetching trainer sports:", error);
+      res.status(500).json({ error: "Failed to fetch trainer sports" });
     }
   });
 

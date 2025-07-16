@@ -29,7 +29,9 @@ const NavHeader = ({ title, subtitle }: NavHeaderProps) => {
     queryFn: async () => {
       if (!user?.id) return null;
       
-      return await api.getUserProfile(user.id);
+      const response = await fetch(`/api/profiles/${user.id}`);
+      if (!response.ok) return null;
+      return response.json();
     },
     enabled: !!user?.id,
   });
