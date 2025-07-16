@@ -4,7 +4,7 @@ import { useUserRoles } from "@/hooks/useUserRoles";
 import { useClubs } from "@/hooks/useClubs";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { LogOut, ArrowLeft, Settings, Shield } from "lucide-react";
+import { LogOut, ArrowLeft, Users, Shield } from "lucide-react";
 import { SocialShareButton } from "./SocialShareButton";
 import { NotificationButton } from "./NotificationButton";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -142,10 +142,9 @@ const NavHeader = ({ title, subtitle }: NavHeaderProps) => {
                 variant="ghost"
                 size="sm"
                 onClick={() => navigate('/clubes')}
-                className="text-primary-foreground hover:bg-primary-foreground/20"
+                className="text-primary-foreground hover:bg-primary-foreground/20 p-2"
               >
-                <Settings className="h-4 w-4 mr-2" />
-                Clubes
+                <Users className="h-4 w-4" />
               </Button>
             )}
 
