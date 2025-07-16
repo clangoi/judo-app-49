@@ -137,7 +137,7 @@ const NavHeader = ({ title, subtitle }: NavHeaderProps) => {
               </Button>
             )}
 
-            {(currentUserRole === 'entrenador' || currentUserRole === 'admin') && location.pathname !== '/clubes' && (
+            {(currentUserRole === 'entrenador' || currentUserRole === 'admin') && (
               <Button
                 variant="ghost"
                 size="sm"
