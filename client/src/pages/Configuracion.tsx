@@ -419,17 +419,15 @@ const Configuracion = () => {
                       </Select>
                     </div>
 
-                  </div>
-
-                  {/* Categoría de Competición - Campo completo */}
-                  <div className="space-y-2">
-                    <Label htmlFor="competitionCategory">Categoría de Competición</Label>
-                    <Input
-                      id="competitionCategory"
-                      value={formData.competitionCategory}
-                      onChange={(e) => handleInputChange('competitionCategory', e.target.value)}
-                      placeholder="Ej: -73kg, +100kg, etc."
-                    />
+                    <div className="space-y-2">
+                      <Label htmlFor="competitionCategory">Categoría de Competición</Label>
+                      <Input
+                        id="competitionCategory"
+                        value={formData.competitionCategory}
+                        onChange={(e) => handleInputChange('competitionCategory', e.target.value)}
+                        placeholder="Ej: -73kg, +100kg, etc."
+                      />
+                    </div>
                   </div>
 
                   {/* Lesiones en modo edición */}
