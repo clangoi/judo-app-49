@@ -99,7 +99,7 @@ export const NotificationButton: React.FC<NotificationButtonProps> = ({ classNam
       </DropdownMenuTrigger>
       
       <DropdownMenuContent 
-        className="w-80 p-0" 
+        className="w-80 p-0 max-h-[500px] overflow-hidden" 
         align="end"
         sideOffset={10}
       >
@@ -119,7 +119,7 @@ export const NotificationButton: React.FC<NotificationButtonProps> = ({ classNam
         
         <DropdownMenuSeparator />
         
-        <ScrollArea className="max-h-80">
+        <div className="max-h-80 overflow-y-auto">
           {isLoading ? (
             <div className="p-4 text-center text-muted-foreground">
               Cargando notificaciones...
@@ -130,12 +130,12 @@ export const NotificationButton: React.FC<NotificationButtonProps> = ({ classNam
               <p>No tienes notificaciones</p>
             </div>
           ) : (
-            <div className="space-y-1">
+            <div className="space-y-1 p-1">
               {notifications.map((notification) => (
-                <DropdownMenuItem
+                <div
                   key={notification.id}
                   className={cn(
-                    "flex items-start gap-3 p-4 cursor-pointer hover:bg-muted/50",
+                    "flex items-start gap-3 p-3 cursor-pointer hover:bg-muted/50 rounded-sm transition-colors",
                     !notification.isRead && "bg-blue-50 dark:bg-blue-950/30"
                   )}
                   onClick={() => !notification.isRead && handleMarkAsRead(notification.id)}
@@ -166,11 +166,11 @@ export const NotificationButton: React.FC<NotificationButtonProps> = ({ classNam
                       {formatTimeAgo(notification.createdAt)}
                     </p>
                   </div>
-                </DropdownMenuItem>
+                </div>
               ))}
             </div>
           )}
-        </ScrollArea>
+        </div>
         
         <DropdownMenuSeparator />
         <div className="p-2 space-y-1">
