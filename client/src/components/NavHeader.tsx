@@ -4,7 +4,7 @@ import { useUserRoles } from "@/hooks/useUserRoles";
 import { useClubs } from "@/hooks/useClubs";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { LogOut, ArrowLeft, Users, Shield } from "lucide-react";
+import { LogOut, ArrowLeft, Users, Shield, Settings } from "lucide-react";
 import { SocialShareButton } from "./SocialShareButton";
 import { NotificationButton } from "./NotificationButton";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -55,6 +55,11 @@ const NavHeader = ({ title, subtitle }: NavHeaderProps) => {
 
   const handleAdminPanel = () => {
     navigate('/admin');
+  };
+
+  const handleUserSettings = () => {
+    // Por ahora navegar a la página principal, pero se puede crear una página de configuración específica
+    navigate('/configuracion');
   };
 
   const getRoleLabel = (role: string) => {
@@ -151,6 +156,15 @@ const NavHeader = ({ title, subtitle }: NavHeaderProps) => {
             <NotificationButton />
             
             <SocialShareButton />
+            
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleUserSettings}
+              className="text-primary-foreground hover:bg-primary-foreground/20 p-2"
+            >
+              <Settings className="h-4 w-4" />
+            </Button>
             
             <Button
               variant="ghost"
