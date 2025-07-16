@@ -1563,6 +1563,168 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ========================================
+  // ADMIN ATHLETE MANAGEMENT ROUTES
+  // ========================================
+
+  // Get all athletes with comprehensive stats for admin management
+  app.get("/api/admin/athletes", async (req, res) => {
+    try {
+      const userId = req.headers["x-user-id"] as string;
+      if (!userId) {
+        return res.status(401).json({ error: "User not authenticated" });
+      }
+
+      // Check if user is admin
+      const userRole = await db
+        .select({ role: userRoles.role })
+        .from(userRoles)
+        .where(eq(userRoles.userId, userId));
+
+      if (!userRole.length || !userRole.some(r => r.role === 'admin')) {
+        return res.status(403).json({ error: "Admin access required" });
+      }
+
+      // Get all athletes (users with 'deportista' role) with their stats
+      const athletes = await db
+        .select({
+          id: profiles.id,
+          full_name: profiles.fullName,
+          email: profiles.email,
+          club_name: profiles.clubName,
+          current_belt: profiles.currentBelt,
+          gender: profiles.gender,
+          competition_category: profiles.competitionCategory,
+          injuries: profiles.injuries,
+          injury_description: profiles.injuryDescription,
+          profile_image_url: profiles.profileImageUrl,
+        })
+        .from(profiles)
+        .leftJoin(userRoles, eq(userRoles.userId, profiles.id))
+        .where(eq(userRoles.role, 'deportista'));
+
+      // Get trainer assignments for each athlete
+      const trainerAssignments = await db
+        .select({
+          studentId: trainerAssignments.studentId,
+          trainerId: trainerAssignments.trainerId,
+          assigned_at: trainerAssignments.assignedAt,
+          trainerName: profiles.fullName,
+          trainerEmail: profiles.email,
+        })
+        .from(trainerAssignments)
+        .leftJoin(profiles, eq(profiles.id, trainerAssignments.trainerId));
+
+      // Get training session counts for activity status
+      const trainingCounts = await db
+        .select({
+          userId: trainingSessions.userId,
+          sessionCount: sql<number>`count(*)::int`.as('sessionCount'),
+        })
+        .from(trainingSessions)
+        .where(gte(trainingSessions.date, sql`current_date - interval '7 days'`))
+        .groupBy(trainingSessions.userId);
+
+      // Get technique counts
+      const techniqueCounts = await db
+        .select({
+          userId: techniques.userId,
+          techniqueCount: sql<number>`count(*)::int`.as('techniqueCount'),
+        })
+        .from(techniques)
+        .groupBy(techniques.userId);
+
+      // Get tactical notes counts
+      const tacticalCounts = await db
+        .select({
+          userId: tacticalNotes.userId,
+          tacticalCount: sql<number>`count(*)::int`.as('tacticalCount'),
+        })
+        .from(tacticalNotes)
+        .groupBy(tacticalNotes.userId);
+
+      // Get latest weight entries
+      const latestWeights = await db
+        .select({
+          userId: weightEntries.userId,
+          weight: weightEntries.weight,
+          date: weightEntries.date,
+        })
+        .from(weightEntries)
+        .where(
+          sql`(user_id, date) IN (
+            SELECT user_id, MAX(date) 
+            FROM weight_entries 
+            GROUP BY user_id
+          )`
+        );
+
+      // Get latest training sessions
+      const latestSessions = await db
+        .select({
+          userId: trainingSessions.userId,
+          session_type: trainingSessions.sessionType,
+          date: trainingSessions.date,
+        })
+        .from(trainingSessions)
+        .where(
+          sql`(user_id, date) IN (
+            SELECT user_id, MAX(date) 
+            FROM training_sessions 
+            GROUP BY user_id
+          )`
+        );
+
+      // Combine all data
+      const athletesWithStats = athletes.map(athlete => {
+        const trainerAssignment = trainerAssignments.find(ta => ta.studentId === athlete.id);
+        const weeklySessionsCount = trainingCounts.find(tc => tc.userId === athlete.id)?.sessionCount || 0;
+        const totalTechniques = techniqueCounts.find(tc => tc.userId === athlete.id)?.techniqueCount || 0;
+        const totalTacticalNotes = tacticalCounts.find(tc => tc.userId === athlete.id)?.tacticalCount || 0;
+        const lastWeightEntry = latestWeights.find(lw => lw.userId === athlete.id);
+        const lastTrainingSession = latestSessions.find(ls => ls.userId === athlete.id);
+
+        // Determine activity status based on weekly sessions
+        let activityStatus: 'active' | 'moderate' | 'inactive' = 'inactive';
+        if (weeklySessionsCount >= 3) {
+          activityStatus = 'active';
+        } else if (weeklySessionsCount >= 1) {
+          activityStatus = 'moderate';
+        }
+
+        return {
+          ...athlete,
+          activityStatus,
+          weeklySessionsCount,
+          totalTechniques,
+          totalTacticalNotes,
+          trainer: trainerAssignment ? {
+            id: trainerAssignment.trainerId,
+            full_name: trainerAssignment.trainerName,
+            email: trainerAssignment.trainerEmail,
+            assigned_at: trainerAssignment.assigned_at?.toISOString(),
+          } : undefined,
+          trainer_name: trainerAssignment?.trainerName,
+          trainer_email: trainerAssignment?.trainerEmail,
+          assigned_at: trainerAssignment?.assigned_at?.toISOString(),
+          lastWeightEntry: lastWeightEntry ? {
+            weight: Number(lastWeightEntry.weight),
+            date: lastWeightEntry.date,
+          } : undefined,
+          lastTrainingSession: lastTrainingSession ? {
+            session_type: lastTrainingSession.session_type,
+            date: lastTrainingSession.date,
+          } : undefined,
+        };
+      });
+
+      res.json(athletesWithStats);
+    } catch (error) {
+      console.error("Error fetching admin athletes data:", error);
+      res.status(500).json({ error: "Failed to fetch athletes data" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
