@@ -16,7 +16,7 @@ import {
 import { eq, and, desc, sql, isNull, gte, lte } from "drizzle-orm";
 
 // Import notification tables
-import { notifications, notificationSettings } from "@shared/schema";
+import { notifications, notificationSettings, notificationAlarms, insertNotificationAlarmsSchema } from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Authentication and User Management
@@ -1155,6 +1155,111 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error updating notification settings:", error);
       res.status(500).json({ error: "Failed to update notification settings" });
+    }
+  });
+
+  // ========================================
+  // NOTIFICATION ALARMS ROUTES
+  // ========================================
+
+  // Obtener alarmas de notificación del usuario
+  app.get("/api/notification-alarms/:userId", async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const result = await db
+        .select()
+        .from(notificationAlarms)
+        .where(eq(notificationAlarms.userId, userId))
+        .orderBy(desc(notificationAlarms.createdAt));
+      
+      res.json(result);
+    } catch (error) {
+      console.error("Error fetching notification alarms:", error);
+      res.status(500).json({ error: "Failed to fetch notification alarms" });
+    }
+  });
+
+  // Crear nueva alarma de notificación
+  app.post("/api/notification-alarms", async (req, res) => {
+    try {
+      const validated = insertNotificationAlarmsSchema.parse(req.body);
+      const result = await db.insert(notificationAlarms).values(validated).returning();
+      res.json(result[0]);
+    } catch (error) {
+      console.error("Error creating notification alarm:", error);
+      res.status(400).json({ error: "Invalid notification alarm data" });
+    }
+  });
+
+  // Actualizar alarma de notificación
+  app.patch("/api/notification-alarms/:alarmId", async (req, res) => {
+    try {
+      const { alarmId } = req.params;
+      const updateData = {
+        ...req.body,
+        updatedAt: new Date()
+      };
+      
+      const result = await db
+        .update(notificationAlarms)
+        .set(updateData)
+        .where(eq(notificationAlarms.id, alarmId))
+        .returning();
+        
+      if (result.length === 0) {
+        return res.status(404).json({ error: "Notification alarm not found" });
+      }
+      
+      res.json(result[0]);
+    } catch (error) {
+      console.error("Error updating notification alarm:", error);
+      res.status(500).json({ error: "Failed to update notification alarm" });
+    }
+  });
+
+  // Eliminar alarma de notificación
+  app.delete("/api/notification-alarms/:alarmId", async (req, res) => {
+    try {
+      const { alarmId } = req.params;
+      const result = await db
+        .delete(notificationAlarms)
+        .where(eq(notificationAlarms.id, alarmId))
+        .returning();
+        
+      if (result.length === 0) {
+        return res.status(404).json({ error: "Notification alarm not found" });
+      }
+      
+      res.json({ success: true, message: "Notification alarm deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting notification alarm:", error);
+      res.status(500).json({ error: "Failed to delete notification alarm" });
+    }
+  });
+
+  // Activar/desactivar alarma de notificación
+  app.patch("/api/notification-alarms/:alarmId/toggle", async (req, res) => {
+    try {
+      const { alarmId } = req.params;
+      const { isActive } = req.body;
+      
+      const result = await db
+        .update(notificationAlarms)
+        .set({ 
+          isActive: isActive,
+          updatedAt: new Date()
+        })
+        .where(eq(notificationAlarms.id, alarmId))
+        .returning();
+        
+      if (result.length === 0) {
+        return res.status(404).json({ error: "Notification alarm not found" });
+      }
+      
+      res.json(result[0]);
+    } catch (error) {
+      console.error("Error toggling notification alarm:", error);
+      res.status(500).json({ error: "Failed to toggle notification alarm" });
     }
   });
 

@@ -219,6 +219,19 @@ export const notifications = pgTable("notifications", {
   readAt: timestamp("read_at"),
 });
 
+// Individual notification alarms/reminders
+export const notificationAlarms = pgTable("notification_alarms", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id").notNull().references(() => profiles.id, { onDelete: "cascade" }),
+  title: text("title").notNull(), // Custom alarm title
+  category: text("category").notNull(), // 'training', 'weight', 'nutrition'
+  time: text("time").notNull(), // HH:MM format
+  days: text("days").array().notNull(), // ['monday', 'tuesday', etc.]
+  isActive: boolean("is_active").default(true).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 export const notificationSettings = pgTable("notification_settings", {
   id: uuid("id").primaryKey().defaultRandom(),
   userId: uuid("user_id").notNull().references(() => profiles.id, { onDelete: "cascade" }).unique(),
@@ -252,6 +265,7 @@ export const insertRandoriSessionSchema = createInsertSchema(randoriSessions);
 export const insertAchievementBadgeSchema = createInsertSchema(achievementBadges);
 export const insertUserAchievementSchema = createInsertSchema(userAchievements);
 export const insertNotificationSchema = createInsertSchema(notifications);
+export const insertNotificationAlarmsSchema = createInsertSchema(notificationAlarms);
 export const insertNotificationSettingsSchema = createInsertSchema(notificationSettings);
 
 // Type exports
@@ -287,6 +301,8 @@ export type UserAchievement = typeof userAchievements.$inferSelect;
 export type InsertUserAchievement = z.infer<typeof insertUserAchievementSchema>;
 export type Notification = typeof notifications.$inferSelect;
 export type InsertNotification = z.infer<typeof insertNotificationSchema>;
+export type NotificationAlarm = typeof notificationAlarms.$inferSelect;
+export type InsertNotificationAlarm = z.infer<typeof insertNotificationAlarmsSchema>;
 export type NotificationSettings = typeof notificationSettings.$inferSelect;
 export type InsertNotificationSettings = z.infer<typeof insertNotificationSettingsSchema>;
 

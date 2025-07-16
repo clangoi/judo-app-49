@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Bell, Check, X, Settings } from 'lucide-react';
-import { NotificationSettingsModal } from './notifications/NotificationSettingsModal';
+import { NotificationAlarmsManager } from './notifications/NotificationAlarmsManager';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -31,7 +31,7 @@ export const NotificationButton: React.FC<NotificationButtonProps> = ({ classNam
   } = useNotifications(user?.id);
   
   const [isOpen, setIsOpen] = useState(false);
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isAlarmsOpen, setIsAlarmsOpen] = useState(false);
 
   const handleMarkAsRead = async (notificationId: string) => {
     await markAsRead.mutateAsync(notificationId);
@@ -181,18 +181,18 @@ export const NotificationButton: React.FC<NotificationButtonProps> = ({ classNam
             className="w-full justify-center text-sm"
             onClick={() => {
               setIsOpen(false);
-              setIsSettingsOpen(true);
+              setIsAlarmsOpen(true);
             }}
           >
             <Settings className="h-4 w-4 mr-2" />
-            Configurar Notificaciones
+            Gestionar Alarmas
           </Button>
         </div>
       </DropdownMenuContent>
       
-      <NotificationSettingsModal 
-        isOpen={isSettingsOpen}
-        onClose={() => setIsSettingsOpen(false)}
+      <NotificationAlarmsManager 
+        isOpen={isAlarmsOpen}
+        onClose={() => setIsAlarmsOpen(false)}
       />
     </DropdownMenu>
   );
