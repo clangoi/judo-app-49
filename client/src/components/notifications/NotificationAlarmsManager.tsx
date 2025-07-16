@@ -119,13 +119,7 @@ export const NotificationAlarmsManager: React.FC<NotificationAlarmsManagerProps>
   };
 
   const handleToggleAlarm = async (alarmId: string, isActive: boolean) => {
-    try {
-      console.log('Frontend calling toggle for alarm:', alarmId, 'with isActive:', isActive);
-      await toggleAlarm.mutateAsync({ alarmId, isActive });
-      console.log('Toggle completed successfully');
-    } catch (error) {
-      console.error('Toggle failed in component:', error);
-    }
+    await toggleAlarm.mutateAsync({ alarmId, isActive });
   };
 
   const formatTime = (time: string) => {
@@ -172,7 +166,7 @@ export const NotificationAlarmsManager: React.FC<NotificationAlarmsManagerProps>
               </Button>
             </div>
 
-            <ScrollArea className="max-h-[50vh]">
+            <ScrollArea className="max-h-[60vh] pr-4">
               {isLoading ? (
                 <div className="flex items-center justify-center py-8">
                   <div className="text-muted-foreground">Cargando alarmas...</div>
@@ -186,7 +180,7 @@ export const NotificationAlarmsManager: React.FC<NotificationAlarmsManagerProps>
                   </div>
                 </div>
               ) : (
-                <div className="space-y-3">
+                <div className="space-y-2">
                   {alarms.map((alarm) => {
                     const config = categoryConfig[alarm.category];
                     const IconComponent = config.icon;
@@ -200,7 +194,7 @@ export const NotificationAlarmsManager: React.FC<NotificationAlarmsManagerProps>
                           !alarm.isActive && "opacity-60"
                         )}
                       >
-                        <CardContent className="p-4">
+                        <CardContent className="p-3">
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-3 flex-1">
                               <div className={cn(
@@ -253,7 +247,7 @@ export const NotificationAlarmsManager: React.FC<NotificationAlarmsManagerProps>
                                 variant="ghost"
                                 size="sm"
                                 onClick={() => handleEditAlarm(alarm)}
-                                className="h-8 w-8 p-0"
+                                className="h-7 w-7 p-0"
                               >
                                 <Edit2 className="h-3 w-3" />
                               </Button>
@@ -262,7 +256,7 @@ export const NotificationAlarmsManager: React.FC<NotificationAlarmsManagerProps>
                                 variant="ghost"
                                 size="sm"
                                 onClick={() => handleDeleteAlarm(alarm.id)}
-                                className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                                className="h-7 w-7 p-0 text-destructive hover:text-destructive"
                               >
                                 <Trash2 className="h-3 w-3" />
                               </Button>

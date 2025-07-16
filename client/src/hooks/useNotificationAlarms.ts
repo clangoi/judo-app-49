@@ -138,8 +138,6 @@ export const useNotificationAlarms = (userId: string) => {
   // Toggle alarm active state
   const toggleAlarm = useMutation({
     mutationFn: async ({ alarmId, isActive }: { alarmId: string; isActive: boolean }): Promise<NotificationAlarm> => {
-      console.log('Toggling alarm:', { alarmId, isActive });
-      
       const response = await fetch(`/api/notification-alarms/${alarmId}/toggle`, {
         method: 'PATCH',
         headers: {
@@ -148,17 +146,11 @@ export const useNotificationAlarms = (userId: string) => {
         body: JSON.stringify({ isActive }),
       });
 
-      console.log('Toggle response status:', response.status);
-      
       if (!response.ok) {
-        const errorData = await response.text();
-        console.error('Toggle error response:', errorData);
-        throw new Error(`Failed to toggle notification alarm: ${response.status} ${errorData}`);
+        throw new Error('Failed to toggle notification alarm');
       }
 
-      const result = await response.json();
-      console.log('Toggle success:', result);
-      return result;
+      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/notification-alarms', userId] });
