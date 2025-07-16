@@ -13,8 +13,21 @@ const AdminAthleteManagement = () => {
   const [selectedAthleteId, setSelectedAthleteId] = useState<string | null>(null);
   const [currentView, setCurrentView] = useState<'overview' | 'individual'>('overview');
 
-  const profileStats = getProfileStats(athletesData);
-  const trainerStats = getTrainerStats(athletesData);
+  const profileStats = getProfileStats ? getProfileStats(athletesData) : {
+    totalAthletes: 0,
+    activeAthletes: 0,
+    moderateAthletes: 0,
+    inactiveAthletes: 0,
+    averageWeeklySessions: 0,
+    totalTechniques: 0,
+    totalTacticalNotes: 0,
+  };
+  const trainerStats = getTrainerStats ? getTrainerStats(athletesData) : {
+    totalTrainers: 0,
+    athletesWithTrainer: 0,
+    athletesWithoutTrainer: 0,
+    averageAthletesPerTrainer: 0,
+  };
   const selectedAthlete = athletesData.find(a => a.id === selectedAthleteId);
 
   // Group athletes by trainer
