@@ -18,7 +18,7 @@ import {
   Trophy
 } from "lucide-react";
 import NavHeader from "@/components/NavHeader";
-import { AchievementTestButton } from "@/components/AchievementTestButton";
+
 
 const Index = () => {
   const { user } = useAuth();
@@ -134,20 +134,7 @@ const Index = () => {
         title={`${getGreeting()}, ${user?.email?.split('@')[0] || 'Usuario'}`}
         subtitle="Selecciona una opción para comenzar"
       />
-      <div className="container mx-auto px-4 mb-4">
-        <div className="flex justify-between items-center">
-          <Button
-            onClick={() => navigate("/test-notifications")}
-            variant="outline"
-            size="sm"
-            className="gap-2"
-          >
-            <Trophy className="w-4 h-4" />
-            Probar Notificaciones
-          </Button>
-          <AchievementTestButton />
-        </div>
-      </div>
+
       <div className="max-w-6xl mx-auto p-4">
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {availableItems.map((item) => {

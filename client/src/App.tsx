@@ -20,7 +20,7 @@ import Gestion from "./pages/Gestion";
 import Admin from "./pages/Admin";
 import TrainerClubs from "./pages/TrainerClubs";
 import Achievements from "./pages/Achievements";
-import NotificationTest from "./pages/NotificationTest";
+
 
 import NotFound from "./pages/NotFound";
 
@@ -92,11 +92,7 @@ const App = () => (
                   <Achievements />
                 </AuthGuard>
               } />
-              <Route path="/test-notifications" element={
-                <AuthGuard>
-                  <NotificationTest />
-                </AuthGuard>
-              } />
+
 
               <Route path="/404" element={<NotFound />} />
               <Route path="*" element={<Navigate to="/404" replace />} />

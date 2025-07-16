@@ -7,7 +7,7 @@ import { Progress } from "@/components/ui/progress";
 import { AchievementBadge } from "./AchievementBadge";
 import { useAchievements } from "@/hooks/useAchievements";
 import { useAuth } from "@/hooks/useAuth";
-import { Trophy, RefreshCw, TrendingUp, Calendar } from "lucide-react";
+import { Trophy, TrendingUp, Calendar } from "lucide-react";
 import NavHeader from "@/components/NavHeader";
 
 export const AchievementsPage: React.FC = () => {
@@ -16,18 +16,13 @@ export const AchievementsPage: React.FC = () => {
     badges,
     userAchievements,
     isLoading,
-    checkAchievements,
-    isCheckingAchievements,
     getAchievementStats,
     getRecentAchievements,
   } = useAchievements();
 
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
 
-  // Check for achievements when component mounts
-  useEffect(() => {
-    checkAchievements();
-  }, [checkAchievements]);
+
 
   if (isLoading) {
     return (
@@ -62,17 +57,7 @@ export const AchievementsPage: React.FC = () => {
         subtitle="Desbloquea insignias completando entrenamientos y alcanzando metas"
       />
       <div className="container mx-auto py-6 space-y-6">
-        {/* Action Button */}
-        <div className="flex justify-end">
-          <Button 
-            onClick={() => checkAchievements()}
-            disabled={isCheckingAchievements}
-            className="gap-2 bg-[#C5A46C] hover:bg-[#A08B5A] text-white"
-          >
-            <RefreshCw className={`w-4 h-4 ${isCheckingAchievements ? 'animate-spin' : ''}`} />
-            Verificar Logros
-          </Button>
-        </div>
+
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
