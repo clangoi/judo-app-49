@@ -10,7 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import NavHeader from "@/components/NavHeader";
-import { User, Settings, Save } from "lucide-react";
+import { User, Settings, Save, Edit, X, Eye } from "lucide-react";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 
@@ -27,7 +27,8 @@ const Configuracion = () => {
     enabled: !!user?.id,
   });
 
-  // Estados para los campos del formulario
+  // Estados para el modo de edición y los campos del formulario
+  const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
     fullName: "",
     email: "",
@@ -55,6 +56,7 @@ const Configuracion = () => {
   const updateProfileMutation = useMutation({
     mutationFn: (data: any) => api.updateUserProfile(user?.id!, data),
     onSuccess: () => {
+      setIsEditing(false);
       toast({
         title: "Configuración guardada",
         description: "Tus datos personales han sido actualizados correctamente.",
@@ -83,6 +85,25 @@ const Configuracion = () => {
     updateProfileMutation.mutate(formData);
   };
 
+  const handleEdit = () => {
+    setIsEditing(true);
+  };
+
+  const handleCancel = () => {
+    // Restaurar datos originales
+    if (userProfile) {
+      setFormData({
+        fullName: userProfile.fullName || "",
+        email: userProfile.email || "",
+        gender: userProfile.gender || "",
+        currentBelt: userProfile.currentBelt || "",
+        competitionCategory: userProfile.competitionCategory || "",
+        injuryDescription: userProfile.injuryDescription || "",
+      });
+    }
+    setIsEditing(false);
+  };
+
   const getBeltOptions = () => {
     return [
       { value: "white", label: "Blanco" },
@@ -98,8 +119,8 @@ const Configuracion = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
       <NavHeader 
-        title="Configuración Personal" 
-        subtitle="Edita tus datos personales y preferencias"
+        title={isEditing ? "Editar Datos Personales" : "Ver Datos Personales"} 
+        subtitle={isEditing ? "Modifica tu información personal" : "Revisa tu información personal actual"} 
       />
       
       <div className="max-w-4xl mx-auto p-6">
@@ -107,12 +128,18 @@ const Configuracion = () => {
           {/* Información del usuario */}
           <Card>
             <CardHeader>
-              <div className="flex items-center gap-2">
-                <User className="h-5 w-5 text-primary" />
-                <CardTitle>Información Personal</CardTitle>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <User className="h-5 w-5 text-primary" />
+                  <CardTitle>Información Personal</CardTitle>
+                </div>
+                <Badge variant={isEditing ? "default" : "secondary"} className="flex items-center gap-1">
+                  {isEditing ? <Edit className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
+                  {isEditing ? "Modo Edición" : "Modo Vista"}
+                </Badge>
               </div>
               <CardDescription>
-                Actualiza tu información básica y preferencias de perfil
+                {isEditing ? "Modifica tu información básica y preferencias de perfil" : "Consulta tu información básica y preferencias de perfil"}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -131,6 +158,7 @@ const Configuracion = () => {
                     value={formData.fullName}
                     onChange={(e) => handleInputChange('fullName', e.target.value)}
                     placeholder="Tu nombre completo"
+                    disabled={!isEditing}
                   />
                 </div>
 
@@ -142,12 +170,13 @@ const Configuracion = () => {
                     value={formData.email}
                     onChange={(e) => handleInputChange('email', e.target.value)}
                     placeholder="tu@correo.com"
+                    disabled={!isEditing}
                   />
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="gender">Género</Label>
-                  <Select value={formData.gender} onValueChange={(value) => handleInputChange('gender', value)}>
+                  <Select value={formData.gender} onValueChange={(value) => handleInputChange('gender', value)} disabled={!isEditing}>
                     <SelectTrigger>
                       <SelectValue placeholder="Selecciona tu género" />
                     </SelectTrigger>
@@ -160,7 +189,7 @@ const Configuracion = () => {
 
                 <div className="space-y-2">
                   <Label htmlFor="currentBelt">Cinturón Actual</Label>
-                  <Select value={formData.currentBelt} onValueChange={(value) => handleInputChange('currentBelt', value)}>
+                  <Select value={formData.currentBelt} onValueChange={(value) => handleInputChange('currentBelt', value)} disabled={!isEditing}>
                     <SelectTrigger>
                       <SelectValue placeholder="Selecciona tu cinturón" />
                     </SelectTrigger>
@@ -181,6 +210,7 @@ const Configuracion = () => {
                     value={formData.competitionCategory}
                     onChange={(e) => handleInputChange('competitionCategory', e.target.value)}
                     placeholder="Ej: -73kg, +100kg, etc."
+                    disabled={!isEditing}
                   />
                 </div>
 
@@ -192,31 +222,57 @@ const Configuracion = () => {
                     onChange={(e) => handleInputChange('injuryDescription', e.target.value)}
                     placeholder="Describe cualquier lesión o limitación física que debamos tener en cuenta..."
                     rows={3}
+                    disabled={!isEditing}
                   />
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          {/* Botón de guardar */}
-          <div className="flex justify-end">
-            <Button
-              onClick={handleSave}
-              disabled={updateProfileMutation.isPending || isLoadingProfile}
-              className="min-w-[120px]"
-            >
-              {updateProfileMutation.isPending ? (
+          {/* Botones de acción */}
+          <div className="flex justify-end gap-3">
+            {!isEditing ? (
+              <Button
+                onClick={handleEdit}
+                className="min-w-[120px]"
+              >
                 <div className="flex items-center gap-2">
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                  Guardando...
+                  <Edit className="h-4 w-4" />
+                  Editar Datos
                 </div>
-              ) : (
-                <div className="flex items-center gap-2">
-                  <Save className="h-4 w-4" />
-                  Guardar Cambios
-                </div>
-              )}
-            </Button>
+              </Button>
+            ) : (
+              <>
+                <Button
+                  variant="outline"
+                  onClick={handleCancel}
+                  disabled={updateProfileMutation.isPending}
+                  className="min-w-[100px]"
+                >
+                  <div className="flex items-center gap-2">
+                    <X className="h-4 w-4" />
+                    Cancelar
+                  </div>
+                </Button>
+                <Button
+                  onClick={handleSave}
+                  disabled={updateProfileMutation.isPending || isLoadingProfile}
+                  className="min-w-[120px]"
+                >
+                  {updateProfileMutation.isPending ? (
+                    <div className="flex items-center gap-2">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                      Guardando...
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      <Save className="h-4 w-4" />
+                      Guardar Cambios
+                    </div>
+                  )}
+                </Button>
+              </>
+            )}
           </div>
         </div>
       </div>
