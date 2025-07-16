@@ -119,7 +119,13 @@ export const NotificationAlarmsManager: React.FC<NotificationAlarmsManagerProps>
   };
 
   const handleToggleAlarm = async (alarmId: string, isActive: boolean) => {
-    await toggleAlarm.mutateAsync({ alarmId, isActive });
+    try {
+      console.log('Frontend calling toggle for alarm:', alarmId, 'with isActive:', isActive);
+      await toggleAlarm.mutateAsync({ alarmId, isActive });
+      console.log('Toggle completed successfully');
+    } catch (error) {
+      console.error('Toggle failed in component:', error);
+    }
   };
 
   const formatTime = (time: string) => {
