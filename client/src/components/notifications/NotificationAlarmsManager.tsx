@@ -166,7 +166,7 @@ export const NotificationAlarmsManager: React.FC<NotificationAlarmsManagerProps>
               </Button>
             </div>
 
-            <ScrollArea className="flex-1 pr-4">
+            <div className="h-[400px] overflow-y-auto pr-4">
               {isLoading ? (
                 <div className="flex items-center justify-center py-8">
                   <div className="text-muted-foreground">Cargando alarmas...</div>
@@ -268,7 +268,7 @@ export const NotificationAlarmsManager: React.FC<NotificationAlarmsManagerProps>
                   })}
                 </div>
               )}
-            </ScrollArea>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
