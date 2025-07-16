@@ -45,6 +45,25 @@ export const useAdminAthleteManagement = () => {
   });
 
   const getProfileStats = (athletes: AdminAthleteData[]) => {
+    const maleCount = athletes.filter(a => a.gender === 'male').length;
+    const femaleCount = athletes.filter(a => a.gender === 'female').length;
+    const unspecifiedCount = athletes.length - maleCount - femaleCount;
+    
+    const withInjuries = athletes.filter(a => a.injuries && a.injuries.length > 0).length;
+    const withoutInjuries = athletes.length - withInjuries;
+    
+    const clubDistribution = athletes.reduce((acc, athlete) => {
+      const club = athlete.club_name || 'Sin club';
+      acc[club] = (acc[club] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+    
+    const categoryDistribution = athletes.reduce((acc, athlete) => {
+      const category = athlete.competition_category || 'Sin categoría';
+      acc[category] = (acc[category] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+    
     return {
       totalAthletes: athletes.length,
       activeAthletes: athletes.filter(a => a.activityStatus === 'active').length,
@@ -55,6 +74,10 @@ export const useAdminAthleteManagement = () => {
         : 0,
       totalTechniques: athletes.reduce((sum, a) => sum + a.totalTechniques, 0),
       totalTacticalNotes: athletes.reduce((sum, a) => sum + a.totalTacticalNotes, 0),
+      genderDistribution: { male: maleCount, female: femaleCount, unspecified: unspecifiedCount },
+      injuryStats: { withInjuries, withoutInjuries },
+      clubDistribution,
+      categoryDistribution,
     };
   };
 

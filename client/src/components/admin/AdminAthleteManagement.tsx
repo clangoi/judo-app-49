@@ -21,6 +21,10 @@ const AdminAthleteManagement = () => {
     averageWeeklySessions: 0,
     totalTechniques: 0,
     totalTacticalNotes: 0,
+    genderDistribution: { male: 0, female: 0, unspecified: 0 },
+    injuryStats: { withInjuries: 0, withoutInjuries: 0 },
+    clubDistribution: {},
+    categoryDistribution: {},
   };
   const trainerStats = getTrainerStats ? getTrainerStats(athletesData) : {
     totalTrainers: 0,
