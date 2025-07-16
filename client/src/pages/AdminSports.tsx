@@ -11,7 +11,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
-import NavHeader from "@/components/NavHeader";
 
 interface Sport {
   id: string;
@@ -371,12 +370,7 @@ export const AdminSports = () => {
   }
 
   return (
-    <div className="container mx-auto p-6">
-      <NavHeader 
-        title="Gestión de Deportes" 
-        subtitle="Administra los tipos de deportes, cinturones y categorías" 
-      />
-      
+    <div className="space-y-6">
       <div className="mb-6">
         <Button onClick={handleCreateSport} className="flex items-center gap-2">
           <Plus className="h-4 w-4" />
