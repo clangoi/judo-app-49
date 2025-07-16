@@ -20,6 +20,7 @@ interface Sport {
   genderCategories: {
     masculino: boolean;
     femenino: boolean;
+    mixto: boolean;
   };
   ageCategories: string[];
   isActive: boolean;
@@ -33,6 +34,7 @@ interface SportFormData {
   genderCategories: {
     masculino: boolean;
     femenino: boolean;
+    mixto: boolean;
   };
   ageCategories: string[];
 }
@@ -64,10 +66,13 @@ export const AdminSports = () => {
     belts: [],
     genderCategories: {
       masculino: true,
-      femenino: true
+      femenino: true,
+      mixto: false
     },
     ageCategories: []
   });
+  const [newBelt, setNewBelt] = useState("");
+  const [newAgeCategory, setNewAgeCategory] = useState("");
 
   // Fetch sports
   const { data: sports = [], isLoading } = useQuery({
@@ -148,10 +153,13 @@ export const AdminSports = () => {
       belts: [],
       genderCategories: {
         masculino: true,
-        femenino: true
+        femenino: true,
+        mixto: false
       },
       ageCategories: []
     });
+    setNewBelt("");
+    setNewAgeCategory("");
   };
 
   const handleCreateSport = () => {
@@ -195,10 +203,37 @@ export const AdminSports = () => {
     }
   };
 
-  const handleQuickSetupBelts = (sportType: keyof typeof defaultBelts) => {
+  const handleAddBelt = () => {
+    if (newBelt.trim() && !formData.belts.includes(newBelt.trim())) {
+      setFormData(prev => ({
+        ...prev,
+        belts: [...prev.belts, newBelt.trim()]
+      }));
+      setNewBelt("");
+    }
+  };
+
+  const handleRemoveBelt = (belt: string) => {
     setFormData(prev => ({
       ...prev,
-      belts: defaultBelts[sportType]
+      belts: prev.belts.filter(b => b !== belt)
+    }));
+  };
+
+  const handleAddAgeCategory = () => {
+    if (newAgeCategory.trim() && !formData.ageCategories.includes(newAgeCategory.trim())) {
+      setFormData(prev => ({
+        ...prev,
+        ageCategories: [...prev.ageCategories, newAgeCategory.trim()]
+      }));
+      setNewAgeCategory("");
+    }
+  };
+
+  const handleRemoveAgeCategory = (category: string) => {
+    setFormData(prev => ({
+      ...prev,
+      ageCategories: prev.ageCategories.filter(c => c !== category)
     }));
   };
 
@@ -254,44 +289,32 @@ export const AdminSports = () => {
             />
           </div>
 
-          {/* Quick Setup Belts */}
-          <div className="space-y-3">
-            <Label>Configuración Rápida de Cinturones</Label>
-            <div className="flex gap-2">
-              <Button 
-                type="button" 
-                variant="outline" 
-                size="sm"
-                onClick={() => handleQuickSetupBelts("judo")}
-              >
-                Judo/Karate
-              </Button>
-              <Button 
-                type="button" 
-                variant="outline" 
-                size="sm"
-                onClick={() => handleQuickSetupBelts("jiujitsu")}
-              >
-                JiuJitsu
-              </Button>
-            </div>
-          </div>
-
           {/* Custom Belts */}
           <div className="space-y-3">
-            <Label>Cinturones Disponibles</Label>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-              {["blanco", "amarillo", "naranja", "verde", "azul", "púrpura", "marrón", "negro"].map((belt) => (
-                <div key={belt} className="flex items-center space-x-2">
-                  <Checkbox
-                    id={`belt-${belt}`}
-                    checked={formData.belts.includes(belt)}
-                    onCheckedChange={(checked) => handleBeltChange(belt, checked as boolean)}
-                  />
-                  <Label htmlFor={`belt-${belt}`} className="text-sm capitalize">
-                    {belt}
-                  </Label>
-                </div>
+            <Label>Cinturones del Deporte</Label>
+            <div className="flex gap-2">
+              <Input
+                value={newBelt}
+                onChange={(e) => setNewBelt(e.target.value)}
+                placeholder="Agregar nuevo cinturón (ej: blanco, negro, etc.)"
+                onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddBelt())}
+              />
+              <Button type="button" onClick={handleAddBelt} variant="outline">
+                <Plus className="h-4 w-4" />
+              </Button>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {formData.belts.map((belt) => (
+                <Badge key={belt} variant="outline" className="flex items-center gap-1">
+                  {belt}
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveBelt(belt)}
+                    className="ml-1 hover:text-destructive"
+                  >
+                    <Trash2 className="h-3 w-3" />
+                  </button>
+                </Badge>
               ))}
             </div>
           </div>
@@ -326,24 +349,65 @@ export const AdminSports = () => {
                 />
                 <Label htmlFor="femenino">Femenino</Label>
               </div>
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="mixto"
+                  checked={formData.genderCategories.mixto}
+                  onCheckedChange={(checked) => 
+                    setFormData(prev => ({
+                      ...prev,
+                      genderCategories: { ...prev.genderCategories, mixto: checked as boolean }
+                    }))
+                  }
+                />
+                <Label htmlFor="mixto">Mixto</Label>
+              </div>
             </div>
           </div>
 
           {/* Age Categories */}
           <div className="space-y-3">
             <Label>Categorías por Edad</Label>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-              {defaultAgeCategories.map((category) => (
-                <div key={category} className="flex items-center space-x-2">
-                  <Checkbox
-                    id={`age-${category}`}
-                    checked={formData.ageCategories.includes(category)}
-                    onCheckedChange={(checked) => handleAgeCategoryChange(category, checked as boolean)}
-                  />
-                  <Label htmlFor={`age-${category}`} className="text-sm capitalize">
-                    {category}
-                  </Label>
-                </div>
+            <div className="flex gap-2 mb-3">
+              <Input
+                value={newAgeCategory}
+                onChange={(e) => setNewAgeCategory(e.target.value)}
+                placeholder="Agregar nueva categoría de edad (ej: cadete, master, etc.)"
+                onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddAgeCategory())}
+              />
+              <Button type="button" onClick={handleAddAgeCategory} variant="outline">
+                <Plus className="h-4 w-4" />
+              </Button>
+            </div>
+            <div className="space-y-2">
+              <p className="text-sm text-muted-foreground">Categorías comunes disponibles:</p>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                {defaultAgeCategories.map((category) => (
+                  <div key={category} className="flex items-center space-x-2">
+                    <Checkbox
+                      id={`age-${category}`}
+                      checked={formData.ageCategories.includes(category)}
+                      onCheckedChange={(checked) => handleAgeCategoryChange(category, checked as boolean)}
+                    />
+                    <Label htmlFor={`age-${category}`} className="text-sm capitalize">
+                      {category}
+                    </Label>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {formData.ageCategories.map((category) => (
+                <Badge key={category} variant="outline" className="flex items-center gap-1">
+                  {category}
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveAgeCategory(category)}
+                    className="ml-1 hover:text-destructive"
+                  >
+                    <Trash2 className="h-3 w-3" />
+                  </button>
+                </Badge>
               ))}
             </div>
           </div>
