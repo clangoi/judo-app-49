@@ -201,183 +201,273 @@ const Configuracion = () => {
                   <User className="h-5 w-5 text-primary" />
                   <CardTitle>Información Personal</CardTitle>
                 </div>
-                <Badge variant={isEditing ? "default" : "secondary"} className="flex items-center gap-1">
-                  {isEditing ? <Edit className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
-                  {isEditing ? "Modo Edición" : "Modo Vista"}
-                </Badge>
+                {isEditing && (
+                  <Badge variant="default" className="flex items-center gap-1">
+                    <Edit className="h-3 w-3" />
+                    Modo Edición
+                  </Badge>
+                )}
               </div>
               <CardDescription>
                 {isEditing ? "Modifica tu información básica y preferencias de perfil" : "Consulta tu información básica y preferencias de perfil"}
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center gap-2 mb-4">
-                <Badge variant="outline">
-                  Rol: {currentUserRole === 'admin' ? 'Administrador' : 
-                        currentUserRole === 'entrenador' ? 'Entrenador' : 'Deportista'}
-                </Badge>
-              </div>
-
-              {/* Imagen de perfil */}
-              <div className="flex items-center gap-4 mb-6 p-4 border rounded-lg">
-                <Avatar className="h-20 w-20">
-                  <AvatarImage src={formData.profileImageUrl} alt="Foto de perfil" />
-                  <AvatarFallback>
-                    <User className="h-10 w-10" />
-                  </AvatarFallback>
-                </Avatar>
-                <div className="flex-1">
-                  <Label htmlFor="profileImage" className="text-sm font-medium">Foto de Perfil</Label>
-                  <p className="text-xs text-muted-foreground mb-2">
-                    {isEditing ? "Sube una imagen para tu perfil" : "Tu foto de perfil actual"}
-                  </p>
-                  {isEditing && (
-                    <div className="flex items-center gap-2">
-                      <Input
-                        id="profileImage"
-                        type="file"
-                        accept="image/*"
-                        onChange={handleImageUpload}
-                        className="hidden"
-                      />
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => document.getElementById('profileImage')?.click()}
-                      >
-                        <Camera className="h-4 w-4 mr-2" />
-                        {formData.profileImageUrl ? 'Cambiar Foto' : 'Subir Foto'}
-                      </Button>
-                      {formData.profileImageUrl && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setFormData(prev => ({ ...prev, profileImageUrl: "" }))}
-                        >
-                          <X className="h-4 w-4" />
-                        </Button>
-                      )}
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="fullName">Nombre Completo</Label>
-                  <Input
-                    id="fullName"
-                    value={formData.fullName}
-                    onChange={(e) => handleInputChange('fullName', e.target.value)}
-                    placeholder="Tu nombre completo"
-                    disabled={!isEditing}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="email">Correo Electrónico</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={formData.email}
-                    onChange={(e) => handleInputChange('email', e.target.value)}
-                    placeholder="tu@correo.com"
-                    disabled={!isEditing}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="birthDate" className="flex items-center gap-2">
-                    <Calendar className="h-4 w-4" />
-                    Fecha de Nacimiento
-                  </Label>
-                  <Input
-                    id="birthDate"
-                    type="date"
-                    value={formData.birthDate}
-                    onChange={(e) => handleInputChange('birthDate', e.target.value)}
-                    disabled={!isEditing}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="gender">Género</Label>
-                  <Select value={formData.gender} onValueChange={(value) => handleInputChange('gender', value)} disabled={!isEditing}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecciona tu género" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="male">Masculino</SelectItem>
-                      <SelectItem value="female">Femenino</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="currentBelt">Cinturón Actual</Label>
-                  <Select value={formData.currentBelt} onValueChange={(value) => handleInputChange('currentBelt', value)} disabled={!isEditing}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecciona tu cinturón" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {getBeltOptions().map((belt) => (
-                        <SelectItem key={belt.value} value={belt.value}>
-                          {belt.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2 md:col-span-2">
-                  <Label htmlFor="competitionCategory">Categoría de Competición</Label>
-                  <Input
-                    id="competitionCategory"
-                    value={formData.competitionCategory}
-                    onChange={(e) => handleInputChange('competitionCategory', e.target.value)}
-                    placeholder="Ej: -73kg, +100kg, etc."
-                    disabled={!isEditing}
-                  />
-                </div>
-
-                {/* Lesiones */}
-                <div className="space-y-4 md:col-span-2">
-                  <Label>Lesiones</Label>
-                  <p className="text-sm text-muted-foreground">
-                    Selecciona las lesiones que has tenido o que te afectan actualmente
-                  </p>
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                    {getTypicalInjuries().map((injury) => (
-                      <div key={injury} className="flex items-center space-x-2">
-                        <Checkbox
-                          id={`injury-${injury}`}
-                          checked={formData.injuries.includes(injury)}
-                          onCheckedChange={(checked) => handleInjuryChange(injury, checked as boolean)}
-                          disabled={!isEditing}
-                        />
-                        <Label
-                          htmlFor={`injury-${injury}`}
-                          className="text-sm font-normal leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                        >
-                          {injury}
-                        </Label>
-                      </div>
-                    ))}
+            <CardContent className="space-y-6">
+              {!isEditing ? (
+                // MODO VISTA - Datos fijos y limpios
+                <>
+                  <div className="flex items-center gap-2 mb-6">
+                    <Badge variant="outline">
+                      Rol: {currentUserRole === 'admin' ? 'Administrador' : 
+                            currentUserRole === 'entrenador' ? 'Entrenador' : 'Deportista'}
+                    </Badge>
                   </div>
-                </div>
 
-                <div className="space-y-2 md:col-span-2">
-                  <Label htmlFor="injuryDescription">Descripción de Lesiones</Label>
-                  <Textarea
-                    id="injuryDescription"
-                    value={formData.injuryDescription}
-                    onChange={(e) => handleInputChange('injuryDescription', e.target.value)}
-                    placeholder="Describe cualquier lesión o limitación física que debamos tener en cuenta..."
-                    rows={3}
-                    disabled={!isEditing}
-                  />
-                </div>
-              </div>
+                  {/* Imagen de perfil en modo vista */}
+                  <div className="flex items-center gap-4 mb-6">
+                    <Avatar className="h-20 w-20">
+                      <AvatarImage src={formData.profileImageUrl} alt="Foto de perfil" />
+                      <AvatarFallback>
+                        <User className="h-10 w-10" />
+                      </AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground">Foto de Perfil</p>
+                      <p className="text-sm">{formData.profileImageUrl ? "Imagen cargada" : "Sin imagen"}</p>
+                    </div>
+                  </div>
+
+                  {/* Datos personales en modo vista */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-1">
+                      <p className="text-sm font-medium text-muted-foreground">Nombre Completo</p>
+                      <p className="text-base">{formData.fullName || "No especificado"}</p>
+                    </div>
+
+                    <div className="space-y-1">
+                      <p className="text-sm font-medium text-muted-foreground">Correo Electrónico</p>
+                      <p className="text-base">{formData.email || "No especificado"}</p>
+                    </div>
+
+                    <div className="space-y-1">
+                      <p className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                        <Calendar className="h-4 w-4" />
+                        Fecha de Nacimiento
+                      </p>
+                      <p className="text-base">{formData.birthDate || "No especificada"}</p>
+                    </div>
+
+                    <div className="space-y-1">
+                      <p className="text-sm font-medium text-muted-foreground">Género</p>
+                      <p className="text-base">
+                        {formData.gender === 'male' ? 'Masculino' : 
+                         formData.gender === 'female' ? 'Femenino' : 'No especificado'}
+                      </p>
+                    </div>
+
+                    <div className="space-y-1">
+                      <p className="text-sm font-medium text-muted-foreground">Cinturón Actual</p>
+                      <p className="text-base">
+                        {getBeltOptions().find(belt => belt.value === formData.currentBelt)?.label || "No especificado"}
+                      </p>
+                    </div>
+
+                    <div className="space-y-1">
+                      <p className="text-sm font-medium text-muted-foreground">Categoría de Competición</p>
+                      <p className="text-base">{formData.competitionCategory || "No especificada"}</p>
+                    </div>
+                  </div>
+
+                  {/* Lesiones en modo vista */}
+                  <div className="space-y-3">
+                    <p className="text-sm font-medium text-muted-foreground">Lesiones</p>
+                    {formData.injuries.length > 0 ? (
+                      <div className="flex flex-wrap gap-2">
+                        {formData.injuries.map((injury) => (
+                          <Badge key={injury} variant="secondary" className="text-xs">
+                            {injury}
+                          </Badge>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-sm text-muted-foreground">Ninguna lesión registrada</p>
+                    )}
+                  </div>
+
+                  {/* Descripción de lesiones en modo vista */}
+                  <div className="space-y-3">
+                    <p className="text-sm font-medium text-muted-foreground">Descripción de Lesiones</p>
+                    <p className="text-base whitespace-pre-wrap">
+                      {formData.injuryDescription || "Sin descripción adicional"}
+                    </p>
+                  </div>
+                </>
+              ) : (
+                // MODO EDICIÓN - Formularios
+                <>
+                  <div className="flex items-center gap-2 mb-4">
+                    <Badge variant="outline">
+                      Rol: {currentUserRole === 'admin' ? 'Administrador' : 
+                            currentUserRole === 'entrenador' ? 'Entrenador' : 'Deportista'}
+                    </Badge>
+                  </div>
+
+                  {/* Imagen de perfil en modo edición */}
+                  <div className="flex items-center gap-4 mb-6 p-4 border rounded-lg">
+                    <Avatar className="h-20 w-20">
+                      <AvatarImage src={formData.profileImageUrl} alt="Foto de perfil" />
+                      <AvatarFallback>
+                        <User className="h-10 w-10" />
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1">
+                      <Label htmlFor="profileImage" className="text-sm font-medium">Foto de Perfil</Label>
+                      <p className="text-xs text-muted-foreground mb-2">
+                        Sube una imagen para tu perfil
+                      </p>
+                      <div className="flex items-center gap-2">
+                        <Input
+                          id="profileImage"
+                          type="file"
+                          accept="image/*"
+                          onChange={handleImageUpload}
+                          className="hidden"
+                        />
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => document.getElementById('profileImage')?.click()}
+                        >
+                          <Camera className="h-4 w-4 mr-2" />
+                          {formData.profileImageUrl ? 'Cambiar Foto' : 'Subir Foto'}
+                        </Button>
+                        {formData.profileImageUrl && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setFormData(prev => ({ ...prev, profileImageUrl: "" }))}
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Formularios en modo edición */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="fullName">Nombre Completo</Label>
+                      <Input
+                        id="fullName"
+                        value={formData.fullName}
+                        onChange={(e) => handleInputChange('fullName', e.target.value)}
+                        placeholder="Tu nombre completo"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="email">Correo Electrónico</Label>
+                      <Input
+                        id="email"
+                        type="email"
+                        value={formData.email}
+                        onChange={(e) => handleInputChange('email', e.target.value)}
+                        placeholder="tu@correo.com"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="birthDate" className="flex items-center gap-2">
+                        <Calendar className="h-4 w-4" />
+                        Fecha de Nacimiento
+                      </Label>
+                      <Input
+                        id="birthDate"
+                        type="date"
+                        value={formData.birthDate}
+                        onChange={(e) => handleInputChange('birthDate', e.target.value)}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="gender">Género</Label>
+                      <Select value={formData.gender} onValueChange={(value) => handleInputChange('gender', value)}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecciona tu género" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="male">Masculino</SelectItem>
+                          <SelectItem value="female">Femenino</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="currentBelt">Cinturón Actual</Label>
+                      <Select value={formData.currentBelt} onValueChange={(value) => handleInputChange('currentBelt', value)}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecciona tu cinturón" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {getBeltOptions().map((belt) => (
+                            <SelectItem key={belt.value} value={belt.value}>
+                              {belt.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="competitionCategory">Categoría de Competición</Label>
+                      <Input
+                        id="competitionCategory"
+                        value={formData.competitionCategory}
+                        onChange={(e) => handleInputChange('competitionCategory', e.target.value)}
+                        placeholder="Ej: -73kg, +100kg, etc."
+                      />
+                    </div>
+                  </div>
+
+                  {/* Lesiones en modo edición */}
+                  <div className="space-y-4">
+                    <Label>Lesiones</Label>
+                    <p className="text-sm text-muted-foreground">
+                      Selecciona las lesiones que has tenido o que te afectan actualmente
+                    </p>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                      {getTypicalInjuries().map((injury) => (
+                        <div key={injury} className="flex items-center space-x-2">
+                          <Checkbox
+                            id={`injury-${injury}`}
+                            checked={formData.injuries.includes(injury)}
+                            onCheckedChange={(checked) => handleInjuryChange(injury, checked as boolean)}
+                          />
+                          <Label
+                            htmlFor={`injury-${injury}`}
+                            className="text-sm font-normal leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                          >
+                            {injury}
+                          </Label>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Descripción de lesiones en modo edición */}
+                  <div className="space-y-2">
+                    <Label htmlFor="injuryDescription">Descripción de Lesiones</Label>
+                    <Textarea
+                      id="injuryDescription"
+                      value={formData.injuryDescription}
+                      onChange={(e) => handleInputChange('injuryDescription', e.target.value)}
+                      placeholder="Describe cualquier lesión o limitación física que debamos tener en cuenta..."
+                      rows={3}
+                    />
+                  </div>
+                </>
+              )}
             </CardContent>
           </Card>
 
