@@ -340,21 +340,9 @@ const Configuracion = () => {
                   />
                 </div>
 
-                <div className="space-y-2 md:col-span-2">
-                  <Label htmlFor="injuryDescription">Descripción de Lesiones</Label>
-                  <Textarea
-                    id="injuryDescription"
-                    value={formData.injuryDescription}
-                    onChange={(e) => handleInputChange('injuryDescription', e.target.value)}
-                    placeholder="Describe cualquier lesión o limitación física que debamos tener en cuenta..."
-                    rows={3}
-                    disabled={!isEditing}
-                  />
-                </div>
-
-                {/* Lesiones típicas */}
+                {/* Lesiones */}
                 <div className="space-y-4 md:col-span-2">
-                  <Label>Lesiones Típicas</Label>
+                  <Label>Lesiones</Label>
                   <p className="text-sm text-muted-foreground">
                     Selecciona las lesiones que has tenido o que te afectan actualmente
                   </p>
@@ -376,6 +364,18 @@ const Configuracion = () => {
                       </div>
                     ))}
                   </div>
+                </div>
+
+                <div className="space-y-2 md:col-span-2">
+                  <Label htmlFor="injuryDescription">Descripción de Lesiones</Label>
+                  <Textarea
+                    id="injuryDescription"
+                    value={formData.injuryDescription}
+                    onChange={(e) => handleInputChange('injuryDescription', e.target.value)}
+                    placeholder="Describe cualquier lesión o limitación física que debamos tener en cuenta..."
+                    rows={3}
+                    disabled={!isEditing}
+                  />
                 </div>
               </div>
             </CardContent>
