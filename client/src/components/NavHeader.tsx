@@ -131,10 +131,9 @@ const NavHeader = ({ title, subtitle }: NavHeaderProps) => {
                 variant="ghost"
                 size="sm"
                 onClick={handleAdminPanel}
-                className="text-primary-foreground hover:bg-primary-foreground/20"
+                className="text-primary-foreground hover:bg-primary-foreground/20 p-2"
               >
-                <Shield className="h-4 w-4 mr-2" />
-                Gestión
+                <Shield className="h-4 w-4" />
               </Button>
             )}
 
