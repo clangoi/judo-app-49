@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRoles } from "@/hooks/useUserRoles";
 import { Button } from "@/components/ui/button";
@@ -11,23 +11,66 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import NavHeader from "@/components/NavHeader";
 import { User, Settings, Save } from "lucide-react";
+import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
+import { api } from "@/lib/api";
 
 const Configuracion = () => {
   const { user } = useAuth();
   const { currentUserRole } = useUserRoles(user?.id);
   const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  // Cargar el perfil actual del usuario
+  const { data: userProfile, isLoading: isLoadingProfile } = useQuery({
+    queryKey: ['user-profile', user?.id],
+    queryFn: () => api.getUserProfile(user?.id!),
+    enabled: !!user?.id,
+  });
 
   // Estados para los campos del formulario
   const [formData, setFormData] = useState({
-    fullName: user?.fullName || "",
-    email: user?.email || "",
-    gender: user?.gender || "",
-    currentBelt: user?.currentBelt || "",
-    competitionCategory: user?.competitionCategory || "",
-    injuryDescription: user?.injuryDescription || "",
+    fullName: "",
+    email: "",
+    gender: "",
+    currentBelt: "",
+    competitionCategory: "",
+    injuryDescription: "",
   });
 
-  const [isLoading, setIsLoading] = useState(false);
+  // Actualizar formData cuando se carga el perfil
+  useEffect(() => {
+    if (userProfile) {
+      setFormData({
+        fullName: userProfile.fullName || "",
+        email: userProfile.email || "",
+        gender: userProfile.gender || "",
+        currentBelt: userProfile.currentBelt || "",
+        competitionCategory: userProfile.competitionCategory || "",
+        injuryDescription: userProfile.injuryDescription || "",
+      });
+    }
+  }, [userProfile]);
+
+  // Mutación para actualizar el perfil
+  const updateProfileMutation = useMutation({
+    mutationFn: (data: any) => api.updateUserProfile(user?.id!, data),
+    onSuccess: () => {
+      toast({
+        title: "Configuración guardada",
+        description: "Tus datos personales han sido actualizados correctamente.",
+      });
+      // Invalidar queries relacionadas
+      queryClient.invalidateQueries({ queryKey: ['user-profile'] });
+      queryClient.invalidateQueries({ queryKey: ['auth-user'] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "No se pudieron guardar los cambios. Inténtalo de nuevo.",
+        variant: "destructive",
+      });
+    },
+  });
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({
@@ -37,23 +80,7 @@ const Configuracion = () => {
   };
 
   const handleSave = async () => {
-    setIsLoading(true);
-    try {
-      // Aquí se implementaría la lógica para guardar los datos
-      // Por ahora solo mostramos un mensaje de éxito
-      toast({
-        title: "Configuración guardada",
-        description: "Tus datos personales han sido actualizados correctamente.",
-      });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "No se pudieron guardar los cambios. Inténtalo de nuevo.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
+    updateProfileMutation.mutate(formData);
   };
 
   const getBeltOptions = () => {
@@ -175,10 +202,10 @@ const Configuracion = () => {
           <div className="flex justify-end">
             <Button
               onClick={handleSave}
-              disabled={isLoading}
+              disabled={updateProfileMutation.isPending || isLoadingProfile}
               className="min-w-[120px]"
             >
-              {isLoading ? (
+              {updateProfileMutation.isPending ? (
                 <div className="flex items-center gap-2">
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
                   Guardando...
