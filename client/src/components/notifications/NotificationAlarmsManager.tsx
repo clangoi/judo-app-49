@@ -144,7 +144,7 @@ export const NotificationAlarmsManager: React.FC<NotificationAlarmsManagerProps>
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="sm:max-w-[600px] max-h-[80vh]">
+        <DialogContent className="sm:max-w-[600px] max-h-[85vh] flex flex-col">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Clock className="h-5 w-5" />
@@ -155,8 +155,8 @@ export const NotificationAlarmsManager: React.FC<NotificationAlarmsManagerProps>
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-4">
-            <div className="flex justify-between items-center">
+          <div className="flex flex-col space-y-4 flex-1 min-h-0">
+            <div className="flex justify-between items-center flex-shrink-0">
               <div className="text-sm text-muted-foreground">
                 {alarms.length} alarma{alarms.length !== 1 ? 's' : ''} configurada{alarms.length !== 1 ? 's' : ''}
               </div>
@@ -166,7 +166,7 @@ export const NotificationAlarmsManager: React.FC<NotificationAlarmsManagerProps>
               </Button>
             </div>
 
-            <ScrollArea className="max-h-[60vh] pr-4">
+            <ScrollArea className="flex-1 pr-4">
               {isLoading ? (
                 <div className="flex items-center justify-center py-8">
                   <div className="text-muted-foreground">Cargando alarmas...</div>
