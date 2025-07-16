@@ -114,7 +114,7 @@ const AdminAthleteManagement = () => {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold text-blue-600">
-                  {Object.keys(trainerStats.trainerDistribution).filter(t => t !== 'Sin entrenador').length}
+                  {trainerStats.totalTrainers}
                 </div>
                 <p className="text-xs text-muted-foreground">
                   Con deportistas asignados
@@ -129,7 +129,7 @@ const AdminAthleteManagement = () => {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold text-orange-600">
-                  {trainerStats.trainerDistribution['Sin entrenador'] || 0}
+                  {trainerStats.athletesWithoutTrainer}
                 </div>
                 <p className="text-xs text-muted-foreground">
                   Deportistas sin entrenador
@@ -142,24 +142,32 @@ const AdminAthleteManagement = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <ProfileSummaryStats profileStats={profileStats} />
             
-            {/* Distribución por Entrenador */}
+            {/* Resumen de Entrenadores */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Shield className="h-5 w-5" />
-                  Distribución por Entrenador
+                  Resumen de Entrenadores
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-2">
-                  {Object.entries(trainerStats.trainerDistribution)
-                    .sort(([,a], [,b]) => b - a)
-                    .map(([trainerName, count]) => (
-                      <div key={trainerName} className="flex justify-between items-center">
-                        <span className="text-sm">{trainerName}</span>
-                        <span className="font-semibold">{count}</span>
-                      </div>
-                    ))}
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm">Total de entrenadores activos:</span>
+                    <span className="font-semibold">{trainerStats.totalTrainers}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm">Deportistas con entrenador:</span>
+                    <span className="font-semibold">{trainerStats.athletesWithTrainer}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm">Deportistas sin entrenador:</span>
+                    <span className="font-semibold">{trainerStats.athletesWithoutTrainer}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm">Promedio por entrenador:</span>
+                    <span className="font-semibold">{trainerStats.averageAthletesPerTrainer}</span>
+                  </div>
                 </div>
               </CardContent>
             </Card>
