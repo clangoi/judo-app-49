@@ -126,7 +126,7 @@ const NavHeader = ({ title, subtitle }: NavHeaderProps) => {
               </Badge>
             )}
             
-            {currentUserRole === 'admin' && location.pathname !== '/admin' && (
+            {currentUserRole === 'admin' && (
               <Button
                 variant="ghost"
                 size="sm"
