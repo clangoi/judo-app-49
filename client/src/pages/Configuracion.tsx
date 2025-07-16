@@ -8,9 +8,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
 import NavHeader from "@/components/NavHeader";
-import { User, Settings, Save, Edit, X, Eye } from "lucide-react";
+import { User, Settings, Save, Edit, X, Eye, Camera, Calendar } from "lucide-react";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 
@@ -36,6 +38,9 @@ const Configuracion = () => {
     currentBelt: "",
     competitionCategory: "",
     injuryDescription: "",
+    profileImageUrl: "",
+    birthDate: "",
+    injuries: [] as string[],
   });
 
   // Actualizar formData cuando se carga el perfil
@@ -48,6 +53,9 @@ const Configuracion = () => {
         currentBelt: userProfile.currentBelt || "",
         competitionCategory: userProfile.competitionCategory || "",
         injuryDescription: userProfile.injuryDescription || "",
+        profileImageUrl: userProfile.profileImageUrl || "",
+        birthDate: userProfile.birthDate || "",
+        injuries: userProfile.injuries || [],
       });
     }
   }, [userProfile]);
@@ -99,6 +107,9 @@ const Configuracion = () => {
         currentBelt: userProfile.currentBelt || "",
         competitionCategory: userProfile.competitionCategory || "",
         injuryDescription: userProfile.injuryDescription || "",
+        profileImageUrl: userProfile.profileImageUrl || "",
+        birthDate: userProfile.birthDate || "",
+        injuries: userProfile.injuries || [],
       });
     }
     setIsEditing(false);
@@ -114,6 +125,63 @@ const Configuracion = () => {
       { value: "brown", label: "Marrón" },
       { value: "black", label: "Negro" },
     ];
+  };
+
+  const getTypicalInjuries = () => {
+    return [
+      "Lesión de rodilla",
+      "Lesión de hombro",
+      "Lesión de muñeca",
+      "Lesión de tobillo",
+      "Lesión de espalda baja",
+      "Lesión de cuello",
+      "Lesión de dedos",
+      "Lesión de codo",
+      "Problemas de cadera",
+      "Contusiones frecuentes"
+    ];
+  };
+
+  const handleInjuryChange = (injury: string, checked: boolean) => {
+    setFormData(prev => ({
+      ...prev,
+      injuries: checked 
+        ? [...prev.injuries, injury]
+        : prev.injuries.filter(i => i !== injury)
+    }));
+  };
+
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setFormData(prev => ({
+          ...prev,
+          profileImageUrl: data.url
+        }));
+        toast({
+          title: "Imagen cargada",
+          description: "Tu foto de perfil se ha cargado correctamente.",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "No se pudo cargar la imagen. Inténtalo de nuevo.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -150,6 +218,50 @@ const Configuracion = () => {
                 </Badge>
               </div>
 
+              {/* Imagen de perfil */}
+              <div className="flex items-center gap-4 mb-6 p-4 border rounded-lg">
+                <Avatar className="h-20 w-20">
+                  <AvatarImage src={formData.profileImageUrl} alt="Foto de perfil" />
+                  <AvatarFallback>
+                    <User className="h-10 w-10" />
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex-1">
+                  <Label htmlFor="profileImage" className="text-sm font-medium">Foto de Perfil</Label>
+                  <p className="text-xs text-muted-foreground mb-2">
+                    {isEditing ? "Sube una imagen para tu perfil" : "Tu foto de perfil actual"}
+                  </p>
+                  {isEditing && (
+                    <div className="flex items-center gap-2">
+                      <Input
+                        id="profileImage"
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageUpload}
+                        className="hidden"
+                      />
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => document.getElementById('profileImage')?.click()}
+                      >
+                        <Camera className="h-4 w-4 mr-2" />
+                        {formData.profileImageUrl ? 'Cambiar Foto' : 'Subir Foto'}
+                      </Button>
+                      {formData.profileImageUrl && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setFormData(prev => ({ ...prev, profileImageUrl: "" }))}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="fullName">Nombre Completo</Label>
@@ -170,6 +282,20 @@ const Configuracion = () => {
                     value={formData.email}
                     onChange={(e) => handleInputChange('email', e.target.value)}
                     placeholder="tu@correo.com"
+                    disabled={!isEditing}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="birthDate" className="flex items-center gap-2">
+                    <Calendar className="h-4 w-4" />
+                    Fecha de Nacimiento
+                  </Label>
+                  <Input
+                    id="birthDate"
+                    type="date"
+                    value={formData.birthDate}
+                    onChange={(e) => handleInputChange('birthDate', e.target.value)}
                     disabled={!isEditing}
                   />
                 </div>
@@ -224,6 +350,32 @@ const Configuracion = () => {
                     rows={3}
                     disabled={!isEditing}
                   />
+                </div>
+
+                {/* Lesiones típicas */}
+                <div className="space-y-4 md:col-span-2">
+                  <Label>Lesiones Típicas</Label>
+                  <p className="text-sm text-muted-foreground">
+                    Selecciona las lesiones que has tenido o que te afectan actualmente
+                  </p>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                    {getTypicalInjuries().map((injury) => (
+                      <div key={injury} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={`injury-${injury}`}
+                          checked={formData.injuries.includes(injury)}
+                          onCheckedChange={(checked) => handleInjuryChange(injury, checked as boolean)}
+                          disabled={!isEditing}
+                        />
+                        <Label
+                          htmlFor={`injury-${injury}`}
+                          className="text-sm font-normal leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                        >
+                          {injury}
+                        </Label>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
             </CardContent>

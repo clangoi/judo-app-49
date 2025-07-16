@@ -23,6 +23,7 @@ export const profiles = pgTable("profiles", {
   injuries: text("injuries").array(),
   injuryDescription: text("injury_description"),
   profileImageUrl: text("profile_image_url"),
+  birthDate: date("birth_date"),
   selectedClubLogoId: uuid("selected_club_logo_id"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow()
