@@ -1,18 +1,11 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRoles } from "@/hooks/useUserRoles";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
 import NavHeader from "@/components/NavHeader";
-import { User, Settings, Save, Edit, X, Eye, Camera, Calendar } from "lucide-react";
+import UserProfileForm from "@/components/configuration/UserProfileForm";
+import { User, Settings } from "lucide-react";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 
@@ -29,9 +22,8 @@ const Configuracion = () => {
     enabled: !!user?.id,
   });
 
-  // Estados para el modo de edición y los campos del formulario
   const [isEditing, setIsEditing] = useState(false);
-  const [formData, setFormData] = useState({
+  const [profileData, setProfileData] = useState({
     fullName: "",
     email: "",
     gender: "",
@@ -43,10 +35,9 @@ const Configuracion = () => {
     injuries: [] as string[],
   });
 
-  // Actualizar formData cuando se carga el perfil
   useEffect(() => {
     if (userProfile) {
-      setFormData({
+      setProfileData({
         fullName: userProfile.fullName || "",
         email: userProfile.email || "",
         gender: userProfile.gender || "",
@@ -60,7 +51,6 @@ const Configuracion = () => {
     }
   }, [userProfile]);
 
-  // Mutación para actualizar el perfil
   const updateProfileMutation = useMutation({
     mutationFn: (data: any) => api.updateUserProfile(user?.id!, data),
     onSuccess: () => {
@@ -69,7 +59,6 @@ const Configuracion = () => {
         title: "Configuración guardada",
         description: "Tus datos personales han sido actualizados correctamente.",
       });
-      // Invalidar queries relacionadas
       queryClient.invalidateQueries({ queryKey: ['user-profile'] });
       queryClient.invalidateQueries({ queryKey: ['auth-user'] });
     },
