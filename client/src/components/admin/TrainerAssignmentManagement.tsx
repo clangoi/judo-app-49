@@ -38,7 +38,7 @@ const TrainerAssignmentManagement = () => {
     return (
       <div className="space-y-2">
         <h4 className="font-medium text-sm text-[#1A1A1A]">
-          Estudiantes de {trainer?.profiles?.full_name || 'Entrenador'}:
+          Estudiantes de {trainer?.full_name || 'Entrenador'}:
         </h4>
         {trainerStudents.length === 0 ? (
           <p className="text-sm text-[#575757]">No hay estudiantes asignados</p>
@@ -106,7 +106,7 @@ const TrainerAssignmentManagement = () => {
                 <SelectContent>
                   {trainers.map((trainer) => (
                     <SelectItem key={trainer.user_id} value={trainer.user_id}>
-                      {trainer.profiles?.full_name || trainer.profiles?.email || 'Sin nombre'}
+                      {trainer.full_name || trainer.email || 'Sin nombre'}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -124,7 +124,7 @@ const TrainerAssignmentManagement = () => {
                 <SelectContent>
                   {students.map((student) => (
                     <SelectItem key={student.user_id} value={student.user_id}>
-                      {student.profiles?.full_name || student.profiles?.email || 'Sin nombre'}
+                      {student.full_name || student.email || 'Sin nombre'}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -160,9 +160,9 @@ const TrainerAssignmentManagement = () => {
                     <div className="flex items-center justify-between mb-3">
                       <div>
                         <h4 className="font-medium text-[#1A1A1A]">
-                          {trainer.profiles?.full_name || 'Sin nombre'}
+                          {trainer.full_name || 'Sin nombre'}
                         </h4>
-                        <p className="text-sm text-[#575757]">{trainer.profiles?.email}</p>
+                        <p className="text-sm text-[#575757]">{trainer.email}</p>
                       </div>
                       <Badge variant="default" className="bg-[#C5A46C] text-white">
                         Entrenador
