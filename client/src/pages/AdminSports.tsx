@@ -193,9 +193,7 @@ export const AdminSports = () => {
     });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
+  const handleSubmit = () => {
     if (!formData.name.trim()) {
       toast({ title: "El nombre del deporte es requerido", variant: "destructive" });
       return;
@@ -279,7 +277,12 @@ export const AdminSports = () => {
   };
 
   // Función para agregar categoría de peso
-  const handleAddWeightCategory = () => {
+  const handleAddWeightCategory = (e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    
     if (!selectedAgeCategory || !newWeightCategory.name.trim()) return;
     
     const weightCat: WeightCategory = {
@@ -341,7 +344,7 @@ export const AdminSports = () => {
           </DialogDescription>
         </DialogHeader>
         
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="name">Nombre del Deporte</Label>
@@ -351,6 +354,7 @@ export const AdminSports = () => {
                 onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
                 placeholder="ej: Deportivo, Karate, JiuJitsu"
                 required
+                autoFocus={false}
               />
             </div>
           </div>
@@ -499,7 +503,7 @@ export const AdminSports = () => {
             </div>
           </div>
 
-          {/* Weight Categories Configuration */}
+          {/* Weight Categories Configuration - Separado del formulario principal */}
           {formData.ageCategories.length > 0 && (
             <div className="space-y-4">
               <div className="border-t pt-4">
@@ -583,7 +587,7 @@ export const AdminSports = () => {
                   
                   <Button 
                     type="button" 
-                    onClick={handleAddWeightCategory}
+                    onClick={(e) => handleAddWeightCategory(e)}
                     disabled={!newWeightCategory.name.trim()}
                     className="w-full"
                   >
@@ -637,16 +641,20 @@ export const AdminSports = () => {
             </div>
           )}
 
-          <div className="flex justify-end gap-3 pt-4">
+          {/* Botones de acción */}
+          <div className="flex justify-end gap-3 pt-4 border-t">
             <Button type="button" variant="outline" onClick={onClose}>
               Cancelar
             </Button>
-            <Button type="submit" disabled={createSportMutation.isPending || updateSportMutation.isPending}>
+            <Button 
+              onClick={handleSubmit} 
+              disabled={createSportMutation.isPending || updateSportMutation.isPending}
+            >
               {createSportMutation.isPending || updateSportMutation.isPending ? "Guardando..." : 
                editingSport ? "Actualizar Deporte" : "Crear Deporte"}
             </Button>
           </div>
-        </form>
+        </div>
       </DialogContent>
     </Dialog>
   );
