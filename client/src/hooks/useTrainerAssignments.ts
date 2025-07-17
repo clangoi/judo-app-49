@@ -29,29 +29,50 @@ export const useTrainerAssignments = () => {
   const queryClient = useQueryClient();
 
   // Obtener todos los usuarios con rol de entrenador
-  const { data: trainers = [], isLoading: isLoadingTrainers } = useQuery({
+  const { data: trainers = [], isLoading: isLoadingTrainers, error: trainersError } = useQuery({
     queryKey: ['trainers'],
     queryFn: async () => {
-      const response = await api.get('/api/admin/trainers');
-      return response.data;
+      console.log('Fetching trainers...');
+      try {
+        const response = await api.get('/api/admin/trainers');
+        console.log('Trainers response:', response.data);
+        return response.data;
+      } catch (error) {
+        console.error('Error fetching trainers:', error);
+        throw error;
+      }
     },
   });
 
   // Obtener todos los usuarios con rol de deportista
-  const { data: students = [], isLoading: isLoadingStudents } = useQuery({
+  const { data: students = [], isLoading: isLoadingStudents, error: studentsError } = useQuery({
     queryKey: ['students'],
     queryFn: async () => {
-      const response = await api.get('/api/admin/students');
-      return response.data;
+      console.log('Fetching students...');
+      try {
+        const response = await api.get('/api/admin/students');
+        console.log('Students response:', response.data);
+        return response.data;
+      } catch (error) {
+        console.error('Error fetching students:', error);
+        throw error;
+      }
     },
   });
 
   // Obtener asignaciones actuales
-  const { data: assignments = [], isLoading: isLoadingAssignments } = useQuery({
+  const { data: assignments = [], isLoading: isLoadingAssignments, error: assignmentsError } = useQuery({
     queryKey: ['trainer-assignments'],
     queryFn: async () => {
-      const response = await api.get('/api/admin/trainer-assignments');
-      return response.data;
+      console.log('Fetching assignments...');
+      try {
+        const response = await api.get('/api/admin/trainer-assignments');
+        console.log('Assignments response:', response.data);
+        return response.data;
+      } catch (error) {
+        console.error('Error fetching assignments:', error);
+        throw error;
+      }
     },
   });
 
