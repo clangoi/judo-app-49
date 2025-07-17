@@ -183,6 +183,7 @@ export const AdminSports = () => {
 
   const handleEditSport = (sport: Sport) => {
     setEditingSport(sport);
+    setIsCreateModalOpen(true); // Abrir el modal
     setFormData({
       name: sport.name,
       description: sport.description,
