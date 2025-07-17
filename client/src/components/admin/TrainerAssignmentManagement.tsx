@@ -14,7 +14,7 @@ const TrainerAssignmentManagement = () => {
     isLoadingTrainers,
     isLoadingStudents,
     assignStudentMutation,
-    removeAssignmentMutation,
+    unassignStudentMutation,
   } = useTrainerAssignments();
   
   const [selectedTrainer, setSelectedTrainer] = useState<string>("");
@@ -32,11 +32,8 @@ const TrainerAssignmentManagement = () => {
 
   const TrainerStudentsList = ({ trainerId }: { trainerId: string }) => {
     const trainer = trainers.find(t => t.user_id === trainerId);
-    const { data: trainerStudents = [], isLoading } = useTrainerAssignments().getTrainerStudents(trainerId);
-
-    if (isLoading) {
-      return <Loader2 className="h-4 w-4 animate-spin" />;
-    }
+    const { getTrainerStudents } = useTrainerAssignments();
+    const trainerStudents = getTrainerStudents(trainerId);
 
     return (
       <div className="space-y-2">
@@ -56,11 +53,11 @@ const TrainerAssignmentManagement = () => {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => removeAssignmentMutation.mutate({
+                  onClick={() => unassignStudentMutation.mutate({
                     trainerId,
                     studentId: student.student_id
                   })}
-                  disabled={removeAssignmentMutation.isPending}
+                  disabled={unassignStudentMutation.isPending}
                 >
                   <UserMinus className="h-3 w-3" />
                 </Button>
