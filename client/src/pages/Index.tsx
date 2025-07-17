@@ -34,7 +34,7 @@ const Index = () => {
 
   const menuItems = [
     {
-      title: "Sesiones de Preparación",
+      title: "Preparación Física",
       description: "Registra y administra tus sesiones de entrenamiento físico",
       icon: Dumbbell,
       path: "/sesiones-preparacion",

@@ -144,16 +144,7 @@ const NavHeader = ({ title, subtitle }: NavHeaderProps) => {
               </Button>
             )}
 
-            {(currentUserRole === 'entrenador' || currentUserRole === 'admin') && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => navigate('/clubes')}
-                className="text-primary-foreground hover:bg-primary-foreground/20 p-2"
-              >
-                <Users className="h-4 w-4" />
-              </Button>
-            )}
+            
 
             <NotificationButton />
             
