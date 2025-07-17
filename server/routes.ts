@@ -1604,7 +1604,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .where(eq(userRoles.role, 'deportista'));
 
       // Get trainer assignments for each athlete
-      const trainerAssignments = await db
+      const assignments = await db
         .select({
           studentId: trainerAssignments.studentId,
           trainerId: trainerAssignments.trainerId,
@@ -1677,7 +1677,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Combine all data
       const athletesWithStats = athletes.map(athlete => {
-        const trainerAssignment = trainerAssignments.find(ta => ta.studentId === athlete.id);
+        const trainerAssignment = assignments.find(ta => ta.studentId === athlete.id);
         const weeklySessionsCount = trainingCounts.find(tc => tc.userId === athlete.id)?.sessionCount || 0;
         const totalTechniques = techniqueCounts.find(tc => tc.userId === athlete.id)?.techniqueCount || 0;
         const totalTacticalNotes = tacticalCounts.find(tc => tc.userId === athlete.id)?.tacticalCount || 0;
