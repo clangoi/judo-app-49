@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 
 // Types
@@ -336,6 +336,9 @@ export const AdminSports = () => {
           <DialogTitle>
             {editingSport ? "Editar Deporte" : "Crear Nuevo Deporte"}
           </DialogTitle>
+          <DialogDescription>
+            {editingSport ? "Modifica los datos del deporte seleccionado" : "Completa la información para crear un nuevo deporte"}
+          </DialogDescription>
         </DialogHeader>
         
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -371,7 +374,12 @@ export const AdminSports = () => {
                 value={newBelt}
                 onChange={(e) => setNewBelt(e.target.value)}
                 placeholder="Agregar nuevo cinturón (ej: blanco, negro, etc.)"
-                onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddBelt())}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    handleAddBelt();
+                  }
+                }}
               />
               <Button type="button" onClick={handleAddBelt} variant="outline">
                 <Plus className="h-4 w-4" />
@@ -447,7 +455,12 @@ export const AdminSports = () => {
                 value={newAgeCategory}
                 onChange={(e) => setNewAgeCategory(e.target.value)}
                 placeholder="Agregar nueva categoría de edad (ej: cadete, master, etc.)"
-                onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddAgeCategory())}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    handleAddAgeCategory();
+                  }
+                }}
               />
               <Button type="button" onClick={handleAddAgeCategory} variant="outline">
                 <Plus className="h-4 w-4" />
