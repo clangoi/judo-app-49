@@ -7,6 +7,7 @@ This is a full-stack web application for managing judo training, athlete perform
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
+Terminology: Refer to users as "deportistas" instead of "estudiantes" or "practicantes". The system now handles multiple sports, not just Judo - avoid sport-specific references in UI.
 
 ## System Architecture
 

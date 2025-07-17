@@ -167,8 +167,8 @@ const TecnicasJudo = () => {
   return (
     <div className="min-h-screen bg-slate-50">
       <NavHeader 
-        title="Técnicas" 
-        subtitle="Notas y guías de técnicas"
+        title="Técnicas Deportivas" 
+        subtitle="Notas y guías de técnicas deportivas"
       />
       
       <div className="max-w-4xl mx-auto p-4">
@@ -196,7 +196,7 @@ const TecnicasJudo = () => {
           <Card className="mb-6">
             <CardHeader>
               <CardTitle>
-                {editandoTecnica ? "Editar Técnica de Judo" : "Nueva Técnica de Judo"}
+                {editandoTecnica ? "Editar Técnica Deportiva" : "Nueva Técnica Deportiva"}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">

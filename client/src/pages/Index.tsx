@@ -42,23 +42,23 @@ const Index = () => {
       roles: ['deportista', 'entrenador', 'admin']
     },
     {
-      title: "Entrenamientos de Judo",
-      description: "Documenta tus sesiones de judo y randori",
+      title: "Entrenamientos Deportivos",
+      description: "Documenta tus sesiones deportivas y combates",
       icon: Target,
       path: "/entrenamientos-judo",
       color: "bg-gray-700",
       roles: ['deportista', 'entrenador', 'admin']
     },
     {
-      title: "Técnicas de Judo",
-      description: "Explora y aprende técnicas de judo por categorías",
+      title: "Técnicas Deportivas",
+      description: "Explora y aprende técnicas por categorías",
       icon: Zap,
       path: "/tecnicas-judo",
       color: "bg-gray-700",
       roles: ['deportista', 'entrenador', 'admin']
     },
     {
-      title: "Táctica de Judo",
+      title: "Táctica Deportiva",
       description: "Desarrolla estrategias y tácticas de combate",
       icon: Brain,
       path: "/tactica-judo",

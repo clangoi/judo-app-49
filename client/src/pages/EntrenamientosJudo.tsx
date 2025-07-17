@@ -81,8 +81,8 @@ const EntrenamientosJudo = () => {
   return (
     <div className="min-h-screen bg-slate-50">
       <NavHeader 
-        title="Entrenamientos" 
-        subtitle="Registro y análisis de entrenamientos"
+        title="Entrenamientos Deportivos" 
+        subtitle="Registro y análisis de entrenamientos deportivos"
       />
       
       <div className="max-w-4xl mx-auto p-4">
@@ -109,7 +109,7 @@ const EntrenamientosJudo = () => {
               <CardContent className="p-8 text-center">
                 <Target className="h-12 w-12 mx-auto text-slate-400 mb-4" />
                 <p className="text-slate-600">No hay entrenamientos registrados aún</p>
-                <p className="text-sm text-slate-500">Agrega tu primer entrenamiento de judo</p>
+                <p className="text-sm text-slate-500">Agrega tu primer entrenamiento deportivo</p>
               </CardContent>
             </Card>
           ) : (
