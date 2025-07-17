@@ -2,7 +2,60 @@
 
 const API_BASE_URL = '';
 
+// Helper function to get user ID from auth
+const getUserId = () => {
+  // Get user ID from session or context - for now using the admin ID
+  return '550e8400-e29b-41d4-a716-446655443322';
+};
+
 export const api = {
+  // Generic GET method with authentication
+  async get(url: string) {
+    const response = await fetch(`${API_BASE_URL}${url}`, {
+      headers: {
+        'x-user-id': getUserId(),
+        'Content-Type': 'application/json'
+      }
+    });
+    if (!response.ok) {
+      const error = await response.text();
+      throw new Error(`HTTP ${response.status}: ${error}`);
+    }
+    return { data: await response.json() };
+  },
+
+  // Generic POST method with authentication
+  async post(url: string, data: any) {
+    const response = await fetch(`${API_BASE_URL}${url}`, {
+      method: 'POST',
+      headers: {
+        'x-user-id': getUserId(),
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(data)
+    });
+    if (!response.ok) {
+      const error = await response.text();
+      throw new Error(`HTTP ${response.status}: ${error}`);
+    }
+    return { data: await response.json() };
+  },
+
+  // Generic DELETE method with authentication
+  async delete(url: string) {
+    const response = await fetch(`${API_BASE_URL}${url}`, {
+      method: 'DELETE',
+      headers: {
+        'x-user-id': getUserId(),
+        'Content-Type': 'application/json'
+      }
+    });
+    if (!response.ok) {
+      const error = await response.text();
+      throw new Error(`HTTP ${response.status}: ${error}`);
+    }
+    return { data: await response.json() };
+  },
   // Weight entries
   async getWeightEntries(userId: string) {
     const response = await fetch(`${API_BASE_URL}/api/weight-entries?user_id=${userId}`);
