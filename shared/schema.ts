@@ -49,14 +49,15 @@ export const clubs = pgTable("clubs", {
   updatedAt: timestamp("updated_at").defaultNow()
 });
 
-// Sports table - Types of sports (Sports, Karate, JiuJitsu, etc.)
+// Sports table - Types of sports (Judo, Karate, JiuJitsu, etc.)
 export const sports = pgTable("sports", {
   id: uuid("id").primaryKey().defaultRandom(),
   name: text("name").notNull().unique(),
   description: text("description"),
   belts: jsonb("belts").notNull(), // Array of belt configurations
   genderCategories: jsonb("gender_categories").notNull(), // Male/Female specific categories
-  ageCategories: jsonb("age_categories").notNull(), // Age divisions (cadete, infantil, etc.)
+  ageCategories: jsonb("age_categories").notNull(), // Age divisions with weight categories
+  weightCategories: jsonb("weight_categories").notNull(), // Weight categories by age and gender
   isActive: boolean("is_active").notNull().default(true),
   createdBy: uuid("created_by").notNull(),
   createdAt: timestamp("created_at").defaultNow(),

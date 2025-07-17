@@ -1,58 +1,64 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Plus, Edit, Trash2, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
-import { Plus, Edit, Trash2, Settings, Users } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
+
+// Types
+interface WeightCategory {
+  name: string;
+  minWeight?: number;
+  maxWeight?: number;
+}
+
+interface GenderCategories {
+  masculino: boolean;
+  femenino: boolean;
+  mixto: boolean;
+}
+
+interface WeightCategories {
+  [ageCategory: string]: {
+    masculino: WeightCategory[];
+    femenino: WeightCategory[];
+    mixto: WeightCategory[];
+  };
+}
 
 interface Sport {
   id: string;
   name: string;
   description: string;
   belts: string[];
-  genderCategories: {
-    masculino: boolean;
-    femenino: boolean;
-    mixto: boolean;
-  };
+  genderCategories: GenderCategories;
   ageCategories: string[];
+  weightCategories?: WeightCategories;
   isActive: boolean;
   createdAt: string;
+  updatedAt: string;
 }
 
 interface SportFormData {
   name: string;
   description: string;
   belts: string[];
-  genderCategories: {
-    masculino: boolean;
-    femenino: boolean;
-    mixto: boolean;
-  };
+  genderCategories: GenderCategories;
   ageCategories: string[];
+  weightCategories: WeightCategories;
 }
 
-const defaultBelts = {
-  deportivo: ["blanco", "amarillo", "naranja", "verde", "azul", "marrón", "negro"],
-  karate: ["blanco", "amarillo", "naranja", "verde", "azul", "marrón", "negro"],
-  jiujitsu: ["blanco", "azul", "púrpura", "marrón", "negro"]
-};
-
+// Default age categories available for selection
 const defaultAgeCategories = [
-  "cadete", // 15-17 años
-  "infantil", // 13-14 años
-  "novicios", // principiantes adultos
-  "absoluta", // categoría general
-  "master", // +30 años
-  "juvenil", // 18-20 años
-  "senior" // 21+ años
+  "Infantil", "Cadete", "Juvenil", "Senior", "Master", 
+  "Sub-15", "Sub-18", "Sub-21", "Adulto", "Veterano"
 ];
 
 export const AdminSports = () => {
@@ -69,10 +75,14 @@ export const AdminSports = () => {
       femenino: true,
       mixto: false
     },
-    ageCategories: []
+    ageCategories: [],
+    weightCategories: {}
   });
   const [newBelt, setNewBelt] = useState("");
   const [newAgeCategory, setNewAgeCategory] = useState("");
+  const [selectedAgeCategory, setSelectedAgeCategory] = useState("");
+  const [selectedGender, setSelectedGender] = useState<"masculino" | "femenino" | "mixto">("masculino");
+  const [newWeightCategory, setNewWeightCategory] = useState({ name: "", minWeight: "", maxWeight: "" });
 
   // Fetch sports
   const { data: sports = [], isLoading } = useQuery({
@@ -156,10 +166,14 @@ export const AdminSports = () => {
         femenino: true,
         mixto: false
       },
-      ageCategories: []
+      ageCategories: [],
+      weightCategories: {}
     });
     setNewBelt("");
     setNewAgeCategory("");
+    setSelectedAgeCategory("");
+    setSelectedGender("masculino");
+    setNewWeightCategory({ name: "", minWeight: "", maxWeight: "" });
   };
 
   const handleCreateSport = () => {
@@ -174,7 +188,8 @@ export const AdminSports = () => {
       description: sport.description,
       belts: sport.belts,
       genderCategories: sport.genderCategories,
-      ageCategories: sport.ageCategories
+      ageCategories: sport.ageCategories,
+      weightCategories: sport.weightCategories || {}
     });
   };
 
@@ -237,22 +252,81 @@ export const AdminSports = () => {
     }));
   };
 
-  const handleBeltChange = (belt: string, checked: boolean) => {
-    setFormData(prev => ({
-      ...prev,
-      belts: checked 
-        ? [...prev.belts, belt]
-        : prev.belts.filter(b => b !== belt)
-    }));
+  const handleAgeCategoryChange = (category: string, checked: boolean) => {
+    setFormData(prev => {
+      const newAgeCategories = checked 
+        ? [...prev.ageCategories, category]
+        : prev.ageCategories.filter(c => c !== category);
+      
+      // Inicializar categorías de peso para nueva categoría de edad
+      const newWeightCategories = { ...prev.weightCategories };
+      if (checked && !newWeightCategories[category]) {
+        newWeightCategories[category] = {
+          masculino: [],
+          femenino: [],
+          mixto: []
+        };
+      } else if (!checked) {
+        delete newWeightCategories[category];
+      }
+      
+      return {
+        ...prev,
+        ageCategories: newAgeCategories,
+        weightCategories: newWeightCategories
+      };
+    });
   };
 
-  const handleAgeCategoryChange = (category: string, checked: boolean) => {
-    setFormData(prev => ({
-      ...prev,
-      ageCategories: checked 
-        ? [...prev.ageCategories, category]
-        : prev.ageCategories.filter(c => c !== category)
-    }));
+  // Función para agregar categoría de peso
+  const handleAddWeightCategory = () => {
+    if (!selectedAgeCategory || !newWeightCategory.name.trim()) return;
+    
+    const weightCat: WeightCategory = {
+      name: newWeightCategory.name.trim(),
+      minWeight: newWeightCategory.minWeight ? parseFloat(newWeightCategory.minWeight) : undefined,
+      maxWeight: newWeightCategory.maxWeight ? parseFloat(newWeightCategory.maxWeight) : undefined
+    };
+
+    setFormData(prev => {
+      const updatedWeightCategories = { ...prev.weightCategories };
+      if (!updatedWeightCategories[selectedAgeCategory]) {
+        updatedWeightCategories[selectedAgeCategory] = {
+          masculino: [],
+          femenino: [],
+          mixto: []
+        };
+      }
+      
+      // Verificar que no exista ya una categoría con el mismo nombre
+      const existingCategories = updatedWeightCategories[selectedAgeCategory][selectedGender];
+      if (!existingCategories.some(cat => cat.name === weightCat.name)) {
+        updatedWeightCategories[selectedAgeCategory][selectedGender].push(weightCat);
+      }
+      
+      return {
+        ...prev,
+        weightCategories: updatedWeightCategories
+      };
+    });
+
+    setNewWeightCategory({ name: "", minWeight: "", maxWeight: "" });
+  };
+
+  // Función para remover categoría de peso
+  const handleRemoveWeightCategory = (ageCategory: string, gender: "masculino" | "femenino" | "mixto", categoryName: string) => {
+    setFormData(prev => {
+      const updatedWeightCategories = { ...prev.weightCategories };
+      if (updatedWeightCategories[ageCategory]) {
+        updatedWeightCategories[ageCategory][gender] = 
+          updatedWeightCategories[ageCategory][gender].filter(cat => cat.name !== categoryName);
+      }
+      
+      return {
+        ...prev,
+        weightCategories: updatedWeightCategories
+      };
+    });
   };
 
   const SportModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => (
@@ -389,7 +463,7 @@ export const AdminSports = () => {
                       checked={formData.ageCategories.includes(category)}
                       onCheckedChange={(checked) => handleAgeCategoryChange(category, checked as boolean)}
                     />
-                    <Label htmlFor={`age-${category}`} className="text-sm capitalize">
+                    <Label htmlFor={`age-${category}`} className="text-sm">
                       {category}
                     </Label>
                   </div>
@@ -412,12 +486,151 @@ export const AdminSports = () => {
             </div>
           </div>
 
-          <div className="flex justify-end gap-3">
+          {/* Weight Categories Configuration */}
+          {formData.ageCategories.length > 0 && (
+            <div className="space-y-4">
+              <div className="border-t pt-4">
+                <Label className="text-base font-semibold">Configuración de Categorías de Peso</Label>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Configura las categorías de peso para cada categoría de edad y género
+                </p>
+              </div>
+
+              {/* Selector de categoría de edad y género */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Categoría de Edad</Label>
+                  <Select value={selectedAgeCategory} onValueChange={setSelectedAgeCategory}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecciona una categoría" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {formData.ageCategories.map((category) => (
+                        <SelectItem key={category} value={category}>
+                          {category}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Género</Label>
+                  <Select value={selectedGender} onValueChange={setSelectedGender}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="masculino">Masculino</SelectItem>
+                      <SelectItem value="femenino">Femenino</SelectItem>
+                      <SelectItem value="mixto">Mixto</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              {/* Agregar nueva categoría de peso */}
+              {selectedAgeCategory && (
+                <div className="space-y-3 p-4 border rounded-lg bg-gray-50 dark:bg-gray-800">
+                  <div className="flex items-center gap-2">
+                    <Settings className="h-4 w-4" />
+                    <span className="font-medium">Agregar Categoría de Peso para {selectedAgeCategory} - {selectedGender}</span>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <div className="space-y-2">
+                      <Label>Nombre de la Categoría</Label>
+                      <Input
+                        value={newWeightCategory.name}
+                        onChange={(e) => setNewWeightCategory(prev => ({ ...prev, name: e.target.value }))}
+                        placeholder="ej: -60kg, +100kg, ligero"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Peso Mínimo (kg)</Label>
+                      <Input
+                        type="number"
+                        step="0.1"
+                        value={newWeightCategory.minWeight}
+                        onChange={(e) => setNewWeightCategory(prev => ({ ...prev, minWeight: e.target.value }))}
+                        placeholder="Opcional"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Peso Máximo (kg)</Label>
+                      <Input
+                        type="number"
+                        step="0.1"
+                        value={newWeightCategory.maxWeight}
+                        onChange={(e) => setNewWeightCategory(prev => ({ ...prev, maxWeight: e.target.value }))}
+                        placeholder="Opcional"
+                      />
+                    </div>
+                  </div>
+                  
+                  <Button 
+                    type="button" 
+                    onClick={handleAddWeightCategory}
+                    disabled={!newWeightCategory.name.trim()}
+                    className="w-full"
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Agregar Categoría de Peso
+                  </Button>
+                </div>
+              )}
+
+              {/* Mostrar categorías de peso existentes */}
+              {Object.keys(formData.weightCategories).length > 0 && (
+                <div className="space-y-3">
+                  <Label className="font-medium">Categorías de Peso Configuradas</Label>
+                  {Object.entries(formData.weightCategories).map(([ageCategory, genderCategories]) => (
+                    <div key={ageCategory} className="border rounded-lg p-3">
+                      <h4 className="font-medium mb-3 text-primary">{ageCategory}</h4>
+                      {Object.entries(genderCategories).map(([gender, categories]) => (
+                        categories.length > 0 && (
+                          <div key={gender} className="mb-3">
+                            <span className="text-sm font-medium text-muted-foreground mb-2 block capitalize">
+                              {gender}:
+                            </span>
+                            <div className="flex flex-wrap gap-2">
+                              {categories.map((category) => (
+                                <Badge key={category.name} variant="secondary" className="flex items-center gap-1">
+                                  {category.name}
+                                  {(category.minWeight !== undefined || category.maxWeight !== undefined) && (
+                                    <span className="text-xs">
+                                      ({category.minWeight || ''}
+                                      {category.minWeight !== undefined && category.maxWeight !== undefined ? '-' : ''}
+                                      {category.maxWeight || ''}kg)
+                                    </span>
+                                  )}
+                                  <button
+                                    type="button"
+                                    onClick={() => handleRemoveWeightCategory(ageCategory, gender as "masculino" | "femenino" | "mixto", category.name)}
+                                    className="ml-1 hover:text-destructive"
+                                  >
+                                    <Trash2 className="h-3 w-3" />
+                                  </button>
+                                </Badge>
+                              ))}
+                            </div>
+                          </div>
+                        )
+                      ))}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          <div className="flex justify-end gap-3 pt-4">
             <Button type="button" variant="outline" onClick={onClose}>
               Cancelar
             </Button>
             <Button type="submit" disabled={createSportMutation.isPending || updateSportMutation.isPending}>
-              {(createSportMutation.isPending || updateSportMutation.isPending) ? "Guardando..." : editingSport ? "Actualizar" : "Crear"}
+              {createSportMutation.isPending || updateSportMutation.isPending ? "Guardando..." : 
+               editingSport ? "Actualizar Deporte" : "Crear Deporte"}
             </Button>
           </div>
         </form>
@@ -435,10 +648,16 @@ export const AdminSports = () => {
 
   return (
     <div className="space-y-6">
-      <div className="mb-6">
-        <Button onClick={handleCreateSport} className="flex items-center gap-2">
-          <Plus className="h-4 w-4" />
-          Crear Nuevo Deporte
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold">Gestión de Deportes</h2>
+          <p className="text-muted-foreground">
+            Configura los deportes, sus cinturones, categorías de edad y peso
+          </p>
+        </div>
+        <Button onClick={handleCreateSport}>
+          <Plus className="h-4 w-4 mr-2" />
+          Crear Deporte
         </Button>
       </div>
 
@@ -500,6 +719,9 @@ export const AdminSports = () => {
                     {sport.genderCategories.femenino && (
                       <Badge variant="outline" className="text-xs">Femenino</Badge>
                     )}
+                    {sport.genderCategories.mixto && (
+                      <Badge variant="outline" className="text-xs">Mixto</Badge>
+                    )}
                   </div>
                 </div>
                 
@@ -514,6 +736,32 @@ export const AdminSports = () => {
                   </div>
                 </div>
               </div>
+
+              {/* Mostrar categorías de peso si existen */}
+              {sport.weightCategories && Object.keys(sport.weightCategories).length > 0 && (
+                <div className="mt-4 pt-4 border-t">
+                  <h4 className="font-medium mb-3">Categorías de Peso Configuradas</h4>
+                  <div className="space-y-2">
+                    {Object.entries(sport.weightCategories).map(([ageCategory, genderCategories]) => (
+                      <div key={ageCategory} className="text-sm">
+                        <span className="font-medium text-primary">{ageCategory}:</span>
+                        <div className="ml-4 mt-1">
+                          {Object.entries(genderCategories).map(([gender, categories]) => (
+                            categories.length > 0 && (
+                              <div key={gender} className="mb-1">
+                                <span className="text-muted-foreground capitalize">{gender}: </span>
+                                <span className="text-xs">
+                                  {categories.map(cat => cat.name).join(', ')}
+                                </span>
+                              </div>
+                            )
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
         ))}
