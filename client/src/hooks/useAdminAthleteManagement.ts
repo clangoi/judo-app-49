@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { api } from "@/lib/api";
+import { useAuth } from "@/hooks/useAuth";
 
 export interface AdminAthleteData {
   id: string;
@@ -36,12 +36,28 @@ export interface AdminAthleteData {
 }
 
 export const useAdminAthleteManagement = () => {
+  const { user } = useAuth();
+  
   const { data: athletesData = [], isLoading, error } = useQuery({
     queryKey: ['admin-athlete-management'],
     queryFn: async () => {
-      const response = await api.get('/api/admin/athletes');
-      return response.data;
+      if (!user?.id) {
+        throw new Error('User not authenticated');
+      }
+      
+      const response = await fetch('/api/admin/athletes', {
+        headers: {
+          'x-user-id': user.id
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch athletes data');
+      }
+      
+      return response.json();
     },
+    enabled: !!user?.id,
   });
 
   const getProfileStats = (athletes: AdminAthleteData[]) => {
