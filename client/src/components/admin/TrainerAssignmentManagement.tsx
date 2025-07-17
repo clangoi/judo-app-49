@@ -148,7 +148,7 @@ const TrainerAssignmentManagement = () => {
           </Button>
         </div>
 
-        {/* Lista de entrenadores y sus estudiantes */}
+        {/* Lista de entrenadores y sus deportistas */}
         <div className="space-y-4">
           <h3 className="font-medium text-[#1A1A1A]">Asignaciones Actuales</h3>
           

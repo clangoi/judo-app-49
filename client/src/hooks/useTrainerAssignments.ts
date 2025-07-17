@@ -55,7 +55,7 @@ export const useTrainerAssignments = () => {
     },
   });
 
-  // Obtener estudiantes asignados a un entrenador específico
+  // Obtener deportistas asignados a un entrenador específico
   const getTrainerStudents = (trainerId: string): TrainerStudent[] => {
     return assignments
       .filter(assignment => assignment.trainer_id === trainerId)
@@ -70,7 +70,7 @@ export const useTrainerAssignments = () => {
       });
   };
 
-  // Obtener entrenador asignado a un estudiante específico
+  // Obtener entrenador asignado a un deportista específico
   const getStudentTrainer = (studentId: string): StudentTrainer | null => {
     const assignment = assignments.find(a => a.student_id === studentId);
     if (!assignment) return null;
@@ -86,7 +86,7 @@ export const useTrainerAssignments = () => {
     };
   };
 
-  // Asignar estudiante a entrenador
+  // Asignar deportista a entrenador
   const assignStudentMutation = useMutation({
     mutationFn: async ({ trainerId, studentId }: { trainerId: string; studentId: string }) => {
       const response = await api.post('/api/admin/assign-student', {
@@ -101,7 +101,7 @@ export const useTrainerAssignments = () => {
       queryClient.invalidateQueries({ queryKey: ['students'] });
       toast({
         title: "Asignación exitosa",
-        description: "El estudiante ha sido asignado al entrenador.",
+        description: "El deportista ha sido asignado al entrenador.",
       });
     },
     onError: (error: any) => {
@@ -113,7 +113,7 @@ export const useTrainerAssignments = () => {
     },
   });
 
-  // Desasignar estudiante de entrenador
+  // Desasignar deportista de entrenador
   const unassignStudentMutation = useMutation({
     mutationFn: async ({ trainerId, studentId }: { trainerId: string; studentId: string }) => {
       const response = await api.delete('/api/admin/unassign-student', {
@@ -130,7 +130,7 @@ export const useTrainerAssignments = () => {
       queryClient.invalidateQueries({ queryKey: ['students'] });
       toast({
         title: "Desasignación exitosa",
-        description: "El estudiante ha sido desasignado del entrenador.",
+        description: "El deportista ha sido desasignado del entrenador.",
       });
     },
     onError: (error: any) => {

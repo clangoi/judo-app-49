@@ -130,7 +130,7 @@ export const SummaryFilters = ({ filters, onFiltersChange, totalAthletes }: Summ
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todos</SelectItem>
-                <SelectItem value="judo">Judo</SelectItem>
+                <SelectItem value="deportivo">Deportivo</SelectItem>
                 <SelectItem value="physical">Preparación Física</SelectItem>
                 <SelectItem value="mixed">Mixto</SelectItem>
               </SelectContent>

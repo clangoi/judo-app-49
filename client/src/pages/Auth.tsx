@@ -66,7 +66,7 @@ const Auth = () => {
           </CardTitle>
           <CardDescription className="text-[#575757]">
             {isLogin 
-              ? 'Ingresa a tu cuenta de entrenamiento de judo' 
+              ? 'Ingresa a tu cuenta de entrenamiento de deportivo' 
               : 'Crea tu cuenta para comenzar a entrenar'
             }
           </CardDescription>

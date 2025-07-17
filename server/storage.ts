@@ -2,7 +2,7 @@ import { db } from "./db";
 import { profiles, type User, type InsertUser } from "@shared/schema";
 import { eq } from "drizzle-orm";
 
-// Storage interface for the judo training management system
+// Storage interface for the sports training management system
 export interface IStorage {
   getUser(id: string): Promise<User | undefined>;
   getUserByEmail(email: string): Promise<User | undefined>;

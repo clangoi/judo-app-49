@@ -45,7 +45,7 @@ const Index = () => {
       title: "Entrenamientos Deportivos",
       description: "Documenta tus sesiones deportivas y combates",
       icon: Target,
-      path: "/entrenamientos-judo",
+      path: "/entrenamientos-deportivo",
       color: "bg-gray-700",
       roles: ['deportista', 'entrenador', 'admin']
     },
@@ -53,7 +53,7 @@ const Index = () => {
       title: "Técnicas Deportivas",
       description: "Explora y aprende técnicas por categorías",
       icon: Zap,
-      path: "/tecnicas-judo",
+      path: "/tecnicas-deportivo",
       color: "bg-gray-700",
       roles: ['deportista', 'entrenador', 'admin']
     },
@@ -61,7 +61,7 @@ const Index = () => {
       title: "Táctica Deportiva",
       description: "Desarrolla estrategias y tácticas de combate",
       icon: Brain,
-      path: "/tactica-judo",
+      path: "/tactica-deportivo",
       color: "bg-gray-700",
       roles: ['deportista', 'entrenador', 'admin']
     },

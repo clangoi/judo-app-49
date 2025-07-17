@@ -11,7 +11,7 @@ interface RandoryInfo {
   tecnicasQueRecibio: string;
 }
 
-interface EntrenamientoJudo {
+interface EntrenamientoDeportivo {
   id: string;
   fecha: string;
   tipo: string;
@@ -24,12 +24,12 @@ interface EntrenamientoJudo {
   videoUrl?: string;
 }
 
-export const useJudoSessions = (userId?: string) => {
+export const useSportsSessions = (userId?: string) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
   const { data: sessions = [], isLoading, refetch } = useQuery({
-    queryKey: ['judo-sessions', userId],
+    queryKey: ['sports-sessions', userId],
     queryFn: async () => {
       if (!userId) return [];
       const rawSessions = await api.getJudoTrainingSessions(userId);
@@ -51,7 +51,7 @@ export const useJudoSessions = (userId?: string) => {
   });
 
   const createSessionMutation = useMutation({
-    mutationFn: async (sessionData: Omit<EntrenamientoJudo, 'id'>) => {
+    mutationFn: async (sessionData: Omit<EntrenamientoDeportivo, 'id'>) => {
       if (!userId) throw new Error('Usuario no autenticado');
       
       return await api.createJudoTrainingSession({
@@ -67,7 +67,7 @@ export const useJudoSessions = (userId?: string) => {
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['judo-sessions'] });
+      queryClient.invalidateQueries({ queryKey: ['sports-sessions'] });
       toast({
         title: "Sesión guardada",
         description: "La sesión de entrenamiento ha sido guardada exitosamente.",
@@ -83,7 +83,7 @@ export const useJudoSessions = (userId?: string) => {
   });
 
   const updateSessionMutation = useMutation({
-    mutationFn: async ({ id, entrenamiento }: { id: string; entrenamiento: Omit<EntrenamientoJudo, 'id'> }) => {
+    mutationFn: async ({ id, entrenamiento }: { id: string; entrenamiento: Omit<EntrenamientoDeportivo, 'id'> }) => {
       if (!userId) throw new Error('Usuario no autenticado');
       
       return await api.updateJudoTrainingSession(id, {
@@ -99,7 +99,7 @@ export const useJudoSessions = (userId?: string) => {
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['judo-sessions'] });
+      queryClient.invalidateQueries({ queryKey: ['sports-sessions'] });
       toast({
         title: "Sesión actualizada",
         description: "La sesión de entrenamiento ha sido actualizada exitosamente.",
@@ -119,7 +119,7 @@ export const useJudoSessions = (userId?: string) => {
       return await api.deleteJudoTrainingSession(sessionId);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['judo-sessions'] });
+      queryClient.invalidateQueries({ queryKey: ['sports-sessions'] });
       toast({
         title: "Sesión eliminada",
         description: "La sesión de entrenamiento ha sido eliminada exitosamente.",

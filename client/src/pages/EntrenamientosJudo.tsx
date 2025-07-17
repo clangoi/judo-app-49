@@ -1,10 +1,10 @@
 
 import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
-import { useJudoSessions } from "@/hooks/useJudoSessions";
+import { useSportsSessions } from "@/hooks/useSportsSessions";
 import NavHeader from "@/components/NavHeader";
-import JudoSessionCard from "@/components/training/JudoSessionCard";
-import JudoTrainingForm from "@/components/training/JudoTrainingForm";
+import SessionCard from "@/components/training/JudoSessionCard";
+import TrainingForm from "@/components/training/JudoTrainingForm";
 import JudoTrainingDetails from "@/components/training/JudoTrainingDetails";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -18,7 +18,7 @@ interface RandoryInfo {
   tecnicasQueRecibio: string;
 }
 
-interface EntrenamientoJudo {
+interface EntrenamientoDeportivo {
   id: string;
   fecha: string;
   tipo: string;
@@ -33,23 +33,23 @@ interface EntrenamientoJudo {
 
 const EntrenamientosJudo = () => {
   const { user } = useAuth();
-  const { sessions, isLoading, createSessionMutation, updateSessionMutation, deleteSessionMutation } = useJudoSessions(user?.id);
+  const { sessions, isLoading, createSessionMutation, updateSessionMutation, deleteSessionMutation } = useSportsSessions(user?.id);
   
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
-  const [editandoEntrenamiento, setEditandoEntrenamiento] = useState<EntrenamientoJudo | null>(null);
-  const [entrenamientoDetalle, setEntrenamientoDetalle] = useState<EntrenamientoJudo | null>(null);
+  const [editandoEntrenamiento, setEditandoEntrenamiento] = useState<EntrenamientoDeportivo | null>(null);
+  const [entrenamientoDetalle, setEntrenamientoDetalle] = useState<EntrenamientoDeportivo | null>(null);
 
   const resetForm = () => {
     setMostrarFormulario(false);
     setEditandoEntrenamiento(null);
   };
 
-  const iniciarEdicion = (entrenamiento: EntrenamientoJudo) => {
+  const iniciarEdicion = (entrenamiento: EntrenamientoDeportivo) => {
     setEditandoEntrenamiento(entrenamiento);
     setMostrarFormulario(true);
   };
 
-  const handleEliminar = (entrenamiento: EntrenamientoJudo) => {
+  const handleEliminar = (entrenamiento: EntrenamientoDeportivo) => {
     if (window.confirm("¿Estás seguro de que quieres eliminar este entrenamiento? Esta acción no se puede deshacer.")) {
       deleteSessionMutation.mutate(entrenamiento.id);
     }
@@ -95,7 +95,7 @@ const EntrenamientosJudo = () => {
         </Button>
 
         {mostrarFormulario && (
-          <JudoTrainingForm
+          <TrainingForm
             editandoEntrenamiento={editandoEntrenamiento}
             onSubmit={handleFormSubmit}
             onCancel={resetForm}
@@ -114,7 +114,7 @@ const EntrenamientosJudo = () => {
             </Card>
           ) : (
             sessions.map((entrenamiento) => (
-              <JudoSessionCard
+              <SessionCard
                 key={entrenamiento.id}
                 entrenamiento={entrenamiento}
                 onView={setEntrenamientoDetalle}

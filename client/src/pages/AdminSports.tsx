@@ -40,7 +40,7 @@ interface SportFormData {
 }
 
 const defaultBelts = {
-  judo: ["blanco", "amarillo", "naranja", "verde", "azul", "marrón", "negro"],
+  deportivo: ["blanco", "amarillo", "naranja", "verde", "azul", "marrón", "negro"],
   karate: ["blanco", "amarillo", "naranja", "verde", "azul", "marrón", "negro"],
   jiujitsu: ["blanco", "azul", "púrpura", "marrón", "negro"]
 };
@@ -272,7 +272,7 @@ export const AdminSports = () => {
                 id="name"
                 value={formData.name}
                 onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                placeholder="ej: Judo, Karate, JiuJitsu"
+                placeholder="ej: Deportivo, Karate, JiuJitsu"
                 required
               />
             </div>

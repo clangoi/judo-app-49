@@ -23,7 +23,7 @@ interface RandoryInfo {
   tecnicasQueRecibio: string;
 }
 
-interface EntrenamientoJudo {
+interface EntrenamientoDeportivo {
   id: string;
   fecha: string;
   tipo: string;
@@ -37,14 +37,14 @@ interface EntrenamientoJudo {
   mediaFiles?: MediaFile[];
 }
 
-interface JudoTrainingFormProps {
-  editandoEntrenamiento: EntrenamientoJudo | null;
+interface TrainingFormProps {
+  editandoEntrenamiento: EntrenamientoDeportivo | null;
   onSubmit: (data: any) => void;
   onCancel: () => void;
   isLoading: boolean;
 }
 
-const JudoTrainingForm = ({ editandoEntrenamiento, onSubmit, onCancel, isLoading }: JudoTrainingFormProps) => {
+const TrainingForm = ({ editandoEntrenamiento, onSubmit, onCancel, isLoading }: TrainingFormProps) => {
   const [incluirRandory, setIncluirRandory] = useState(!!editandoEntrenamiento?.randory);
   const [nuevoEntrenamiento, setNuevoEntrenamiento] = useState({
     tipo: editandoEntrenamiento?.tipo || "",
@@ -98,7 +98,7 @@ const JudoTrainingForm = ({ editandoEntrenamiento, onSubmit, onCancel, isLoading
     <Card className="mb-6">
       <CardHeader>
         <CardTitle>
-          {editandoEntrenamiento ? "Editar Entrenamiento de Judo" : "Nuevo Entrenamiento de Judo"}
+          {editandoEntrenamiento ? "Editar Entrenamiento de Deportivo" : "Nuevo Entrenamiento de Deportivo"}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -206,4 +206,4 @@ const JudoTrainingForm = ({ editandoEntrenamiento, onSubmit, onCancel, isLoading
   );
 };
 
-export default JudoTrainingForm;
+export default TrainingForm;

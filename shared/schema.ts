@@ -49,7 +49,7 @@ export const clubs = pgTable("clubs", {
   updatedAt: timestamp("updated_at").defaultNow()
 });
 
-// Sports table - Types of sports (Judo, Karate, JiuJitsu, etc.)
+// Sports table - Types of sports (Sports, Karate, JiuJitsu, etc.)
 export const sports = pgTable("sports", {
   id: uuid("id").primaryKey().defaultRandom(),
   name: text("name").notNull().unique(),
@@ -169,8 +169,8 @@ export const tacticalNotes = pgTable("tactical_notes", {
   updatedAt: timestamp("updated_at").defaultNow()
 });
 
-// Judo training sessions table (separate from physical preparation)
-export const judoTrainingSessions = pgTable("judo_training_sessions", {
+// Sports training sessions table (separate from physical preparation)
+export const sportsTrainingSessions = pgTable("sports_training_sessions", {
   id: uuid("id").primaryKey().defaultRandom(),
   userId: uuid("user_id").notNull(),
   date: date("date").notNull(),
@@ -184,11 +184,11 @@ export const judoTrainingSessions = pgTable("judo_training_sessions", {
   createdAt: timestamp("created_at").defaultNow()
 });
 
-// Randori sessions table (linked to judo training sessions)
+// Randori sessions table (linked to sports training sessions)
 export const randoriSessions = pgTable("randori_sessions", {
   id: uuid("id").primaryKey().defaultRandom(),
   userId: uuid("user_id").notNull(),
-  judoTrainingSessionId: uuid("judo_training_session_id"),
+  sportsTrainingSessionId: uuid("sports_training_session_id"),
   opponentName: text("opponent_name").notNull(),
   techniquesAttempted: text("techniques_attempted").array(),
   techniquesSuccessful: text("techniques_successful").array(),
@@ -281,7 +281,7 @@ export const insertSportSchema = createInsertSchema(sports);
 export const insertSportTrainerAssignmentSchema = createInsertSchema(sportTrainerAssignments);
 export const insertTrainerAssignmentSchema = createInsertSchema(trainerAssignments);
 export const insertTrainingSessionSchema = createInsertSchema(trainingSessions);
-export const insertJudoTrainingSessionSchema = createInsertSchema(judoTrainingSessions);
+export const insertSportsTrainingSessionSchema = createInsertSchema(sportsTrainingSessions);
 export const insertExerciseSchema = createInsertSchema(exercises);
 export const insertExerciseRecordSchema = createInsertSchema(exerciseRecords);
 export const insertWeightEntrySchema = createInsertSchema(weightEntries);
@@ -310,8 +310,8 @@ export type TrainerAssignment = typeof trainerAssignments.$inferSelect;
 export type InsertTrainerAssignment = z.infer<typeof insertTrainerAssignmentSchema>;
 export type TrainingSession = typeof trainingSessions.$inferSelect;
 export type InsertTrainingSession = z.infer<typeof insertTrainingSessionSchema>;
-export type JudoTrainingSession = typeof judoTrainingSessions.$inferSelect;
-export type InsertJudoTrainingSession = z.infer<typeof insertJudoTrainingSessionSchema>;
+export type SportsTrainingSession = typeof sportsTrainingSessions.$inferSelect;
+export type InsertSportsTrainingSession = z.infer<typeof insertSportsTrainingSessionSchema>;
 export type Exercise = typeof exercises.$inferSelect;
 export type InsertExercise = z.infer<typeof insertExerciseSchema>;
 export type ExerciseRecord = typeof exerciseRecords.$inferSelect;

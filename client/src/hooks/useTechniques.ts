@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
 
-interface TecnicaJudo {
+interface TecnicaDeportiva {
   id: string;
   nombre: string;
   categoria: string;
@@ -30,7 +30,7 @@ export const useTechniques = (userId?: string) => {
   });
 
   const createTechniqueMutation = useMutation({
-    mutationFn: async (techniqueData: Omit<TecnicaJudo, 'id' | 'fechaCreacion'>) => {
+    mutationFn: async (techniqueData: Omit<TecnicaDeportiva, 'id' | 'fechaCreacion'>) => {
       if (!userId) throw new Error('Usuario no autenticado');
       
       return await api.createTechnique({

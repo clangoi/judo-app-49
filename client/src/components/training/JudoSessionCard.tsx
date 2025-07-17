@@ -19,7 +19,7 @@ interface RandoryInfo {
   tecnicasQueRecibio: string;
 }
 
-interface EntrenamientoJudo {
+interface EntrenamientoDeportivo {
   id: string;
   fecha: string;
   tipo: string;
@@ -33,15 +33,15 @@ interface EntrenamientoJudo {
   mediaFiles?: MediaFile[];
 }
 
-interface JudoSessionCardProps {
-  entrenamiento: EntrenamientoJudo;
-  onView: (entrenamiento: EntrenamientoJudo) => void;
-  onEdit: (entrenamiento: EntrenamientoJudo) => void;
-  onDelete: (entrenamiento: EntrenamientoJudo) => void;
+interface SessionCardProps {
+  entrenamiento: EntrenamientoDeportivo;
+  onView: (entrenamiento: EntrenamientoDeportivo) => void;
+  onEdit: (entrenamiento: EntrenamientoDeportivo) => void;
+  onDelete: (entrenamiento: EntrenamientoDeportivo) => void;
   isDeleting?: boolean;
 }
 
-const JudoSessionCard = ({ entrenamiento, onView, onEdit, onDelete, isDeleting }: JudoSessionCardProps) => {
+const SessionCard = ({ entrenamiento, onView, onEdit, onDelete, isDeleting }: SessionCardProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
   const toggleExpanded = () => {
@@ -242,4 +242,4 @@ const JudoSessionCard = ({ entrenamiento, onView, onEdit, onDelete, isDeleting }
   );
 };
 
-export default JudoSessionCard;
+export default SessionCard;

@@ -10,7 +10,7 @@ interface RandoryInfo {
   tecnicasQueRecibio: string;
 }
 
-interface EntrenamientoJudo {
+interface EntrenamientoDeportivo {
   id: string;
   fecha: string;
   tipo: string;
@@ -24,7 +24,7 @@ interface EntrenamientoJudo {
 }
 
 interface JudoTrainingDetailsProps {
-  entrenamiento: EntrenamientoJudo | null;
+  entrenamiento: EntrenamientoDeportivo | null;
   onClose: () => void;
 }
 

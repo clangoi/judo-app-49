@@ -161,38 +161,38 @@ export const api = {
     return response.json();
   },
 
-  // Judo Training Sessions (separate from physical preparation)
-  async getJudoTrainingSessions(userId: string) {
-    const response = await fetch(`${API_BASE_URL}/api/judo-training-sessions?user_id=${userId}`);
-    if (!response.ok) throw new Error('Failed to fetch judo training sessions');
+  // Deportivo Training Sessions (separate from physical preparation)
+  async getDeportivoTrainingSessions(userId: string) {
+    const response = await fetch(`${API_BASE_URL}/api/deportivo-training-sessions?user_id=${userId}`);
+    if (!response.ok) throw new Error('Failed to fetch deportivo training sessions');
     return response.json();
   },
 
-  async createJudoTrainingSession(data: any) {
-    const response = await fetch(`${API_BASE_URL}/api/judo-training-sessions`, {
+  async createDeportivoTrainingSession(data: any) {
+    const response = await fetch(`${API_BASE_URL}/api/deportivo-training-sessions`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data)
     });
-    if (!response.ok) throw new Error('Failed to create judo training session');
+    if (!response.ok) throw new Error('Failed to create deportivo training session');
     return response.json();
   },
 
-  async updateJudoTrainingSession(id: string, data: any) {
-    const response = await fetch(`${API_BASE_URL}/api/judo-training-sessions/${id}`, {
+  async updateDeportivoTrainingSession(id: string, data: any) {
+    const response = await fetch(`${API_BASE_URL}/api/deportivo-training-sessions/${id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data)
     });
-    if (!response.ok) throw new Error('Failed to update judo training session');
+    if (!response.ok) throw new Error('Failed to update deportivo training session');
     return response.json();
   },
 
-  async deleteJudoTrainingSession(id: string) {
-    const response = await fetch(`${API_BASE_URL}/api/judo-training-sessions/${id}`, {
+  async deleteDeportivoTrainingSession(id: string) {
+    const response = await fetch(`${API_BASE_URL}/api/deportivo-training-sessions/${id}`, {
       method: 'DELETE'
     });
-    if (!response.ok) throw new Error('Failed to delete judo training session');
+    if (!response.ok) throw new Error('Failed to delete deportivo training session');
     return response.json();
   },
 

@@ -21,7 +21,7 @@ export const defaultAchievements: Omit<AchievementBadge, 'id' | 'createdAt'>[] =
     iconUrl: undefined
   },
   {
-    name: "Judoka Dedicado",
+    name: "Deportista Dedicado",
     description: "Completa 50 sesiones de entrenamiento",
     category: "training",
     criteriaType: "count",
@@ -42,7 +42,7 @@ export const defaultAchievements: Omit<AchievementBadge, 'id' | 'createdAt'>[] =
   // Technique achievements
   {
     name: "Primera Técnica",
-    description: "Registra tu primera técnica de judo",
+    description: "Registra tu primera técnica deportiva",
     category: "technique",
     criteriaType: "count",
     criteriaValue: 1,

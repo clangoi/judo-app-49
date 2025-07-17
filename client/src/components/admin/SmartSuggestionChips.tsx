@@ -121,7 +121,7 @@ const SmartSuggestionChips: React.FC<SmartSuggestionChipsProps> = ({
       });
     }
 
-    // Sugerencias de categorías populares en judo
+    // Sugerencias de categorías populares en deportivo
     const hasYouthClub = clubs.some(club => 
       club.name.toLowerCase().includes('juvenil') || 
       club.name.toLowerCase().includes('youth') ||
@@ -132,9 +132,9 @@ const SmartSuggestionChips: React.FC<SmartSuggestionChipsProps> = ({
       newSuggestions.push({
         type: 'create',
         name: 'Club Juvenil',
-        description: 'Enfocado en el desarrollo de jóvenes judokas desde edad temprana',
+        description: 'Enfocado en el desarrollo de jóvenes deportivokas desde edad temprana',
         category: 'categorías',
-        reason: 'La formación juvenil es clave para el desarrollo del judo',
+        reason: 'La formación juvenil es clave para el desarrollo del deportivo',
         icon: <Users className="h-4 w-4" />
       });
     }

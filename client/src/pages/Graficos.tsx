@@ -100,7 +100,7 @@ const Graficos = () => {
   // Datos para el gráfico de distribución de actividades
   const activityDistribution = [
     { name: 'Preparación Física', value: Number(progressSummary.physicalTraining) || 0, color: '#8884d8' },
-    { name: 'Judo', value: Number(progressSummary.judoTraining) || 0, color: '#C5A46C' },
+    { name: 'Deportivo', value: Number(progressSummary.deportivoTraining) || 0, color: '#C5A46C' },
     { name: 'Técnicas', value: Number(progressSummary.techniques) || 0, color: '#82ca9d' },
     { name: 'Táctica', value: Number(progressSummary.tacticalNotes) || 0, color: '#ffc658' }
   ].filter(item => item.value > 0);
@@ -142,8 +142,8 @@ const Graficos = () => {
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-[#575757]">Entrenamientos Judo</p>
-                  <p className="text-2xl font-bold text-[#1A1A1A]">{progressSummary.judoTraining || 0}</p>
+                  <p className="text-sm text-[#575757]">Entrenamientos Deportivo</p>
+                  <p className="text-2xl font-bold text-[#1A1A1A]">{progressSummary.deportivoTraining || 0}</p>
                 </div>
                 <Target className="h-8 w-8 text-[#C5A46C]" />
               </div>

@@ -68,7 +68,7 @@ const MediaUpload = ({ onMediaUploaded, currentMediaFiles = [], onRemoveMedia, l
         const fileExt = file.name.split('.').pop();
         const fileName = `${user.id}/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
         
-        const bucketName = allowedVideoTypes.includes(file.type) ? 'judo-videos' : 'judo-images';
+        const bucketName = allowedVideoTypes.includes(file.type) ? 'deportivo-videos' : 'deportivo-images';
 
         // Upload to storage service
         // TODO: Implement file upload service

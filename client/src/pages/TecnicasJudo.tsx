@@ -11,7 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Plus, BookOpen, Search, Camera, Youtube, Eye, Edit, Trash2, Loader2 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
-interface TecnicaJudo {
+interface TecnicaDeportivo {
   id: string;
   nombre: string;
   categoria: string;
@@ -24,14 +24,14 @@ interface TecnicaJudo {
   videoUrl?: string;
 }
 
-const TecnicasJudo = () => {
+const TecnicasDeportivo = () => {
   const { user } = useAuth();
   const { techniques, isLoading, createTechniqueMutation, updateTechniqueMutation, deleteTechniqueMutation } = useTechniques(user?.id);
   
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
   const [busqueda, setBusqueda] = useState("");
-  const [editandoTecnica, setEditandoTecnica] = useState<TecnicaJudo | null>(null);
-  const [tecnicaDetalle, setTecnicaDetalle] = useState<TecnicaJudo | null>(null);
+  const [editandoTecnica, setEditandoTecnica] = useState<TecnicaDeportivo | null>(null);
+  const [tecnicaDetalle, setTecnicaDetalle] = useState<TecnicaDeportivo | null>(null);
   const [nuevaTecnica, setNuevaTecnica] = useState({
     nombre: "",
     categoria: "",
@@ -95,7 +95,7 @@ const TecnicasJudo = () => {
     setEditandoTecnica(null);
   };
 
-  const iniciarEdicion = (tecnica: TecnicaJudo) => {
+  const iniciarEdicion = (tecnica: TecnicaDeportivo) => {
     setEditandoTecnica(tecnica);
     setNuevaTecnica({
       nombre: tecnica.nombre,
@@ -110,7 +110,7 @@ const TecnicasJudo = () => {
     setMostrarFormulario(true);
   };
 
-  const handleEliminar = (tecnica: TecnicaJudo) => {
+  const handleEliminar = (tecnica: TecnicaDeportivo) => {
     if (window.confirm("¿Estás seguro de que quieres eliminar esta técnica? Esta acción no se puede deshacer.")) {
       deleteTechniqueMutation.mutate(tecnica.id);
     }
@@ -339,7 +339,7 @@ const TecnicasJudo = () => {
               <CardContent className="p-8 text-center">
                 <BookOpen className="h-12 w-12 mx-auto text-slate-400 mb-4" />
                 <p className="text-slate-600">No hay técnicas registradas aún</p>
-                <p className="text-sm text-slate-500">Agrega tu primera técnica de judo</p>
+                <p className="text-sm text-slate-500">Agrega tu primera técnica de deportivo</p>
               </CardContent>
             </Card>
           ) : tecnicasFiltradas.length === 0 ? (
@@ -535,4 +535,4 @@ const TecnicasJudo = () => {
   );
 };
 
-export default TecnicasJudo;
+export default TecnicasDeportivo;

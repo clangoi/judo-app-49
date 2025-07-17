@@ -4,12 +4,12 @@ import { db } from "./db";
 import * as fs from "fs";
 import * as path from "path";
 import { 
-  profiles, userRoles, clubs, sports, sportTrainerAssignments, trainerAssignments, trainingSessions, judoTrainingSessions,
+  profiles, userRoles, clubs, sports, sportTrainerAssignments, trainerAssignments, trainingSessions, sportsTrainingSessions,
   exercises, exerciseRecords, weightEntries, nutritionEntries, 
   techniques, tacticalNotes, randoriSessions, achievementBadges, userAchievements,
   insertProfileSchema, insertUserRoleSchema, insertClubSchema, insertSportSchema,
   insertSportTrainerAssignmentSchema, insertTrainerAssignmentSchema, insertTrainingSessionSchema, 
-  insertJudoTrainingSessionSchema, insertExerciseSchema, insertExerciseRecordSchema, 
+  insertSportsTrainingSessionSchema, insertExerciseSchema, insertExerciseRecordSchema, 
   insertWeightEntrySchema, insertNutritionEntrySchema, insertTechniqueSchema, 
   insertTacticalNoteSchema, insertRandoriSessionSchema, insertAchievementBadgeSchema, 
   insertUserAchievementSchema
@@ -297,52 +297,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Judo Training Sessions (separate from physical preparation)
-  app.get("/api/judo-training-sessions", async (req, res) => {
+  // Sports Training Sessions (separate from physical preparation)
+  app.get("/api/sports-training-sessions", async (req, res) => {
     try {
       const userId = req.query.user_id as string;
-      let query = db.select().from(judoTrainingSessions);
+      let query = db.select().from(sportsTrainingSessions);
       
       if (userId) {
-        query = query.where(eq(judoTrainingSessions.userId, userId));
+        query = query.where(eq(sportsTrainingSessions.userId, userId));
       }
       
-      const result = await query.orderBy(desc(judoTrainingSessions.date));
+      const result = await query.orderBy(desc(sportsTrainingSessions.date));
       res.json(result);
     } catch (error) {
-      res.status(500).json({ error: "Failed to fetch judo training sessions" });
+      res.status(500).json({ error: "Failed to fetch sports training sessions" });
     }
   });
 
-  app.post("/api/judo-training-sessions", async (req, res) => {
+  app.post("/api/sports-training-sessions", async (req, res) => {
     try {
-      const validated = insertJudoTrainingSessionSchema.parse(req.body);
-      const result = await db.insert(judoTrainingSessions).values(validated).returning();
+      const validated = insertSportsTrainingSessionSchema.parse(req.body);
+      const result = await db.insert(sportsTrainingSessions).values(validated).returning();
       res.json(result[0]);
     } catch (error) {
-      console.error("Judo training session validation error:", error);
-      res.status(400).json({ error: "Invalid judo training session data" });
+      console.error("Sports training session validation error:", error);
+      res.status(400).json({ error: "Invalid sports training session data" });
     }
   });
 
-  app.patch("/api/judo-training-sessions/:id", async (req, res) => {
+  app.patch("/api/sports-training-sessions/:id", async (req, res) => {
     try {
       const { id } = req.params;
-      const validated = insertJudoTrainingSessionSchema.partial().parse(req.body);
-      const result = await db.update(judoTrainingSessions).set(validated).where(eq(judoTrainingSessions.id, id)).returning();
+      const validated = insertSportsTrainingSessionSchema.partial().parse(req.body);
+      const result = await db.update(sportsTrainingSessions).set(validated).where(eq(sportsTrainingSessions.id, id)).returning();
       res.json(result[0]);
     } catch (error) {
-      res.status(400).json({ error: "Failed to update judo training session" });
+      res.status(400).json({ error: "Failed to update sports training session" });
     }
   });
 
-  app.delete("/api/judo-training-sessions/:id", async (req, res) => {
+  app.delete("/api/sports-training-sessions/:id", async (req, res) => {
     try {
       const { id } = req.params;
-      await db.delete(judoTrainingSessions).where(eq(judoTrainingSessions.id, id));
+      await db.delete(sportsTrainingSessions).where(eq(sportsTrainingSessions.id, id));
       res.json({ success: true });
     } catch (error) {
-      res.status(500).json({ error: "Failed to delete judo training session" });
+      res.status(500).json({ error: "Failed to delete sports training session" });
     }
   });
 
@@ -819,13 +819,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // TODO: Fix Drizzle query issue later
       const simpleData = [
         { date: '2024-11-01', duration: 60, type: 'physical' },
-        { date: '2024-11-02', duration: 90, type: 'judo' },
+        { date: '2024-11-02', duration: 90, type: 'sports' },
         { date: '2024-11-04', duration: 45, type: 'physical' },
-        { date: '2024-11-05', duration: 120, type: 'judo' },
+        { date: '2024-11-05', duration: 120, type: 'sports' },
         { date: '2024-11-07', duration: 60, type: 'physical' },
-        { date: '2024-11-09', duration: 75, type: 'judo' },
+        { date: '2024-11-09', duration: 75, type: 'sports' },
         { date: '2024-11-11', duration: 90, type: 'physical' },
-        { date: '2024-11-14', duration: 105, type: 'judo' }
+        { date: '2024-11-14', duration: 105, type: 'sports' }
       ];
 
       res.json(simpleData);
@@ -887,16 +887,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "User ID is required" });
       }
 
-      const [trainingCount, judoCount, techniqueCount, tacticalCount] = await Promise.all([
+      const [trainingCount, sportsCount, techniqueCount, tacticalCount] = await Promise.all([
         db.select({ count: sql<number>`count(*)` }).from(trainingSessions).where(eq(trainingSessions.userId, userId)),
-        db.select({ count: sql<number>`count(*)` }).from(judoTrainingSessions).where(eq(judoTrainingSessions.userId, userId)),
+        db.select({ count: sql<number>`count(*)` }).from(sportsTrainingSessions).where(eq(sportsTrainingSessions.userId, userId)),
         db.select({ count: sql<number>`count(*)` }).from(techniques).where(eq(techniques.userId, userId)),
         db.select({ count: sql<number>`count(*)` }).from(tacticalNotes).where(eq(tacticalNotes.userId, userId))
       ]);
 
       res.json({
         physicalTraining: trainingCount[0]?.count || 0,
-        judoTraining: judoCount[0]?.count || 0,
+        sportsTraining: sportsCount[0]?.count || 0,
         techniques: techniqueCount[0]?.count || 0,
         tacticalNotes: tacticalCount[0]?.count || 0
       });

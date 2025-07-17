@@ -15,9 +15,9 @@ export const SocialShare: React.FC<SocialShareProps> = ({ badge, userEmail }) =>
   const { toast } = useToast();
   const [isOpen, setIsOpen] = useState(false);
 
-  const userName = userEmail?.split('@')[0] || 'Judoka';
-  const achievementText = `¡Acabo de desbloquear el logro "${badge.name}" en mi entrenamiento de judo! 🥋 ${badge.description}`;
-  const hashtags = "#Judo #Entrenamiento #Logros #MartesArtes #JudoLife";
+  const userName = userEmail?.split('@')[0] || 'Deportivoka';
+  const achievementText = `¡Acabo de desbloquear el logro "${badge.name}" en mi entrenamiento de deportivo! 🥋 ${badge.description}`;
+  const hashtags = "#Deportivo #Entrenamiento #Logros #MartesArtes #DeportivoLife";
   const fullShareText = `${achievementText} ${hashtags}`;
 
   // Generate a shareable image URL (using a placeholder service for demo)
@@ -79,7 +79,7 @@ export const SocialShare: React.FC<SocialShareProps> = ({ badge, userEmail }) =>
     ctx.fillText(`- ${userName}`, 400, 280);
     
     ctx.font = '18px Arial';
-    ctx.fillText('#Judo #Entrenamiento #Logros', 400, 340);
+    ctx.fillText('#Deportivo #Entrenamiento #Logros', 400, 340);
     
     // Download the image
     canvas.toBlob((blob) => {

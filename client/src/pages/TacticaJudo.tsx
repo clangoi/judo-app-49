@@ -25,7 +25,7 @@ interface PlanTactico {
   videoUrl?: string;
 }
 
-const TacticaJudo = () => {
+const TacticaDeportivo = () => {
   const { user } = useAuth();
   const { tacticalNotes, isLoading, createNoteMutation, updateNoteMutation, deleteNoteMutation } = useTacticaNotes(user?.id);
   
@@ -505,4 +505,4 @@ const TacticaJudo = () => {
   );
 };
 
-export default TacticaJudo;
+export default TacticaDeportivo;

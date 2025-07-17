@@ -48,17 +48,17 @@ const App = () => (
                   <SesionesPreparacion />
                 </AuthGuard>
               } />
-              <Route path="/entrenamientos-judo" element={
+              <Route path="/entrenamientos-deportivo" element={
                 <AuthGuard>
                   <EntrenamientosJudo />
                 </AuthGuard>
               } />
-              <Route path="/tecnicas-judo" element={
+              <Route path="/tecnicas-deportivo" element={
                 <AuthGuard>
                   <TecnicasJudo />
                 </AuthGuard>
               } />
-              <Route path="/tactica-judo" element={
+              <Route path="/tactica-deportivo" element={
                 <AuthGuard>
                   <TacticaJudo />
                 </AuthGuard>
