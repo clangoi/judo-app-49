@@ -17,11 +17,7 @@ const TrainerAssignmentManagement = () => {
     unassignStudentMutation,
   } = useTrainerAssignments();
 
-  // Debug logs
-  console.log('TrainerAssignmentManagement - trainers:', trainers);
-  console.log('TrainerAssignmentManagement - students:', students);
-  console.log('TrainerAssignmentManagement - isLoadingTrainers:', isLoadingTrainers);
-  console.log('TrainerAssignmentManagement - isLoadingStudents:', isLoadingStudents);
+
   
   const [selectedTrainer, setSelectedTrainer] = useState<string>("");
   const [selectedStudent, setSelectedStudent] = useState<string>("");
@@ -44,10 +40,10 @@ const TrainerAssignmentManagement = () => {
     return (
       <div className="space-y-2">
         <h4 className="font-medium text-sm text-[#1A1A1A]">
-          Estudiantes de {trainer?.full_name || 'Entrenador'}:
+          Deportistas de {trainer?.full_name || 'Entrenador'}:
         </h4>
         {trainerStudents.length === 0 ? (
-          <p className="text-sm text-[#575757]">No hay estudiantes asignados</p>
+          <p className="text-sm text-[#575757]">No hay deportistas asignados</p>
         ) : (
           <div className="space-y-2">
             {trainerStudents.map((student) => (
@@ -91,7 +87,7 @@ const TrainerAssignmentManagement = () => {
       <CardHeader className="pb-4">
         <CardTitle className="flex items-center gap-2 text-[#1A1A1A]">
           <Users className="h-5 w-5 text-[#C5A46C]" />
-          Asignación de Practicantes a Entrenadores
+          Asignación de Deportistas a Entrenadores
         </CardTitle>
       </CardHeader>
       
@@ -121,7 +117,7 @@ const TrainerAssignmentManagement = () => {
 
             <div>
               <label className="block text-sm font-medium text-[#1A1A1A] mb-2">
-                Seleccionar Practicante
+                Seleccionar Deportista
               </label>
               <Select value={selectedStudent} onValueChange={setSelectedStudent}>
                 <SelectTrigger>

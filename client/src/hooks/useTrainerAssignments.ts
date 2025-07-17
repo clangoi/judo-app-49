@@ -32,15 +32,8 @@ export const useTrainerAssignments = () => {
   const { data: trainers = [], isLoading: isLoadingTrainers, error: trainersError } = useQuery({
     queryKey: ['trainers'],
     queryFn: async () => {
-      console.log('Fetching trainers...');
-      try {
-        const response = await api.get('/api/admin/trainers');
-        console.log('Trainers response:', response.data);
-        return response.data;
-      } catch (error) {
-        console.error('Error fetching trainers:', error);
-        throw error;
-      }
+      const response = await api.get('/api/admin/trainers');
+      return response.data;
     },
   });
 
@@ -48,15 +41,8 @@ export const useTrainerAssignments = () => {
   const { data: students = [], isLoading: isLoadingStudents, error: studentsError } = useQuery({
     queryKey: ['students'],
     queryFn: async () => {
-      console.log('Fetching students...');
-      try {
-        const response = await api.get('/api/admin/students');
-        console.log('Students response:', response.data);
-        return response.data;
-      } catch (error) {
-        console.error('Error fetching students:', error);
-        throw error;
-      }
+      const response = await api.get('/api/admin/students');
+      return response.data;
     },
   });
 
@@ -64,15 +50,8 @@ export const useTrainerAssignments = () => {
   const { data: assignments = [], isLoading: isLoadingAssignments, error: assignmentsError } = useQuery({
     queryKey: ['trainer-assignments'],
     queryFn: async () => {
-      console.log('Fetching assignments...');
-      try {
-        const response = await api.get('/api/admin/trainer-assignments');
-        console.log('Assignments response:', response.data);
-        return response.data;
-      } catch (error) {
-        console.error('Error fetching assignments:', error);
-        throw error;
-      }
+      const response = await api.get('/api/admin/trainer-assignments');
+      return response.data;
     },
   });
 
