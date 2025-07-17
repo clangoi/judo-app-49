@@ -2,10 +2,18 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRoles } from "@/hooks/useUserRoles";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
 import NavHeader from "@/components/NavHeader";
 import UserProfileForm from "@/components/configuration/UserProfileForm";
-import { User, Settings } from "lucide-react";
+import { User, Settings, Edit, Save, X, Eye, Camera, Calendar } from "lucide-react";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 
@@ -71,25 +79,14 @@ const Configuracion = () => {
     },
   });
 
-  const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }));
+  const handleSaveProfile = (data: any) => {
+    updateProfileMutation.mutate(data);
   };
 
-  const handleSave = async () => {
-    updateProfileMutation.mutate(formData);
-  };
-
-  const handleEdit = () => {
-    setIsEditing(true);
-  };
-
-  const handleCancel = () => {
-    // Restaurar datos originales
+  const handleCancelEdit = () => {
+    setIsEditing(false);
     if (userProfile) {
-      setFormData({
+      setProfileData({
         fullName: userProfile.fullName || "",
         email: userProfile.email || "",
         gender: userProfile.gender || "",
@@ -101,7 +98,6 @@ const Configuracion = () => {
         injuries: userProfile.injuries || [],
       });
     }
-    setIsEditing(false);
   };
 
   const getBeltOptions = () => {
@@ -132,7 +128,7 @@ const Configuracion = () => {
   };
 
   const handleInjuryChange = (injury: string, checked: boolean) => {
-    setFormData(prev => ({
+    setProfileData(prev => ({
       ...prev,
       injuries: checked 
         ? [...prev.injuries, injury]
@@ -155,7 +151,7 @@ const Configuracion = () => {
 
       if (response.ok) {
         const data = await response.json();
-        setFormData(prev => ({
+        setProfileData(prev => ({
           ...prev,
           profileImageUrl: data.url
         }));
@@ -215,14 +211,14 @@ const Configuracion = () => {
                   {/* Imagen de perfil en modo vista */}
                   <div className="flex items-center gap-4 mb-6">
                     <Avatar className="h-20 w-20">
-                      <AvatarImage src={formData.profileImageUrl} alt="Foto de perfil" />
+                      <AvatarImage src={profileData.profileImageUrl} alt="Foto de perfil" />
                       <AvatarFallback>
                         <User className="h-10 w-10" />
                       </AvatarFallback>
                     </Avatar>
                     <div>
                       <p className="text-sm font-medium text-muted-foreground">Foto de Perfil</p>
-                      <p className="text-sm">{formData.profileImageUrl ? "Imagen cargada" : "Sin imagen"}</p>
+                      <p className="text-sm">{profileData.profileImageUrl ? "Imagen cargada" : "Sin imagen"}</p>
                     </div>
                   </div>
 
@@ -230,12 +226,12 @@ const Configuracion = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-1">
                       <p className="text-sm font-medium text-muted-foreground">Nombre Completo</p>
-                      <p className="text-base">{formData.fullName || "No especificado"}</p>
+                      <p className="text-base">{profileData.fullName || "No especificado"}</p>
                     </div>
 
                     <div className="space-y-1">
                       <p className="text-sm font-medium text-muted-foreground">Correo Electrónico</p>
-                      <p className="text-base">{formData.email || "No especificado"}</p>
+                      <p className="text-base">{profileData.email || "No especificado"}</p>
                     </div>
 
                     <div className="space-y-1">
@@ -243,36 +239,36 @@ const Configuracion = () => {
                         <Calendar className="h-4 w-4" />
                         Fecha de Nacimiento
                       </p>
-                      <p className="text-base">{formData.birthDate || "No especificada"}</p>
+                      <p className="text-base">{profileData.birthDate || "No especificada"}</p>
                     </div>
 
                     <div className="space-y-1">
                       <p className="text-sm font-medium text-muted-foreground">Género</p>
                       <p className="text-base">
-                        {formData.gender === 'male' ? 'Masculino' : 
-                         formData.gender === 'female' ? 'Femenino' : 'No especificado'}
+                        {profileData.gender === 'male' ? 'Masculino' : 
+                         profileData.gender === 'female' ? 'Femenino' : 'No especificado'}
                       </p>
                     </div>
 
                     <div className="space-y-1">
                       <p className="text-sm font-medium text-muted-foreground">Cinturón Actual</p>
                       <p className="text-base">
-                        {getBeltOptions().find(belt => belt.value === formData.currentBelt)?.label || "No especificado"}
+                        {getBeltOptions().find(belt => belt.value === profileData.currentBelt)?.label || "No especificado"}
                       </p>
                     </div>
 
                     <div className="space-y-1">
                       <p className="text-sm font-medium text-muted-foreground">Categoría de Competición</p>
-                      <p className="text-base">{formData.competitionCategory || "No especificada"}</p>
+                      <p className="text-base">{profileData.competitionCategory || "No especificada"}</p>
                     </div>
                   </div>
 
                   {/* Lesiones en modo vista */}
                   <div className="space-y-3">
                     <p className="text-sm font-medium text-muted-foreground">Lesiones</p>
-                    {formData.injuries.length > 0 ? (
+                    {profileData.injuries.length > 0 ? (
                       <div className="flex flex-wrap gap-2">
-                        {formData.injuries.map((injury) => (
+                        {profileData.injuries.map((injury) => (
                           <Badge key={injury} variant="secondary" className="text-xs">
                             {injury}
                           </Badge>
@@ -287,7 +283,7 @@ const Configuracion = () => {
                   <div className="space-y-3">
                     <p className="text-sm font-medium text-muted-foreground">Descripción de Lesiones</p>
                     <p className="text-base whitespace-pre-wrap">
-                      {formData.injuryDescription || "Sin descripción adicional"}
+                      {profileData.injuryDescription || "Sin descripción adicional"}
                     </p>
                   </div>
                 </>
@@ -304,7 +300,7 @@ const Configuracion = () => {
                   {/* Imagen de perfil en modo edición */}
                   <div className="flex items-center gap-4 mb-6 p-4 border rounded-lg">
                     <Avatar className="h-20 w-20">
-                      <AvatarImage src={formData.profileImageUrl} alt="Foto de perfil" />
+                      <AvatarImage src={profileData.profileImageUrl} alt="Foto de perfil" />
                       <AvatarFallback>
                         <User className="h-10 w-10" />
                       </AvatarFallback>
@@ -328,13 +324,13 @@ const Configuracion = () => {
                           onClick={() => document.getElementById('profileImage')?.click()}
                         >
                           <Camera className="h-4 w-4 mr-2" />
-                          {formData.profileImageUrl ? 'Cambiar Foto' : 'Subir Foto'}
+                          {profileData.profileImageUrl ? 'Cambiar Foto' : 'Subir Foto'}
                         </Button>
-                        {formData.profileImageUrl && (
+                        {profileData.profileImageUrl && (
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => setFormData(prev => ({ ...prev, profileImageUrl: "" }))}
+                            onClick={() => setProfileData(prev => ({ ...prev, profileImageUrl: "" }))}
                           >
                             <X className="h-4 w-4" />
                           </Button>
@@ -349,8 +345,8 @@ const Configuracion = () => {
                       <Label htmlFor="fullName">Nombre Completo</Label>
                       <Input
                         id="fullName"
-                        value={formData.fullName}
-                        onChange={(e) => handleInputChange('fullName', e.target.value)}
+                        value={profileData.fullName}
+                        onChange={(e) => setProfileData(prev => ({ ...prev, fullName: e.target.value }))}
                         placeholder="Tu nombre completo"
                       />
                     </div>
@@ -360,8 +356,8 @@ const Configuracion = () => {
                       <Input
                         id="email"
                         type="email"
-                        value={formData.email}
-                        onChange={(e) => handleInputChange('email', e.target.value)}
+                        value={profileData.email}
+                        onChange={(e) => setProfileData(prev => ({ ...prev, email: e.target.value }))}
                         placeholder="tu@correo.com"
                       />
                     </div>
@@ -374,14 +370,14 @@ const Configuracion = () => {
                       <Input
                         id="birthDate"
                         type="date"
-                        value={formData.birthDate}
-                        onChange={(e) => handleInputChange('birthDate', e.target.value)}
+                        value={profileData.birthDate}
+                        onChange={(e) => setProfileData(prev => ({ ...prev, birthDate: e.target.value }))}
                       />
                     </div>
 
                     <div className="space-y-2">
                       <Label htmlFor="gender">Género</Label>
-                      <Select value={formData.gender} onValueChange={(value) => handleInputChange('gender', value)}>
+                      <Select value={profileData.gender} onValueChange={(value) => setProfileData(prev => ({ ...prev, gender: value }))}>
                         <SelectTrigger>
                           <SelectValue placeholder="Selecciona tu género" />
                         </SelectTrigger>
@@ -394,7 +390,7 @@ const Configuracion = () => {
 
                     <div className="space-y-2">
                       <Label htmlFor="currentBelt">Cinturón Actual</Label>
-                      <Select value={formData.currentBelt} onValueChange={(value) => handleInputChange('currentBelt', value)}>
+                      <Select value={profileData.currentBelt} onValueChange={(value) => setProfileData(prev => ({ ...prev, currentBelt: value }))}>
                         <SelectTrigger>
                           <SelectValue placeholder="Selecciona tu cinturón" />
                         </SelectTrigger>
@@ -412,8 +408,8 @@ const Configuracion = () => {
                       <Label htmlFor="competitionCategory">Categoría de Competición</Label>
                       <Input
                         id="competitionCategory"
-                        value={formData.competitionCategory}
-                        onChange={(e) => handleInputChange('competitionCategory', e.target.value)}
+                        value={profileData.competitionCategory}
+                        onChange={(e) => setProfileData(prev => ({ ...prev, competitionCategory: e.target.value }))}
                         placeholder="Ej: -73kg, +100kg, etc."
                       />
                     </div>
@@ -430,7 +426,7 @@ const Configuracion = () => {
                         <div key={injury} className="flex items-center space-x-2">
                           <Checkbox
                             id={`injury-${injury}`}
-                            checked={formData.injuries.includes(injury)}
+                            checked={profileData.injuries.includes(injury)}
                             onCheckedChange={(checked) => handleInjuryChange(injury, checked as boolean)}
                           />
                           <Label
@@ -449,8 +445,8 @@ const Configuracion = () => {
                     <Label htmlFor="injuryDescription">Descripción de Lesiones</Label>
                     <Textarea
                       id="injuryDescription"
-                      value={formData.injuryDescription}
-                      onChange={(e) => handleInputChange('injuryDescription', e.target.value)}
+                      value={profileData.injuryDescription}
+                      onChange={(e) => setProfileData(prev => ({ ...prev, injuryDescription: e.target.value }))}
                       placeholder="Describe cualquier lesión o limitación física que debamos tener en cuenta..."
                       rows={3}
                     />
@@ -464,7 +460,7 @@ const Configuracion = () => {
           <div className="flex justify-end gap-3">
             {!isEditing ? (
               <Button
-                onClick={handleEdit}
+                onClick={() => setIsEditing(true)}
                 className="min-w-[120px]"
               >
                 <div className="flex items-center gap-2">
@@ -476,7 +472,7 @@ const Configuracion = () => {
               <>
                 <Button
                   variant="outline"
-                  onClick={handleCancel}
+                  onClick={handleCancelEdit}
                   disabled={updateProfileMutation.isPending}
                   className="min-w-[100px]"
                 >
@@ -486,7 +482,7 @@ const Configuracion = () => {
                   </div>
                 </Button>
                 <Button
-                  onClick={handleSave}
+                  onClick={() => handleSaveProfile(profileData)}
                   disabled={updateProfileMutation.isPending || isLoadingProfile}
                   className="min-w-[120px]"
                 >
