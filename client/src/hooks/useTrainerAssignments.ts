@@ -32,7 +32,8 @@ export const useTrainerAssignments = () => {
   const { data: trainers = [], isLoading: isLoadingTrainers } = useQuery({
     queryKey: ['trainers'],
     queryFn: async () => {
-      return [];
+      const response = await api.get('/api/admin/trainers');
+      return response.data;
     },
   });
 
@@ -40,7 +41,8 @@ export const useTrainerAssignments = () => {
   const { data: students = [], isLoading: isLoadingStudents } = useQuery({
     queryKey: ['students'],
     queryFn: async () => {
-      return [];
+      const response = await api.get('/api/admin/students');
+      return response.data;
     },
   });
 
@@ -48,28 +50,55 @@ export const useTrainerAssignments = () => {
   const { data: assignments = [], isLoading: isLoadingAssignments } = useQuery({
     queryKey: ['trainer-assignments'],
     queryFn: async () => {
-      return [];
+      const response = await api.get('/api/admin/trainer-assignments');
+      return response.data;
     },
   });
 
   // Obtener estudiantes asignados a un entrenador específico
   const getTrainerStudents = (trainerId: string): TrainerStudent[] => {
-    return [];
+    return assignments
+      .filter(assignment => assignment.trainer_id === trainerId)
+      .map(assignment => {
+        const student = students.find(s => s.id === assignment.student_id);
+        return {
+          student_id: assignment.student_id,
+          full_name: student?.full_name || 'Nombre no disponible',
+          email: student?.email || 'Email no disponible',
+          assigned_at: assignment.assigned_at,
+        };
+      });
   };
 
   // Obtener entrenador asignado a un estudiante específico
   const getStudentTrainer = (studentId: string): StudentTrainer | null => {
-    return null;
+    const assignment = assignments.find(a => a.student_id === studentId);
+    if (!assignment) return null;
+    
+    const trainer = trainers.find(t => t.id === assignment.trainer_id);
+    if (!trainer) return null;
+    
+    return {
+      trainer_id: assignment.trainer_id,
+      full_name: trainer.full_name || 'Nombre no disponible',
+      email: trainer.email || 'Email no disponible',
+      assigned_at: assignment.assigned_at,
+    };
   };
 
   // Asignar estudiante a entrenador
   const assignStudentMutation = useMutation({
     mutationFn: async ({ trainerId, studentId }: { trainerId: string; studentId: string }) => {
-      // Placeholder for assignment
-      return { id: '1', trainer_id: trainerId, student_id: studentId };
+      const response = await api.post('/api/admin/assign-student', {
+        trainer_id: trainerId,
+        student_id: studentId,
+      });
+      return response.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['trainer-assignments'] });
+      queryClient.invalidateQueries({ queryKey: ['trainers'] });
+      queryClient.invalidateQueries({ queryKey: ['students'] });
       toast({
         title: "Asignación exitosa",
         description: "El estudiante ha sido asignado al entrenador.",
@@ -86,12 +115,19 @@ export const useTrainerAssignments = () => {
 
   // Desasignar estudiante de entrenador
   const unassignStudentMutation = useMutation({
-    mutationFn: async ({ assignmentId }: { assignmentId: string }) => {
-      // Placeholder for unassignment
-      return { success: true };
+    mutationFn: async ({ trainerId, studentId }: { trainerId: string; studentId: string }) => {
+      const response = await api.delete('/api/admin/unassign-student', {
+        data: {
+          trainer_id: trainerId,
+          student_id: studentId,
+        }
+      });
+      return response.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['trainer-assignments'] });
+      queryClient.invalidateQueries({ queryKey: ['trainers'] });
+      queryClient.invalidateQueries({ queryKey: ['students'] });
       toast({
         title: "Desasignación exitosa",
         description: "El estudiante ha sido desasignado del entrenador.",

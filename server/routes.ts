@@ -1725,6 +1725,233 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get all trainers for admin management
+  app.get("/api/admin/trainers", async (req, res) => {
+    try {
+      const userId = req.headers["x-user-id"] as string;
+      if (!userId) {
+        return res.status(401).json({ error: "User not authenticated" });
+      }
+
+      // Check if user is admin
+      const userRole = await db
+        .select({ role: userRoles.role })
+        .from(userRoles)
+        .where(eq(userRoles.userId, userId));
+
+      if (!userRole.length || !userRole.some(r => r.role === 'admin')) {
+        return res.status(403).json({ error: "Admin access required" });
+      }
+
+      // Get all trainers (users with 'entrenador' role)
+      const trainers = await db
+        .select({
+          id: profiles.id,
+          user_id: userRoles.userId,
+          full_name: profiles.fullName,
+          email: profiles.email,
+          club_name: profiles.clubName,
+          current_belt: profiles.currentBelt,
+          gender: profiles.gender,
+          competition_category: profiles.competitionCategory,
+          profile_image_url: profiles.profileImageUrl,
+          profiles: {
+            full_name: profiles.fullName,
+            email: profiles.email,
+          }
+        })
+        .from(userRoles)
+        .leftJoin(profiles, eq(profiles.id, userRoles.userId))
+        .where(eq(userRoles.role, 'entrenador'));
+
+      res.json(trainers);
+    } catch (error) {
+      console.error("Error fetching trainers data:", error);
+      res.status(500).json({ error: "Failed to fetch trainers data" });
+    }
+  });
+
+  // Get all students for admin management
+  app.get("/api/admin/students", async (req, res) => {
+    try {
+      const userId = req.headers["x-user-id"] as string;
+      if (!userId) {
+        return res.status(401).json({ error: "User not authenticated" });
+      }
+
+      // Check if user is admin
+      const userRole = await db
+        .select({ role: userRoles.role })
+        .from(userRoles)
+        .where(eq(userRoles.userId, userId));
+
+      if (!userRole.length || !userRole.some(r => r.role === 'admin')) {
+        return res.status(403).json({ error: "Admin access required" });
+      }
+
+      // Get all students (users with 'deportista' role)
+      const students = await db
+        .select({
+          id: profiles.id,
+          user_id: userRoles.userId,
+          full_name: profiles.fullName,
+          email: profiles.email,
+          club_name: profiles.clubName,
+          current_belt: profiles.currentBelt,
+          gender: profiles.gender,
+          competition_category: profiles.competitionCategory,
+          profile_image_url: profiles.profileImageUrl,
+        })
+        .from(userRoles)
+        .leftJoin(profiles, eq(profiles.id, userRoles.userId))
+        .where(eq(userRoles.role, 'deportista'));
+
+      res.json(students);
+    } catch (error) {
+      console.error("Error fetching students data:", error);
+      res.status(500).json({ error: "Failed to fetch students data" });
+    }
+  });
+
+  // Get all trainer assignments for admin management
+  app.get("/api/admin/trainer-assignments", async (req, res) => {
+    try {
+      const userId = req.headers["x-user-id"] as string;
+      if (!userId) {
+        return res.status(401).json({ error: "User not authenticated" });
+      }
+
+      // Check if user is admin
+      const userRole = await db
+        .select({ role: userRoles.role })
+        .from(userRoles)
+        .where(eq(userRoles.userId, userId));
+
+      if (!userRole.length || !userRole.some(r => r.role === 'admin')) {
+        return res.status(403).json({ error: "Admin access required" });
+      }
+
+      // Get all trainer assignments
+      const assignments = await db
+        .select({
+          id: trainerAssignments.id,
+          trainer_id: trainerAssignments.trainerId,
+          student_id: trainerAssignments.studentId,
+          assigned_at: trainerAssignments.assignedAt,
+          assigned_by: trainerAssignments.assignedBy,
+        })
+        .from(trainerAssignments);
+
+      res.json(assignments);
+    } catch (error) {
+      console.error("Error fetching trainer assignments:", error);
+      res.status(500).json({ error: "Failed to fetch trainer assignments" });
+    }
+  });
+
+  // Assign student to trainer
+  app.post("/api/admin/assign-student", async (req, res) => {
+    try {
+      const userId = req.headers["x-user-id"] as string;
+      if (!userId) {
+        return res.status(401).json({ error: "User not authenticated" });
+      }
+
+      // Check if user is admin
+      const userRole = await db
+        .select({ role: userRoles.role })
+        .from(userRoles)
+        .where(eq(userRoles.userId, userId));
+
+      if (!userRole.length || !userRole.some(r => r.role === 'admin')) {
+        return res.status(403).json({ error: "Admin access required" });
+      }
+
+      const { trainer_id, student_id } = req.body;
+
+      if (!trainer_id || !student_id) {
+        return res.status(400).json({ error: "Trainer ID and Student ID are required" });
+      }
+
+      // Check if assignment already exists
+      const existingAssignment = await db
+        .select()
+        .from(trainerAssignments)
+        .where(
+          and(
+            eq(trainerAssignments.trainerId, trainer_id),
+            eq(trainerAssignments.studentId, student_id)
+          )
+        );
+
+      if (existingAssignment.length > 0) {
+        return res.status(400).json({ error: "Student is already assigned to this trainer" });
+      }
+
+      // Create new assignment
+      const newAssignment = await db
+        .insert(trainerAssignments)
+        .values({
+          trainerId: trainer_id,
+          studentId: student_id,
+          assignedBy: userId,
+          assignedAt: new Date(),
+        })
+        .returning();
+
+      res.json(newAssignment[0]);
+    } catch (error) {
+      console.error("Error assigning student to trainer:", error);
+      res.status(500).json({ error: "Failed to assign student to trainer" });
+    }
+  });
+
+  // Unassign student from trainer
+  app.delete("/api/admin/unassign-student", async (req, res) => {
+    try {
+      const userId = req.headers["x-user-id"] as string;
+      if (!userId) {
+        return res.status(401).json({ error: "User not authenticated" });
+      }
+
+      // Check if user is admin
+      const userRole = await db
+        .select({ role: userRoles.role })
+        .from(userRoles)
+        .where(eq(userRoles.userId, userId));
+
+      if (!userRole.length || !userRole.some(r => r.role === 'admin')) {
+        return res.status(403).json({ error: "Admin access required" });
+      }
+
+      const { trainer_id, student_id } = req.body;
+
+      if (!trainer_id || !student_id) {
+        return res.status(400).json({ error: "Trainer ID and Student ID are required" });
+      }
+
+      // Delete assignment
+      const deletedAssignment = await db
+        .delete(trainerAssignments)
+        .where(
+          and(
+            eq(trainerAssignments.trainerId, trainer_id),
+            eq(trainerAssignments.studentId, student_id)
+          )
+        )
+        .returning();
+
+      if (deletedAssignment.length === 0) {
+        return res.status(404).json({ error: "Assignment not found" });
+      }
+
+      res.json({ success: true, message: "Student successfully unassigned from trainer" });
+    } catch (error) {
+      console.error("Error unassigning student from trainer:", error);
+      res.status(500).json({ error: "Failed to unassign student from trainer" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
