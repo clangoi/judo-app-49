@@ -16,6 +16,12 @@ const TrainerAssignmentManagement = () => {
     assignStudentMutation,
     unassignStudentMutation,
   } = useTrainerAssignments();
+
+  // Debug logs
+  console.log('TrainerAssignmentManagement - trainers:', trainers);
+  console.log('TrainerAssignmentManagement - students:', students);
+  console.log('TrainerAssignmentManagement - isLoadingTrainers:', isLoadingTrainers);
+  console.log('TrainerAssignmentManagement - isLoadingStudents:', isLoadingStudents);
   
   const [selectedTrainer, setSelectedTrainer] = useState<string>("");
   const [selectedStudent, setSelectedStudent] = useState<string>("");
