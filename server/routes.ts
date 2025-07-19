@@ -1615,8 +1615,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .from(trainerAssignments)
         .leftJoin(profiles, eq(profiles.id, trainerAssignments.trainerId));
 
-      // Get training session counts for activity status
-      const trainingCounts = await db
+      // Get training session counts for activity status (combining physical and judo sessions)
+      const physicalTrainingCounts = await db
         .select({
           userId: trainingSessions.userId,
           sessionCount: sql<number>`count(*)::int`.as('sessionCount'),
@@ -1624,6 +1624,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .from(trainingSessions)
         .where(gte(trainingSessions.date, sql`current_date - interval '7 days'`))
         .groupBy(trainingSessions.userId);
+
+      const sportsTrainingCounts = await db
+        .select({
+          userId: sportsTrainingSessions.userId,
+          sessionCount: sql<number>`count(*)::int`.as('sessionCount'),
+        })
+        .from(sportsTrainingSessions)
+        .where(gte(sportsTrainingSessions.date, sql`current_date - interval '7 days'`))
+        .groupBy(sportsTrainingSessions.userId);
+
+      // Combine both training counts
+      const trainingCounts = physicalTrainingCounts.map(pt => {
+        const sportsCount = sportsTrainingCounts.find(st => st.userId === pt.userId)?.sessionCount || 0;
+        return {
+          userId: pt.userId,
+          sessionCount: pt.sessionCount + sportsCount
+        };
+      });
+
+      // Add users who only have sports sessions
+      sportsTrainingCounts.forEach(st => {
+        if (!trainingCounts.find(tc => tc.userId === st.userId)) {
+          trainingCounts.push({
+            userId: st.userId,
+            sessionCount: st.sessionCount
+          });
+        }
+      });
 
       // Get technique counts
       const techniqueCounts = await db
@@ -1659,8 +1687,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           )`
         );
 
-      // Get latest training sessions
-      const latestSessions = await db
+      // Get latest training sessions from both tables
+      const latestPhysicalSessions = await db
         .select({
           userId: trainingSessions.userId,
           session_type: trainingSessions.sessionType,
@@ -1674,6 +1702,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
             GROUP BY user_id
           )`
         );
+
+      const latestSportsSessions = await db
+        .select({
+          userId: sportsTrainingSessions.userId,
+          session_type: sql<string>`'sports'`.as('session_type'),
+          date: sportsTrainingSessions.date,
+        })
+        .from(sportsTrainingSessions)
+        .where(
+          sql`(user_id, date) IN (
+            SELECT user_id, MAX(date) 
+            FROM sports_training_sessions 
+            GROUP BY user_id
+          )`
+        );
+
+      // Combine and get the most recent session per user
+      const latestSessions = latestPhysicalSessions.map(ps => {
+        const sportsSession = latestSportsSessions.find(ss => ss.userId === ps.userId);
+        if (sportsSession && sportsSession.date > ps.date) {
+          return sportsSession;
+        }
+        return ps;
+      });
+
+      // Add users who only have sports sessions
+      latestSportsSessions.forEach(ss => {
+        if (!latestSessions.find(ls => ls.userId === ss.userId)) {
+          latestSessions.push(ss);
+        }
+      });
 
       // Combine all data
       const athletesWithStats = athletes.map(athlete => {
