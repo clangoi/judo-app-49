@@ -47,7 +47,9 @@ const AdminAthleteManagement = () => {
     return acc;
   }, {} as Record<string, { trainer?: any; athletes: typeof athletesData }>);
 
-  const handleAthleteSelect = (athleteId: string) => {
+  const handleAthleteSelect = (athleteIdOrObject: string | any) => {
+    // Handle both string ID (from existing components) and object (from new dropdown)
+    const athleteId = typeof athleteIdOrObject === 'string' ? athleteIdOrObject : athleteIdOrObject.id;
     setSelectedAthleteId(athleteId);
     setCurrentView('individual');
   };
@@ -197,7 +199,7 @@ const AdminAthleteManagement = () => {
         <TabsContent value="individual">
           <AdminIndividualAthleteView
             athlete={selectedAthlete}
-            athletes={athletes}
+            athletes={athletesData}
             onBack={handleBackToOverview}
             onSelectAthlete={handleAthleteSelect}
           />
