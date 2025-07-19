@@ -2,25 +2,147 @@
 import { AdminAthleteData } from "@/hooks/useAdminAthleteManagement";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { User, Weight, Calendar, Trophy, Target, UserCheck, Mail } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { User, Weight, Calendar, Trophy, Target, UserCheck, Mail, Search, ChevronDown, Check } from "lucide-react";
+import { useState } from "react";
+import { cn } from "@/lib/utils";
 
 interface AdminIndividualAthleteViewProps {
   athlete?: AdminAthleteData;
+  athletes: AdminAthleteData[];
   onBack: () => void;
+  onSelectAthlete: (athlete: AdminAthleteData) => void;
 }
 
-export const AdminIndividualAthleteView = ({ athlete, onBack }: AdminIndividualAthleteViewProps) => {
+export const AdminIndividualAthleteView = ({ athlete, athletes, onBack, onSelectAthlete }: AdminIndividualAthleteViewProps) => {
+  const [open, setOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+
+  // Filter athletes based on search term
+  const filteredAthletes = athletes.filter(a => 
+    a.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    a.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    a.club_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    a.current_belt?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    a.competition_category?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    a.trainer_name?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   if (!athlete) {
     return (
       <Card>
-        <CardContent className="p-6">
-          <p className="text-center text-muted-foreground">
-            Selecciona un deportista para ver sus detalles
-          </p>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Search className="h-5 w-5" />
+            Seleccionar Deportista
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Buscar por nombre, club, categoría, entrenador...</label>
+            <Popover open={open} onOpenChange={setOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  role="combobox"
+                  aria-expanded={open}
+                  className="w-full justify-between"
+                >
+                  Selecciona un deportista...
+                  <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-full p-0" style={{ width: 'var(--radix-popover-trigger-width)' }}>
+                <Command>
+                  <CommandInput 
+                    placeholder="Buscar deportista..." 
+                    value={searchTerm}
+                    onValueChange={setSearchTerm}
+                  />
+                  <CommandList>
+                    <CommandEmpty>No se encontraron deportistas.</CommandEmpty>
+                    <CommandGroup>
+                      {filteredAthletes.map((a) => (
+                        <CommandItem
+                          key={a.id}
+                          value={`${a.full_name}-${a.email}`}
+                          onSelect={() => {
+                            onSelectAthlete(a);
+                            setOpen(false);
+                          }}
+                          className="cursor-pointer"
+                        >
+                          <div className="flex items-center justify-between w-full">
+                            <div className="flex flex-col">
+                              <span className="font-medium">{a.full_name}</span>
+                              <span className="text-sm text-muted-foreground">{a.email}</span>
+                              <div className="flex gap-2 mt-1">
+                                <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                                  {a.club_name || 'Sin club'}
+                                </span>
+                                <span className="text-xs bg-purple-100 text-purple-800 px-2 py-1 rounded">
+                                  {a.current_belt || 'Sin cinturón'}
+                                </span>
+                                {a.trainer_name && (
+                                  <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">
+                                    {a.trainer_name}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                            <div className="flex flex-col items-end">
+                              <Badge className={getActivityColor(a.activityStatus)} variant="outline">
+                                {getActivityLabel(a.activityStatus)}
+                              </Badge>
+                              <span className="text-xs text-muted-foreground mt-1">
+                                {a.weeklySessionsCount} sesiones/sem
+                              </span>
+                            </div>
+                          </div>
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
+          </div>
+          
+          <div className="pt-4 border-t">
+            <h3 className="font-medium mb-2">Filtros rápidos:</h3>
+            <div className="flex flex-wrap gap-2">
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => setSearchTerm("active")}
+              >
+                Deportistas Activos
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => setSearchTerm("inactive")}
+              >
+                Deportistas Inactivos
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => setSearchTerm("")}
+              >
+                Mostrar Todos
+              </Button>
+            </div>
+          </div>
         </CardContent>
       </Card>
     );
   }
+
+
 
   const getActivityColor = (status: string) => {
     switch (status) {
