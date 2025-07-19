@@ -9,23 +9,31 @@ This is a full-stack web application for managing judo training, athlete perform
 Preferred communication style: Simple, everyday language.
 Terminology: Refer to users as "deportistas" instead of "estudiantes" or "practicantes". The system now handles multiple sports, not just Judo - avoid sport-specific references in UI.
 
-## Recent Changes (July 17, 2025)
+## Recent Changes (July 19, 2025)
+
+### Access Control Improvements
+- ✓ Restricted nutritional evolution chart visibility to administrators only
+- ✓ Integrated useUserRoles hook in Graficos.tsx for role-based access control
+- ✓ Applied conditional rendering using isAdmin() function
+
+### Sports Management Bug Fixes
+- ✓ Completely rewrote AdminSports.tsx component to resolve persistent editing bugs
+- ✓ Implemented cleaner modal state management with modalOpen and editingId
+- ✓ Eliminated event handler conflicts through code restructuring
+- ✓ Improved form submission and field interaction reliability
 
 ### Weight Categories Implementation
 - ✓ Expanded sports database schema to include weight_categories (JSONB column)
 - ✓ Created comprehensive weight category management in AdminSports.tsx
 - ✓ Implemented gender-specific (masculino, femenino, mixto) weight categories
 - ✓ Added age-category-specific weight divisions
-- ✓ Fixed UI bug where adding weight categories triggered sport name editing
-- ✓ Improved form event handling with onKeyDown instead of onKeyPress
-- ✓ Added DialogDescription for better accessibility compliance
 - ✓ Applied database migration to add weight_categories column to existing sports table
 
 ### Technical Improvements
+- Enhanced role-based access control implementation
+- Improved component architecture for better maintainability
 - Resolved form event conflicts in modal dialogs
 - Enhanced type safety for weight category structures
-- Improved UI responsiveness for weight category configuration
-- Added proper validation for weight category management
 
 ## System Architecture
 
