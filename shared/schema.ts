@@ -170,6 +170,21 @@ export const tacticalNotes = pgTable("tactical_notes", {
   updatedAt: timestamp("updated_at").defaultNow()
 });
 
+// Judo training sessions table (separate from physical preparation)
+export const judoTrainingSessions = pgTable("judo_training_sessions", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id").notNull(),
+  date: date("date").notNull(),
+  sessionType: text("session_type").notNull(), // tipo de entrenamiento
+  durationMinutes: integer("duration_minutes"),
+  techniquesPracticed: text("techniques_practiced"), // tecnicasPracticadas
+  whatWorked: text("what_worked"), // queFunciono
+  whatDidntWork: text("what_didnt_work"), // queNoFunciono
+  notes: text("notes"), // comentarios
+  videoUrl: text("video_url"),
+  createdAt: timestamp("created_at").defaultNow()
+});
+
 // Sports training sessions table (separate from physical preparation)
 export const sportsTrainingSessions = pgTable("sports_training_sessions", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -282,6 +297,7 @@ export const insertSportSchema = createInsertSchema(sports);
 export const insertSportTrainerAssignmentSchema = createInsertSchema(sportTrainerAssignments);
 export const insertTrainerAssignmentSchema = createInsertSchema(trainerAssignments);
 export const insertTrainingSessionSchema = createInsertSchema(trainingSessions);
+export const insertJudoTrainingSessionSchema = createInsertSchema(judoTrainingSessions);
 export const insertSportsTrainingSessionSchema = createInsertSchema(sportsTrainingSessions);
 export const insertExerciseSchema = createInsertSchema(exercises);
 export const insertExerciseRecordSchema = createInsertSchema(exerciseRecords);

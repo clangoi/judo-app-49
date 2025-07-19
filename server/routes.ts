@@ -4,12 +4,12 @@ import { db } from "./db";
 import * as fs from "fs";
 import * as path from "path";
 import { 
-  profiles, userRoles, clubs, sports, sportTrainerAssignments, trainerAssignments, trainingSessions, sportsTrainingSessions,
+  profiles, userRoles, clubs, sports, sportTrainerAssignments, trainerAssignments, trainingSessions, judoTrainingSessions, sportsTrainingSessions,
   exercises, exerciseRecords, weightEntries, nutritionEntries, 
   techniques, tacticalNotes, randoriSessions, achievementBadges, userAchievements,
   insertProfileSchema, insertUserRoleSchema, insertClubSchema, insertSportSchema,
   insertSportTrainerAssignmentSchema, insertTrainerAssignmentSchema, insertTrainingSessionSchema, 
-  insertSportsTrainingSessionSchema, insertExerciseSchema, insertExerciseRecordSchema, 
+  insertJudoTrainingSessionSchema, insertSportsTrainingSessionSchema, insertExerciseSchema, insertExerciseRecordSchema, 
   insertWeightEntrySchema, insertNutritionEntrySchema, insertTechniqueSchema, 
   insertTacticalNoteSchema, insertRandoriSessionSchema, insertAchievementBadgeSchema, 
   insertUserAchievementSchema
@@ -1625,30 +1625,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .where(gte(trainingSessions.date, sql`current_date - interval '7 days'`))
         .groupBy(trainingSessions.userId);
 
-      const sportsTrainingCounts = await db
+      const judoTrainingCounts = await db
         .select({
-          userId: sportsTrainingSessions.userId,
+          userId: judoTrainingSessions.userId,
           sessionCount: sql<number>`count(*)::int`.as('sessionCount'),
         })
-        .from(sportsTrainingSessions)
-        .where(gte(sportsTrainingSessions.date, sql`current_date - interval '7 days'`))
-        .groupBy(sportsTrainingSessions.userId);
+        .from(judoTrainingSessions)
+        .where(gte(judoTrainingSessions.date, sql`current_date - interval '7 days'`))
+        .groupBy(judoTrainingSessions.userId);
 
       // Combine both training counts
       const trainingCounts = physicalTrainingCounts.map(pt => {
-        const sportsCount = sportsTrainingCounts.find(st => st.userId === pt.userId)?.sessionCount || 0;
+        const judoCount = judoTrainingCounts.find(jt => jt.userId === pt.userId)?.sessionCount || 0;
         return {
           userId: pt.userId,
-          sessionCount: pt.sessionCount + sportsCount
+          sessionCount: pt.sessionCount + judoCount
         };
       });
 
-      // Add users who only have sports sessions
-      sportsTrainingCounts.forEach(st => {
-        if (!trainingCounts.find(tc => tc.userId === st.userId)) {
+      // Add users who only have judo sessions
+      judoTrainingCounts.forEach(jt => {
+        if (!trainingCounts.find(tc => tc.userId === jt.userId)) {
           trainingCounts.push({
-            userId: st.userId,
-            sessionCount: st.sessionCount
+            userId: jt.userId,
+            sessionCount: jt.sessionCount
           });
         }
       });
@@ -1703,34 +1703,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
           )`
         );
 
-      const latestSportsSessions = await db
+      const latestJudoSessions = await db
         .select({
-          userId: sportsTrainingSessions.userId,
-          session_type: sql<string>`'sports'`.as('session_type'),
-          date: sportsTrainingSessions.date,
+          userId: judoTrainingSessions.userId,
+          session_type: sql<string>`'judo'`.as('session_type'),
+          date: judoTrainingSessions.date,
         })
-        .from(sportsTrainingSessions)
+        .from(judoTrainingSessions)
         .where(
           sql`(user_id, date) IN (
             SELECT user_id, MAX(date) 
-            FROM sports_training_sessions 
+            FROM judo_training_sessions 
             GROUP BY user_id
           )`
         );
 
       // Combine and get the most recent session per user
       const latestSessions = latestPhysicalSessions.map(ps => {
-        const sportsSession = latestSportsSessions.find(ss => ss.userId === ps.userId);
-        if (sportsSession && sportsSession.date > ps.date) {
-          return sportsSession;
+        const judoSession = latestJudoSessions.find(js => js.userId === ps.userId);
+        if (judoSession && judoSession.date > ps.date) {
+          return judoSession;
         }
         return ps;
       });
 
-      // Add users who only have sports sessions
-      latestSportsSessions.forEach(ss => {
-        if (!latestSessions.find(ls => ls.userId === ss.userId)) {
-          latestSessions.push(ss);
+      // Add users who only have judo sessions
+      latestJudoSessions.forEach(js => {
+        if (!latestSessions.find(ls => ls.userId === js.userId)) {
+          latestSessions.push(js);
         }
       });
 
