@@ -20,6 +20,7 @@ import Gestion from "./pages/Gestion";
 import Admin from "./pages/Admin";
 import { AdminSports } from "./pages/AdminSports";
 import TrainerClubs from "./pages/TrainerClubs";
+import TrainerDashboard from "./pages/TrainerDashboard";
 import Achievements from "./pages/Achievements";
 import Configuracion from "./pages/Configuracion";
 
@@ -92,6 +93,11 @@ const App = () => (
               <Route path="/clubes" element={
                 <AuthGuard>
                   <TrainerClubs />
+                </AuthGuard>
+              } />
+              <Route path="/entrenador/dashboard" element={
+                <AuthGuard>
+                  <TrainerDashboard />
                 </AuthGuard>
               } />
               <Route path="/logros" element={

@@ -6,13 +6,13 @@ import * as path from "path";
 import { 
   profiles, userRoles, clubs, sports, sportTrainerAssignments, trainerAssignments, trainingSessions, judoTrainingSessions, sportsTrainingSessions,
   exercises, exerciseRecords, weightEntries, nutritionEntries, 
-  techniques, tacticalNotes, randoriSessions, achievementBadges, userAchievements,
+  techniques, tacticalNotes, randoriSessions, achievementBadges, userAchievements, trainerDashboardWidgets,
   insertProfileSchema, insertUserRoleSchema, insertClubSchema, insertSportSchema,
   insertSportTrainerAssignmentSchema, insertTrainerAssignmentSchema, insertTrainingSessionSchema, 
   insertJudoTrainingSessionSchema, insertSportsTrainingSessionSchema, insertExerciseSchema, insertExerciseRecordSchema, 
   insertWeightEntrySchema, insertNutritionEntrySchema, insertTechniqueSchema, 
   insertTacticalNoteSchema, insertRandoriSessionSchema, insertAchievementBadgeSchema, 
-  insertUserAchievementSchema
+  insertUserAchievementSchema, insertTrainerDashboardWidgetSchema
 } from "@shared/schema";
 import { eq, and, desc, sql, isNull, gte, lte } from "drizzle-orm";
 
@@ -2008,6 +2008,243 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error unassigning student from trainer:", error);
       res.status(500).json({ error: "Failed to unassign student from trainer" });
+    }
+  });
+
+  // ========================================
+  // TRAINER DASHBOARD WIDGETS ROUTES
+  // ========================================
+
+  // Get trainer dashboard widgets
+  app.get("/api/trainer/dashboard-widgets", async (req, res) => {
+    try {
+      const userId = req.headers["x-user-id"] as string;
+      if (!userId) {
+        return res.status(401).json({ error: "User not authenticated" });
+      }
+
+      // Check if user is trainer
+      const userRole = await db
+        .select({ role: userRoles.role })
+        .from(userRoles)
+        .where(eq(userRoles.userId, userId));
+
+      if (!userRole.length || !userRole.some(r => r.role === 'entrenador')) {
+        return res.status(403).json({ error: "Trainer access required" });
+      }
+
+      const widgets = await db
+        .select()
+        .from(trainerDashboardWidgets)
+        .where(eq(trainerDashboardWidgets.trainerId, userId))
+        .orderBy(trainerDashboardWidgets.createdAt);
+
+      res.json(widgets);
+    } catch (error) {
+      console.error("Error fetching trainer widgets:", error);
+      res.status(500).json({ error: "Failed to fetch widgets" });
+    }
+  });
+
+  // Add new trainer dashboard widget
+  app.post("/api/trainer/dashboard-widgets", async (req, res) => {
+    try {
+      const userId = req.headers["x-user-id"] as string;
+      if (!userId) {
+        return res.status(401).json({ error: "User not authenticated" });
+      }
+
+      const validated = insertTrainerDashboardWidgetSchema.parse(req.body);
+      const result = await db.insert(trainerDashboardWidgets).values({
+        ...validated,
+        trainerId: userId
+      }).returning();
+
+      res.json(result[0]);
+    } catch (error) {
+      console.error("Error adding widget:", error);
+      res.status(400).json({ error: "Failed to add widget" });
+    }
+  });
+
+  // Update widget position
+  app.patch("/api/trainer/dashboard-widgets/:widgetId/position", async (req, res) => {
+    try {
+      const userId = req.headers["x-user-id"] as string;
+      const { widgetId } = req.params;
+      const { position } = req.body;
+
+      if (!userId) {
+        return res.status(401).json({ error: "User not authenticated" });
+      }
+
+      const result = await db
+        .update(trainerDashboardWidgets)
+        .set({ 
+          position,
+          updatedAt: new Date()
+        })
+        .where(and(
+          eq(trainerDashboardWidgets.id, widgetId),
+          eq(trainerDashboardWidgets.trainerId, userId)
+        ))
+        .returning();
+
+      if (result.length === 0) {
+        return res.status(404).json({ error: "Widget not found" });
+      }
+
+      res.json(result[0]);
+    } catch (error) {
+      console.error("Error updating widget position:", error);
+      res.status(500).json({ error: "Failed to update widget position" });
+    }
+  });
+
+  // Update widget config
+  app.patch("/api/trainer/dashboard-widgets/:widgetId/config", async (req, res) => {
+    try {
+      const userId = req.headers["x-user-id"] as string;
+      const { widgetId } = req.params;
+      const { config } = req.body;
+
+      if (!userId) {
+        return res.status(401).json({ error: "User not authenticated" });
+      }
+
+      const result = await db
+        .update(trainerDashboardWidgets)
+        .set({ 
+          config,
+          updatedAt: new Date()
+        })
+        .where(and(
+          eq(trainerDashboardWidgets.id, widgetId),
+          eq(trainerDashboardWidgets.trainerId, userId)
+        ))
+        .returning();
+
+      if (result.length === 0) {
+        return res.status(404).json({ error: "Widget not found" });
+      }
+
+      res.json(result[0]);
+    } catch (error) {
+      console.error("Error updating widget config:", error);
+      res.status(500).json({ error: "Failed to update widget config" });
+    }
+  });
+
+  // Toggle widget visibility
+  app.patch("/api/trainer/dashboard-widgets/:widgetId/visibility", async (req, res) => {
+    try {
+      const userId = req.headers["x-user-id"] as string;
+      const { widgetId } = req.params;
+      const { isVisible } = req.body;
+
+      if (!userId) {
+        return res.status(401).json({ error: "User not authenticated" });
+      }
+
+      const result = await db
+        .update(trainerDashboardWidgets)
+        .set({ 
+          isVisible,
+          updatedAt: new Date()
+        })
+        .where(and(
+          eq(trainerDashboardWidgets.id, widgetId),
+          eq(trainerDashboardWidgets.trainerId, userId)
+        ))
+        .returning();
+
+      if (result.length === 0) {
+        return res.status(404).json({ error: "Widget not found" });
+      }
+
+      res.json(result[0]);
+    } catch (error) {
+      console.error("Error updating widget visibility:", error);
+      res.status(500).json({ error: "Failed to update widget visibility" });
+    }
+  });
+
+  // Delete widget
+  app.delete("/api/trainer/dashboard-widgets/:widgetId", async (req, res) => {
+    try {
+      const userId = req.headers["x-user-id"] as string;
+      const { widgetId } = req.params;
+
+      if (!userId) {
+        return res.status(401).json({ error: "User not authenticated" });
+      }
+
+      const result = await db
+        .delete(trainerDashboardWidgets)
+        .where(and(
+          eq(trainerDashboardWidgets.id, widgetId),
+          eq(trainerDashboardWidgets.trainerId, userId)
+        ))
+        .returning();
+
+      if (result.length === 0) {
+        return res.status(404).json({ error: "Widget not found" });
+      }
+
+      res.json({ success: true, message: "Widget deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting widget:", error);
+      res.status(500).json({ error: "Failed to delete widget" });
+    }
+  });
+
+  // Get trainer assigned athletes
+  app.get("/api/trainer/assigned-athletes", async (req, res) => {
+    try {
+      const userId = req.headers["x-user-id"] as string;
+      if (!userId) {
+        return res.status(401).json({ error: "User not authenticated" });
+      }
+
+      const athletes = await db
+        .select({
+          id: profiles.id,
+          full_name: profiles.fullName,
+          email: profiles.email,
+          current_belt: profiles.currentBelt,
+          club_name: profiles.clubName,
+          activityStatus: sql`
+            CASE 
+              WHEN COUNT(ts.id) + COUNT(jts.id) >= 3 THEN 'active'
+              WHEN COUNT(ts.id) + COUNT(jts.id) >= 1 THEN 'moderate'
+              ELSE 'inactive'
+            END
+          `.as('activityStatus'),
+          weeklySessionsCount: sql`COUNT(ts.id) + COUNT(jts.id)`.as('weeklySessionsCount')
+        })
+        .from(trainerAssignments)
+        .leftJoin(profiles, eq(profiles.id, trainerAssignments.studentId))
+        .leftJoin(trainingSessions.as('ts'), and(
+          eq(sql`ts.user_id`, profiles.id),
+          sql`ts.date >= NOW() - INTERVAL '7 days'`
+        ))
+        .leftJoin(sportsTrainingSessions.as('jts'), and(
+          eq(sql`jts.user_id`, profiles.id),
+          sql`jts.date >= NOW() - INTERVAL '7 days'`
+        ))
+        .where(eq(trainerAssignments.trainerId, userId))
+        .groupBy(
+          profiles.id, 
+          profiles.fullName, 
+          profiles.email, 
+          profiles.currentBelt, 
+          profiles.clubName
+        );
+
+      res.json(athletes);
+    } catch (error) {
+      console.error("Error fetching trainer athletes:", error);
+      res.status(500).json({ error: "Failed to fetch assigned athletes" });
     }
   });
 

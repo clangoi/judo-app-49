@@ -353,6 +353,27 @@ export type NotificationAlarm = typeof notificationAlarms.$inferSelect;
 export type InsertNotificationAlarm = z.infer<typeof insertNotificationAlarmsSchema>;
 export type NotificationSettings = typeof notificationSettings.$inferSelect;
 export type InsertNotificationSettings = z.infer<typeof insertNotificationSettingsSchema>;
+export type TrainerDashboardWidget = typeof trainerDashboardWidgets.$inferSelect;
+export type InsertTrainerDashboardWidget = z.infer<typeof insertTrainerDashboardWidgetSchema>;
+
+// Trainer Dashboard Widgets table
+export const trainerDashboardWidgets = pgTable("trainer_dashboard_widgets", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  trainerId: uuid("trainer_id").notNull(),
+  widgetType: text("widget_type").notNull(), // 'athlete_overview', 'session_stats', 'recent_activities', 'performance_charts', etc.
+  position: jsonb("position").notNull(), // {x: number, y: number, w: number, h: number}
+  config: jsonb("config").notNull().default({}), // Widget-specific configuration
+  isVisible: boolean("is_visible").notNull().default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow()
+});
+
+// Trainer widget configurations schema
+export const insertTrainerDashboardWidgetSchema = createInsertSchema(trainerDashboardWidgets).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true
+});
 
 // Legacy exports for compatibility
 export const users = profiles;
