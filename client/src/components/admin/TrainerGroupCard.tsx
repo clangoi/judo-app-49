@@ -99,13 +99,7 @@ export const TrainerGroupCard = ({ trainerName, trainer, athletes, onAthleteSele
           </div>
         )}
 
-        {/* Indicador de expansión cuando está colapsado */}
-        {!isExpanded && athletes.length > 0 && (
-          <div className="flex items-center justify-center text-muted-foreground">
-            <ChevronDown className="h-4 w-4 mr-1" />
-            <span className="text-sm">Haz clic para ver los {athletes.length} deportistas</span>
-          </div>
-        )}
+        
       </CardContent>
     </Card>
   );
