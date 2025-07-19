@@ -3,7 +3,6 @@ import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { useAuth } from "@/hooks/useAuth";
-import { useUserRoles } from "@/hooks/useUserRoles";
 import NavHeader from "@/components/NavHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
@@ -14,7 +13,6 @@ import { Button } from "@/components/ui/button";
 
 const Graficos = () => {
   const { user } = useAuth();
-  const { isAdmin } = useUserRoles(user?.id);
   const [selectedExercise, setSelectedExercise] = useState<string>('');
   
   // Estado para controlar qué gráficos están colapsados
@@ -297,50 +295,48 @@ const Graficos = () => {
           </Card>
         </Collapsible>
 
-        {/* Gráfico de Nutrición - Solo visible para administradores */}
-        {isAdmin() && (
-          <Collapsible open={!collapsedCharts.nutrition} onOpenChange={() => toggleChart('nutrition')}>
-            <Card className="bg-white border-[#C5A46C]">
-              <CardHeader>
-                <CollapsibleTrigger asChild>
-                  <Button variant="ghost" className="w-full p-0 h-auto justify-between hover:bg-transparent">
-                    <CardTitle className="text-[#1A1A1A] flex items-center">
-                      <Target className="mr-2 h-5 w-5 text-[#C5A46C]" />
-                      Evolución Nutricional
-                    </CardTitle>
-                    {collapsedCharts.nutrition ? 
-                      <ChevronDown className="h-4 w-4 text-[#C5A46C]" /> : 
-                      <ChevronUp className="h-4 w-4 text-[#C5A46C]" />
-                    }
-                  </Button>
-                </CollapsibleTrigger>
-              </CardHeader>
-              <CollapsibleContent>
-                <CardContent>
-                  {nutritionData.length > 0 ? (
-                    <ResponsiveContainer width="100%" height={300}>
-                      <LineChart data={nutritionData}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="date" />
-                        <YAxis />
-                        <Tooltip />
-                        <Legend />
-                        <Line type="monotone" dataKey="calories" stroke="#ff7300" name="Calorías" />
-                        <Line type="monotone" dataKey="protein" stroke="#82ca9d" name="Proteínas (g)" />
-                        <Line type="monotone" dataKey="carbs" stroke="#8884d8" name="Carbohidratos (g)" />
-                        <Line type="monotone" dataKey="fats" stroke="#ffc658" name="Grasas (g)" />
-                      </LineChart>
-                    </ResponsiveContainer>
-                  ) : (
-                    <div className="text-center py-8 text-[#575757]">
-                      No hay datos nutricionales suficientes para mostrar el gráfico
-                    </div>
-                  )}
-                </CardContent>
-              </CollapsibleContent>
-            </Card>
-          </Collapsible>
-        )}
+        {/* Gráfico de Nutrición */}
+        <Collapsible open={!collapsedCharts.nutrition} onOpenChange={() => toggleChart('nutrition')}>
+          <Card className="bg-white border-[#C5A46C]">
+            <CardHeader>
+              <CollapsibleTrigger asChild>
+                <Button variant="ghost" className="w-full p-0 h-auto justify-between hover:bg-transparent">
+                  <CardTitle className="text-[#1A1A1A] flex items-center">
+                    <Target className="mr-2 h-5 w-5 text-[#C5A46C]" />
+                    Evolución Nutricional
+                  </CardTitle>
+                  {collapsedCharts.nutrition ? 
+                    <ChevronDown className="h-4 w-4 text-[#C5A46C]" /> : 
+                    <ChevronUp className="h-4 w-4 text-[#C5A46C]" />
+                  }
+                </Button>
+              </CollapsibleTrigger>
+            </CardHeader>
+            <CollapsibleContent>
+              <CardContent>
+                {nutritionData.length > 0 ? (
+                  <ResponsiveContainer width="100%" height={300}>
+                    <LineChart data={nutritionData}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="date" />
+                      <YAxis />
+                      <Tooltip />
+                      <Legend />
+                      <Line type="monotone" dataKey="calories" stroke="#ff7300" name="Calorías" />
+                      <Line type="monotone" dataKey="protein" stroke="#82ca9d" name="Proteínas (g)" />
+                      <Line type="monotone" dataKey="carbs" stroke="#8884d8" name="Carbohidratos (g)" />
+                      <Line type="monotone" dataKey="fats" stroke="#ffc658" name="Grasas (g)" />
+                    </LineChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="text-center py-8 text-[#575757]">
+                    No hay datos nutricionales suficientes para mostrar el gráfico
+                  </div>
+                )}
+              </CardContent>
+            </CollapsibleContent>
+          </Card>
+        </Collapsible>
 
         {/* Distribución de Actividades */}
         <Collapsible open={!collapsedCharts.activity} onOpenChange={() => toggleChart('activity')}>
