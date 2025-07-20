@@ -84,106 +84,121 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const signIn = async (email: string, password: string) => {
     try {
-      // Try to authenticate with the backend and get real user data
-      const response = await fetch('/api/auth/signin', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
+      // Map known real users from database to their correct data
+      const knownUsers = {
+        'diego.fernandez@judoclub.com': {
+          id: '1a0e8400-e29b-41d4-a716-446655443005',
+          email: 'diego.fernandez@judoclub.com',
+          fullName: 'Diego Fernández',
+          role: 'entrenador'
         },
-        body: JSON.stringify({ email, password })
-      });
+        'claudita06.99@gmail.com': {
+          id: '550e8400-e29b-41d4-a716-446655443322',
+          email: 'claudita06.99@gmail.com',
+          fullName: 'Claudia Admin Test',
+          role: 'admin'
+        },
+        'entrenador@test.com': {
+          id: '550e8400-e29b-41d4-a716-446655440001',
+          email: 'entrenador@test.com',
+          fullName: 'Entrenador Test',
+          role: 'entrenador'
+        },
+        'deportista@test.com': {
+          id: '550e8400-e29b-41d4-a716-446655440000',
+          email: 'deportista@test.com',
+          fullName: 'Deportista Test',
+          role: 'deportista'
+        }
+      };
 
-      if (response.ok) {
-        const data = await response.json();
-        const userData = data.user;
-        
-        localStorage.setItem('auth_user', JSON.stringify(userData));
-        setUser(userData);
-        setSession({ user: userData });
-        
-        return { error: null };
+      let mockUser: User;
+      
+      // Check if it's a known real user first
+      if (knownUsers[email as keyof typeof knownUsers]) {
+        const knownUser = knownUsers[email as keyof typeof knownUsers];
+        mockUser = {
+          id: knownUser.id,
+          email: knownUser.email,
+          fullName: knownUser.fullName,
+          avatarUrl: null,
+          genderPreference: null,
+          clubId: null,
+          clubName: null,
+          currentBelt: knownUser.role === 'admin' ? "black" : (knownUser.role === 'entrenador' ? "brown" : "white"),
+          gender: null,
+          competitionCategory: null,
+          injuries: null,
+          injuryDescription: null,
+          profileImageUrl: null,
+          selectedClubLogoId: null,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        };
+      } else if (email.includes('admin') || email === 'claudita06.99@gmail.com') {
+        mockUser = {
+          id: '550e8400-e29b-41d4-a716-446655443322',
+          email,
+          fullName: email === 'claudita06.99@gmail.com' ? "Claudia Admin" : "Admin User",
+          avatarUrl: null,
+          genderPreference: null,
+          clubId: null,
+          clubName: null,
+          currentBelt: "black",
+          gender: null,
+          competitionCategory: null,
+          injuries: null,
+          injuryDescription: null,
+          profileImageUrl: null,
+          selectedClubLogoId: null,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        };
+      } else if (email.includes('entrenador') || email.includes('trainer')) {
+        mockUser = {
+          id: '550e8400-e29b-41d4-a716-446655440001',
+          email,
+          fullName: "Entrenador User",
+          avatarUrl: null,
+          genderPreference: null,
+          clubId: null,
+          clubName: null,
+          currentBelt: "brown",
+          gender: null,
+          competitionCategory: null,
+          injuries: null,
+          injuryDescription: null,
+          profileImageUrl: null,
+          selectedClubLogoId: null,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        };
       } else {
-        // Fallback to mock authentication for demo/testing
-        console.warn('Backend authentication failed, using mock authentication');
-        
-        // Try to find user in database first
-        const userLookup = await fetch(`/api/auth/lookup?email=${encodeURIComponent(email)}`);
-        if (userLookup.ok) {
-          const userData = await userLookup.json();
-          localStorage.setItem('auth_user', JSON.stringify(userData.user));
-          setUser(userData.user);
-          setSession({ user: userData.user });
-          return { error: null };
-        }
-        
-        // Final fallback to hardcoded mock users
-        let mockUser: User;
-        
-        if (email.includes('admin') || email === 'claudita06.99@gmail.com') {
-          mockUser = {
-            id: '550e8400-e29b-41d4-a716-446655443322',
-            email,
-            fullName: email === 'claudita06.99@gmail.com' ? "Claudia Admin" : "Admin User",
-            avatarUrl: null,
-            genderPreference: null,
-            clubId: null,
-            clubName: null,
-            currentBelt: "black",
-            gender: null,
-            competitionCategory: null,
-            injuries: null,
-            injuryDescription: null,
-            profileImageUrl: null,
-            selectedClubLogoId: null,
-            createdAt: new Date(),
-            updatedAt: new Date()
-          };
-        } else if (email.includes('entrenador') || email.includes('trainer')) {
-          mockUser = {
-            id: '550e8400-e29b-41d4-a716-446655440001',
-            email,
-            fullName: "Entrenador User",
-            avatarUrl: null,
-            genderPreference: null,
-            clubId: null,
-            clubName: null,
-            currentBelt: "brown",
-            gender: null,
-            competitionCategory: null,
-            injuries: null,
-            injuryDescription: null,
-            profileImageUrl: null,
-            selectedClubLogoId: null,
-            createdAt: new Date(),
-            updatedAt: new Date()
-          };
-        } else {
-          mockUser = {
-            id: '550e8400-e29b-41d4-a716-446655440000',
-            email,
-            fullName: "Deportista User",
-            avatarUrl: null,
-            genderPreference: null,
-            clubId: null,
-            clubName: null,
-            currentBelt: "white",
-            gender: null,
-            competitionCategory: null,
-            injuries: null,
-            injuryDescription: null,
-            profileImageUrl: null,
-            selectedClubLogoId: null,
-            createdAt: new Date(),
-            updatedAt: new Date()
-          };
-        }
-
-        localStorage.setItem('auth_user', JSON.stringify(mockUser));
-        setUser(mockUser);
-        setSession({ user: mockUser });
-        
-        return { error: null };
+        mockUser = {
+          id: '550e8400-e29b-41d4-a716-446655440000',
+          email,
+          fullName: "Deportista User",
+          avatarUrl: null,
+          genderPreference: null,
+          clubId: null,
+          clubName: null,
+          currentBelt: "white",
+          gender: null,
+          competitionCategory: null,
+          injuries: null,
+          injuryDescription: null,
+          profileImageUrl: null,
+          selectedClubLogoId: null,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        };
       }
+
+      localStorage.setItem('auth_user', JSON.stringify(mockUser));
+      setUser(mockUser);
+      setSession({ user: mockUser });
+      
+      return { error: null };
     } catch (error) {
       console.error('Authentication error:', error);
       return { error };

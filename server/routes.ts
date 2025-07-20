@@ -58,6 +58,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Sign in endpoint
+  app.post("/api/auth/signin", async (req, res) => {
+    try {
+      const { email, password } = req.body;
+      if (!email) {
+        return res.status(400).json({ error: "Email is required" });
+      }
+
+      // Get user profile by email
+      const userProfile = await db
+        .select()
+        .from(profiles)
+        .where(eq(profiles.email, email));
+      
+      if (userProfile.length === 0) {
+        return res.status(404).json({ error: "User not found" });
+      }
+
+      const user = userProfile[0];
+
+      // Get user roles
+      const roles = await db
+        .select({ role: userRoles.role })
+        .from(userRoles)
+        .where(eq(userRoles.userId, user.userId));
+
+      res.json({
+        user: user,
+        roles: roles.map(r => r.role)
+      });
+    } catch (error) {
+      console.error("Error signing in:", error);
+      res.status(500).json({ error: "Failed to sign in" });
+    }
+  });
+
   app.get("/api/auth/user", async (req, res) => {
     try {
       const userId = req.headers["x-user-id"] as string;
