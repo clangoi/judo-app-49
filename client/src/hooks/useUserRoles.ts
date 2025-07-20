@@ -29,12 +29,18 @@ export const useUserRoles = (userId?: string) => {
       if (!userId) throw new Error('Usuario no autenticado');
       
       // Determine role based on user ID for testing
-      // Special case for claudita06.99@gmail.com admin user
+      // Map specific known users from database
       if (userId === '550e8400-e29b-41d4-a716-446655443322') {
         return 'admin' as AppRole;
+      } else if (userId === '1a0e8400-e29b-41d4-a716-446655443005') {
+        // Diego Fernández - entrenador
+        return 'entrenador' as AppRole;
+      } else if (userId === '550e8400-e29b-41d4-a716-446655440001') {
+        // Test trainer
+        return 'entrenador' as AppRole;
       } else if (userId.includes('admin')) {
         return 'admin' as AppRole;
-      } else if (userId.includes('trainer') || userId.includes('entrenador') || userId === '550e8400-e29b-41d4-a716-446655440001') {
+      } else if (userId.includes('trainer') || userId.includes('entrenador')) {
         return 'entrenador' as AppRole;
       } else {
         return 'deportista' as AppRole;
