@@ -28,7 +28,21 @@ export const useUserRoles = (userId?: string) => {
     queryFn: async () => {
       if (!userId) throw new Error('Usuario no autenticado');
       
-      // Define all known trainer IDs from the database
+      try {
+        // Try to get role from database first
+        const response = await fetch(`/api/user-roles`);
+        if (response.ok) {
+          const allRoles = await response.json();
+          const userRole = allRoles.find((role: any) => role.user_id === userId);
+          if (userRole) {
+            return userRole.role as AppRole;
+          }
+        }
+      } catch (error) {
+        console.warn('Error fetching role from database, using fallback logic:', error);
+      }
+      
+      // Fallback to hardcoded logic for known users
       const trainerIds = [
         '550e8400-e29b-41d4-a716-446655443323', // entrenador@test.com
         '1a0e8400-e29b-41d4-a716-446655443001', // carlos.martinez@dojo.com
@@ -86,8 +100,12 @@ export const useUserRoles = (userId?: string) => {
       });
     },
     onSuccess: () => {
+      // Invalidate all role-related queries to refresh the UI
       queryClient.invalidateQueries({ queryKey: ['all-user-roles'] });
       queryClient.invalidateQueries({ queryKey: ['user-role'] });
+      queryClient.invalidateQueries({ queryKey: ['admin'] });
+      queryClient.invalidateQueries({ queryKey: ['trainers'] });
+      queryClient.invalidateQueries({ queryKey: ['students'] });
       toast({
         title: "Rol actualizado",
         description: "El rol ha sido actualizado exitosamente.",
