@@ -393,6 +393,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Judo Training Sessions (specific sport training)
+  app.get("/api/judo-training-sessions", async (req, res) => {
+    try {
+      const userId = req.query.user_id as string;
+      let query = db.select().from(judoTrainingSessions);
+      
+      if (userId) {
+        query = query.where(eq(judoTrainingSessions.userId, userId));
+      }
+      
+      const result = await query.orderBy(desc(judoTrainingSessions.date));
+      res.json(result);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch judo training sessions" });
+    }
+  });
+
   // Sports Training Sessions (separate from physical preparation)
   app.get("/api/sports-training-sessions", async (req, res) => {
     try {
@@ -410,6 +427,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.post("/api/judo-training-sessions", async (req, res) => {
+    try {
+      const validated = insertJudoTrainingSessionSchema.parse(req.body);
+      const result = await db.insert(judoTrainingSessions).values(validated).returning();
+      res.json(result[0]);
+    } catch (error) {
+      console.error("Judo training session validation error:", error);
+      res.status(400).json({ error: "Invalid judo training session data" });
+    }
+  });
+
   app.post("/api/sports-training-sessions", async (req, res) => {
     try {
       const validated = insertSportsTrainingSessionSchema.parse(req.body);
@@ -421,6 +449,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.patch("/api/judo-training-sessions/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const validated = insertJudoTrainingSessionSchema.partial().parse(req.body);
+      const result = await db.update(judoTrainingSessions).set(validated).where(eq(judoTrainingSessions.id, id)).returning();
+      res.json(result[0]);
+    } catch (error) {
+      res.status(400).json({ error: "Failed to update judo training session" });
+    }
+  });
+
   app.patch("/api/sports-training-sessions/:id", async (req, res) => {
     try {
       const { id } = req.params;
@@ -429,6 +468,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(result[0]);
     } catch (error) {
       res.status(400).json({ error: "Failed to update sports training session" });
+    }
+  });
+
+  app.delete("/api/judo-training-sessions/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      await db.delete(judoTrainingSessions).where(eq(judoTrainingSessions.id, id));
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to delete judo training session" });
     }
   });
 
