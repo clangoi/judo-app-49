@@ -25,7 +25,53 @@ export const useTacticaNotes = (userId?: string) => {
     queryKey: ['tactical-notes', userId],
     queryFn: async () => {
       if (!userId) return [];
-      return await api.getTacticalNotes(userId);
+      const rawNotes = await api.getTacticalNotes(userId);
+      
+      // Transform API data to match UI interface
+      return rawNotes.map((note: any) => {
+        // Parse structured content
+        const content = note.content;
+        const lines = content.split('\n');
+        
+        // Extract sections based on content structure
+        let objetivo = '';
+        let estrategia = '';
+        let tecnicasClaves = '';
+        let contraataques = '';
+        let notas = '';
+        
+        // Try to parse structured content
+        if (content.includes('ANÁLISIS') || content.includes('ESTRATEGIA')) {
+          // For structured content, extract the first paragraph as objetivo
+          objetivo = lines[0] || '';
+          // Use the rest as strategy notes
+          estrategia = content.replace(lines[0], '').trim();
+          tecnicasClaves = 'Revisar contenido completo';
+          contraataques = 'Revisar contenido completo';
+          notas = '';
+        } else {
+          // For simple content, split by lines
+          objetivo = lines[0] || '';
+          estrategia = lines[1] || '';
+          tecnicasClaves = lines[2] || '';
+          contraataques = lines[3] || '';
+          notas = lines.slice(4).join('\n') || '';
+        }
+        
+        return {
+          id: note.id,
+          nombre: note.title,
+          oponente: '', // Can be extracted from title or content if needed
+          objetivo,
+          estrategia,
+          tecnicasClaves,
+          contraataques,
+          notas,
+          fechaCreacion: new Date(note.createdAt).toLocaleDateString(),
+          fotos: note.imageUrls || [],
+          videoUrl: note.videoUrl || '',
+        };
+      });
     },
     enabled: !!userId,
   });
