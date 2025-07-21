@@ -171,6 +171,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // User Roles
+  // Get user role by user ID  
+  app.get("/api/user-roles/user/:userId", async (req, res) => {
+    try {
+      const { userId } = req.params;
+      
+      const userRole = await db
+        .select()
+        .from(userRoles)
+        .where(eq(userRoles.userId, userId));
+      
+      res.json(userRole);
+    } catch (error) {
+      console.error("Error fetching user role:", error);
+      res.status(500).json({ error: "Failed to fetch user role" });
+    }
+  });
+
   app.get("/api/user-roles", async (req, res) => {
     try {
       const result = await db

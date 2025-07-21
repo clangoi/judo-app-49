@@ -86,24 +86,63 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       // Map known real users from database to their correct data
       const knownUsers = {
+        // Trainers
         'diego.fernandez@judoclub.com': {
           id: '1a0e8400-e29b-41d4-a716-446655443005',
           email: 'diego.fernandez@judoclub.com',
           fullName: 'Diego Fernández',
           role: 'entrenador'
         },
+        'carlos.martinez@dojo.com': {
+          id: '1a0e8400-e29b-41d4-a716-446655443001',
+          email: 'carlos.martinez@dojo.com',
+          fullName: 'Carlos Martínez',
+          role: 'entrenador'
+        },
+        'maria.rodriguez@clubjudo.com': {
+          id: '1a0e8400-e29b-41d4-a716-446655443002',
+          email: 'maria.rodriguez@clubjudo.com',
+          fullName: 'María Rodríguez',
+          role: 'entrenador'
+        },
+        'luis.garcia@academiajiujitsu.com': {
+          id: '1a0e8400-e29b-41d4-a716-446655443003',
+          email: 'luis.garcia@academiajiujitsu.com',
+          fullName: 'Luis García',
+          role: 'entrenador'
+        },
+        'ana.lopez@karatedojo.com': {
+          id: '1a0e8400-e29b-41d4-a716-446655443004',
+          email: 'ana.lopez@karatedojo.com',
+          fullName: 'Ana López',
+          role: 'entrenador'
+        },
+        'sensei.yamamoto@example.com': {
+          id: '550e8406-e29b-41d4-a716-446655443322',
+          email: 'sensei.yamamoto@example.com',
+          fullName: 'Hiroshi Yamamoto',
+          role: 'entrenador'
+        },
+        'maestra.gonzalez@example.com': {
+          id: '550e8407-e29b-41d4-a716-446655443322',
+          email: 'maestra.gonzalez@example.com',
+          fullName: 'Carmen González',
+          role: 'entrenador'
+        },
+        'entrenador@test.com': {
+          id: '550e8400-e29b-41d4-a716-446655443323',
+          email: 'entrenador@test.com',
+          fullName: 'Entrenador Test',
+          role: 'entrenador'
+        },
+        // Admin
         'claudita06.99@gmail.com': {
           id: '550e8400-e29b-41d4-a716-446655443322',
           email: 'claudita06.99@gmail.com',
           fullName: 'Claudia Admin Test',
           role: 'admin'
         },
-        'entrenador@test.com': {
-          id: '550e8400-e29b-41d4-a716-446655440001',
-          email: 'entrenador@test.com',
-          fullName: 'Entrenador Test',
-          role: 'entrenador'
-        },
+        // Test deportista
         'deportista@test.com': {
           id: '550e8400-e29b-41d4-a716-446655440000',
           email: 'deportista@test.com',

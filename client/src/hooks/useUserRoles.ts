@@ -28,17 +28,35 @@ export const useUserRoles = (userId?: string) => {
     queryFn: async () => {
       if (!userId) throw new Error('Usuario no autenticado');
       
-      // Determine role based on user ID for testing
-      // Map specific known users from database
-      if (userId === '550e8400-e29b-41d4-a716-446655443322') {
+      // Define all known trainer IDs from the database
+      const trainerIds = [
+        '550e8400-e29b-41d4-a716-446655443323', // entrenador@test.com
+        '1a0e8400-e29b-41d4-a716-446655443001', // carlos.martinez@dojo.com
+        '1a0e8400-e29b-41d4-a716-446655443002', // maria.rodriguez@clubjudo.com
+        '1a0e8400-e29b-41d4-a716-446655443003', // luis.garcia@academiajiujitsu.com
+        '1a0e8400-e29b-41d4-a716-446655443004', // ana.lopez@karatedojo.com
+        '1a0e8400-e29b-41d4-a716-446655443005', // diego.fernandez@judoclub.com
+        '550e8406-e29b-41d4-a716-446655443322', // sensei.yamamoto@example.com
+        '550e8407-e29b-41d4-a716-446655443322', // maestra.gonzalez@example.com
+        '550e8400-e29b-41d4-a716-446655440001'  // Test trainer fallback
+      ];
+
+      const adminIds = [
+        '550e8400-e29b-41d4-a716-446655443322' // claudita06.99@gmail.com
+      ];
+
+      // Check if user is admin
+      if (adminIds.includes(userId)) {
         return 'admin' as AppRole;
-      } else if (userId === '1a0e8400-e29b-41d4-a716-446655443005') {
-        // Diego Fernández - entrenador
+      }
+      
+      // Check if user is trainer
+      if (trainerIds.includes(userId)) {
         return 'entrenador' as AppRole;
-      } else if (userId === '550e8400-e29b-41d4-a716-446655440001') {
-        // Test trainer
-        return 'entrenador' as AppRole;
-      } else if (userId.includes('admin')) {
+      }
+      
+      // Fallback patterns for dynamic users
+      if (userId.includes('admin')) {
         return 'admin' as AppRole;
       } else if (userId.includes('trainer') || userId.includes('entrenador')) {
         return 'entrenador' as AppRole;
