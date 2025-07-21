@@ -33,9 +33,14 @@ export const useUserRoles = (userId?: string) => {
         const response = await fetch(`/api/user-roles`);
         if (response.ok) {
           const allRoles = await response.json();
-          const userRole = allRoles.find((role: any) => role.user_id === userId);
-          if (userRole) {
-            return userRole.role as AppRole;
+          // Find the most recent role for this user (in case of duplicates)
+          const userRoles = allRoles.filter((role: any) => role.user_id === userId);
+          if (userRoles.length > 0) {
+            // Get the most recent role assignment
+            const latestRole = userRoles.sort((a: any, b: any) => 
+              new Date(b.assigned_at).getTime() - new Date(a.assigned_at).getTime()
+            )[0];
+            return latestRole.role as AppRole;
           }
         }
       } catch (error) {
@@ -106,6 +111,13 @@ export const useUserRoles = (userId?: string) => {
       queryClient.invalidateQueries({ queryKey: ['admin'] });
       queryClient.invalidateQueries({ queryKey: ['trainers'] });
       queryClient.invalidateQueries({ queryKey: ['students'] });
+      
+      // Force reload the page data to ensure UI updates
+      setTimeout(() => {
+        queryClient.refetchQueries({ queryKey: ['all-user-roles'] });
+        queryClient.refetchQueries({ queryKey: ['user-role'] });
+      }, 100);
+      
       toast({
         title: "Rol actualizado",
         description: "El rol ha sido actualizado exitosamente.",

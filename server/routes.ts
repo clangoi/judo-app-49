@@ -211,9 +211,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/user-roles", async (req, res) => {
     try {
       const validated = insertUserRoleSchema.parse(req.body);
+      
+      // First, delete any existing roles for this user to avoid duplicates
+      await db.delete(userRoles).where(eq(userRoles.userId, validated.userId));
+      
+      // Then insert the new role
       const result = await db.insert(userRoles).values(validated).returning();
       res.json(result[0]);
     } catch (error) {
+      console.error("Error creating user role:", error);
       res.status(400).json({ error: "Invalid role data" });
     }
   });
