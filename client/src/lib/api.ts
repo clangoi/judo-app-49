@@ -323,6 +323,24 @@ export const api = {
     return response.json();
   },
 
+  async updateTechnique(id: string, data: any) {
+    const response = await fetch(`${API_BASE_URL}/api/techniques/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    if (!response.ok) throw new Error('Failed to update technique');
+    return response.json();
+  },
+
+  async deleteTechnique(id: string) {
+    const response = await fetch(`${API_BASE_URL}/api/techniques/${id}`, {
+      method: 'DELETE'
+    });
+    if (!response.ok) throw new Error('Failed to delete technique');
+    return response.json();
+  },
+
   // Tactical notes
   async getTacticalNotes(userId: string) {
     const response = await fetch(`${API_BASE_URL}/api/tactical-notes?user_id=${userId}`);
