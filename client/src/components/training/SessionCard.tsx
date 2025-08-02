@@ -71,6 +71,14 @@ const SessionCard = ({ sesion, onView, onEdit, onDelete }: SessionCardProps) => 
           
           <div className="flex gap-2 pt-2" onClick={(e) => e.stopPropagation()}>
             <Button
+              onClick={() => onView(sesion)}
+              variant="outline"
+              size="sm"
+              className="border-blue-500 text-blue-600 hover:bg-blue-50"
+            >
+              <Eye className="h-4 w-4" />
+            </Button>
+            <Button
               onClick={(e) => {
                 e.stopPropagation();
                 onEdit(sesion);
