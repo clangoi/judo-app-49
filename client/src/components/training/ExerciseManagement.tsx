@@ -88,7 +88,7 @@ const ExerciseManagement = () => {
             <p className="text-[#575757] text-sm italic">No tienes ejercicios creados aún.</p>
           ) : (
             <div className="space-y-2 max-h-60 overflow-y-auto">
-              {exercises.map((exercise) => (
+              {exercises.map((exercise: any) => (
                 <div key={exercise.id} className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
                   <span className="text-[#1A1A1A] font-medium">{exercise.name}</span>
                   <AlertDialog>

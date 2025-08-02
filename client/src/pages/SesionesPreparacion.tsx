@@ -281,7 +281,7 @@ const SesionesPreparacion = () => {
                   </CardContent>
                 </Card>
               ) : (
-                sesiones.map((sesion) => (
+                sesiones.map((sesion: any) => (
                   <SessionCard 
                     key={sesion.id} 
                     sesion={sesion}
