@@ -427,6 +427,14 @@ export const api = {
     return response.json();
   },
 
+  async deleteExercise(id: string) {
+    const response = await fetch(`${API_BASE_URL}/api/exercises/${id}`, {
+      method: 'DELETE'
+    });
+    if (!response.ok) throw new Error('Failed to delete exercise');
+    return response.json();
+  },
+
   // File upload placeholder
   async uploadFile(file: File) {
     const formData = new FormData();

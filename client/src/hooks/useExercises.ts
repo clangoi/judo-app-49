@@ -40,9 +40,31 @@ export const useExercises = (userId: string | undefined) => {
     },
   });
 
+  const deleteExerciseMutation = useMutation({
+    mutationFn: async (exerciseId: string) => {
+      if (!userId) throw new Error('Usuario no autenticado');
+      return await api.deleteExercise(exerciseId);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['exercises'] });
+      toast({
+        title: "Ejercicio eliminado",
+        description: "El ejercicio ha sido eliminado exitosamente.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "No se pudo eliminar el ejercicio.",
+        variant: "destructive",
+      });
+    },
+  });
+
   return {
     exercises,
     isLoading,
     createExerciseMutation,
+    deleteExerciseMutation,
   };
 };
