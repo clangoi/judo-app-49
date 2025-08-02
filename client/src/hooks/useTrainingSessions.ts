@@ -30,7 +30,16 @@ export const useTrainingSessions = (userId: string | undefined) => {
     queryKey: ['training_sessions', userId],
     queryFn: async () => {
       if (!userId) throw new Error('Usuario no autenticado');
-      return await api.getTrainingSessions(userId);
+      const data = await api.getTrainingSessions(userId);
+      // Map server data (camelCase) to frontend interface (snake_case)
+      return data.map((session: any) => ({
+        id: session.id,
+        date: session.date,
+        session_type: session.sessionType,
+        duration_minutes: session.durationMinutes,
+        notes: session.notes,
+        intensity: session.intensity
+      }));
     },
     enabled: !!userId,
   });
