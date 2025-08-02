@@ -131,24 +131,9 @@ const SesionesPreparacion = () => {
       intensity: sesion.intensity
     });
     
-    const { data: existingExercises } = getSessionExercises(sesion.id);
-    if (existingExercises && existingExercises.length > 0) {
-      const exerciseRecords = existingExercises.map((record: any) => ({
-        exercise_id: record.exercise_id,
-        sets: record.sets,
-        reps: record.reps,
-        weight_kg: record.weight_kg,
-        duration_minutes: record.duration_minutes,
-        rest_seconds: record.rest_seconds,
-        notes: record.notes,
-        saved: true
-      }));
-      setEjerciciosRealizados(exerciseRecords);
-      setEjerciciosExistentes(exerciseRecords);
-    } else {
-      setEjerciciosRealizados([]);
-      setEjerciciosExistentes([]);
-    }
+    // Reset exercises for now - we'll load them when needed
+    setEjerciciosRealizados([]);
+    setEjerciciosExistentes([]);
     
     setMostrarFormulario(true);
     setSesionAVer(null);
