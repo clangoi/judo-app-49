@@ -40,9 +40,9 @@ const SessionDetailsModal = ({ sesion, isOpen, onClose, onEdit, onDelete }: Sess
   if (!sesion) return null;
 
   const getIntensidadColor = (intensidad: number) => {
-    if (intensidad <= 2) return "bg-green-100 text-green-800";
-    if (intensidad <= 5) return "bg-yellow-100 text-yellow-800";
-    if (intensidad <= 13) return "bg-orange-100 text-orange-800";
+    if (intensidad <= 3) return "bg-green-100 text-green-800";
+    if (intensidad <= 6) return "bg-yellow-100 text-yellow-800";
+    if (intensidad <= 8) return "bg-orange-100 text-orange-800";
     return "bg-red-100 text-red-800";
   };
 
