@@ -53,16 +53,7 @@ export const useTrainingSessions = (userId: string | undefined) => {
     enabled: !!userId,
   });
 
-  const getSessionExercises = (sessionId: string) => {
-    return useQuery({
-      queryKey: ['session_exercises', sessionId],
-      queryFn: async () => {
-        if (!sessionId) return [];
-        return await api.getSessionExercises(sessionId);
-      },
-      enabled: !!sessionId,
-    });
-  };
+
 
   const createSessionMutation = useMutation({
     mutationFn: async ({ sesion, ejerciciosRealizados }: { 
@@ -213,7 +204,6 @@ export const useTrainingSessions = (userId: string | undefined) => {
     isLoading,
     createSessionMutation,
     updateSessionMutation,
-    deleteSessionMutation,
-    getSessionExercises
+    deleteSessionMutation
   };
 };

@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Clock, Calendar, Zap, Edit, Trash2, Timer } from "lucide-react";
-import { useTrainingSessions } from "@/hooks/useTrainingSessions";
+import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 
 interface SesionPreparacion {
@@ -25,11 +25,17 @@ interface SessionDetailsModalProps {
 
 const SessionDetailsModal = ({ sesion, isOpen, onClose, onEdit, onDelete }: SessionDetailsModalProps) => {
   const { user } = useAuth();
-  const { getSessionExercises } = useTrainingSessions(user?.id);
   
-  // Always call the hook, but conditionally enable it
-  const exerciseQuery = getSessionExercises(sesion?.id || '');
-  const exerciseRecords = exerciseQuery?.data || [];
+  // Call useQuery directly here to follow hooks rules
+  const { data: exerciseRecords = [] } = useQuery({
+    queryKey: ['session_exercises', sesion?.id],
+    queryFn: async () => {
+      if (!sesion?.id) return [];
+      const { api } = await import('@/lib/api');
+      return await api.getSessionExercises(sesion.id);
+    },
+    enabled: !!sesion?.id && isOpen,
+  });
 
   if (!sesion) return null;
 
