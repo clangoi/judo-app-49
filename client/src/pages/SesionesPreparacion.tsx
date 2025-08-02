@@ -43,8 +43,7 @@ const SesionesPreparacion = () => {
     isLoading, 
     createSessionMutation, 
     updateSessionMutation, 
-    deleteSessionMutation,
-    getSessionExercises
+    deleteSessionMutation
   } = useTrainingSessions(user?.id);
   
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
