@@ -39,10 +39,21 @@ export const useTrainingSessions = (userId: string | undefined) => {
     queryKey: ['exercises', userId],
     queryFn: async () => {
       if (!userId) throw new Error('Usuario no autenticado');
-      return await api.getExercises(userId);
+      return await api.getExercises();
     },
     enabled: !!userId,
   });
+
+  const getSessionExercises = (sessionId: string) => {
+    return useQuery({
+      queryKey: ['session_exercises', sessionId],
+      queryFn: async () => {
+        if (!sessionId) return [];
+        return await api.getSessionExercises(sessionId);
+      },
+      enabled: !!sessionId,
+    });
+  };
 
   const createSessionMutation = useMutation({
     mutationFn: async ({ sesion, ejerciciosRealizados }: { 
@@ -185,18 +196,7 @@ export const useTrainingSessions = (userId: string | undefined) => {
     }
   });
 
-  // Query para obtener los registros de ejercicios de una sesión específica
-  const getSessionExercises = (sessionId: string) => {
-    return useQuery({
-      queryKey: ['session_exercises', sessionId],
-      queryFn: async () => {
-        if (!sessionId) return [];
-        
-        return await api.getSessionExercises(sessionId);
-      },
-      enabled: !!sessionId,
-    });
-  };
+
 
   return {
     sesiones,
