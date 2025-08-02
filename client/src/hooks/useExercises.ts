@@ -10,7 +10,7 @@ export const useExercises = (userId: string | undefined) => {
     queryKey: ['exercises', userId],
     queryFn: async () => {
       if (!userId) return [];
-      return [];
+      return await api.getExercises();
     },
     enabled: !!userId,
   });
@@ -19,15 +19,10 @@ export const useExercises = (userId: string | undefined) => {
     mutationFn: async (exerciseName: string) => {
       if (!userId) throw new Error('Usuario no autenticado');
       
-      return {
-        id: Date.now().toString(),
+      return await api.createExercise({
         name: exerciseName,
-        description: '',
-        muscle_group: '',
-        user_id: userId,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      };
+        userId: userId,
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['exercises'] });

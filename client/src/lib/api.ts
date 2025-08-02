@@ -410,6 +410,23 @@ export const api = {
     return response.json();
   },
 
+  // Exercises (basic CRUD)
+  async getExercises() {
+    const response = await fetch(`${API_BASE_URL}/api/exercises`);
+    if (!response.ok) throw new Error('Failed to fetch exercises');
+    return response.json();
+  },
+
+  async createExercise(data: any) {
+    const response = await fetch(`${API_BASE_URL}/api/exercises`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    if (!response.ok) throw new Error('Failed to create exercise');          
+    return response.json();
+  },
+
   // File upload placeholder
   async uploadFile(file: File) {
     const formData = new FormData();
