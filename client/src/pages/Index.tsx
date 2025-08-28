@@ -90,14 +90,6 @@ const Index = () => {
       roles: ['deportista', 'entrenador', 'admin']
     },
     {
-      title: "Logros y Insignias",
-      description: "Desbloquea logros y ve tu progreso gamificado",
-      icon: Trophy,
-      path: "/logros",
-      color: "bg-yellow-600",
-      roles: ['deportista', 'entrenador', 'admin']
-    },
-    {
       title: "Gestión de Deportistas",
       description: "Administra y monitorea el progreso de tus deportistas",
       icon: Users,
@@ -146,9 +138,7 @@ const Index = () => {
                     <div className="p-2 rounded-lg bg-[#283750]">
                       <IconComponent className="h-6 w-6 text-white" />
                     </div>
-                    {item.title !== "Logros y Insignias" && (
-                      <CardTitle className="text-[#1A1A1A]">{item.title}</CardTitle>
-                    )}
+                    <CardTitle className="text-[#1A1A1A]">{item.title}</CardTitle>
                   </div>
                 </CardHeader>
                 <CardContent>

@@ -74,9 +74,6 @@ const NavHeader = ({ title, subtitle }: NavHeaderProps) => {
           </div>
           
           <div className="flex items-center gap-3">
-            <Badge variant="secondary" className="bg-primary-foreground/20 text-primary-foreground border-primary-foreground/30">
-              Deportista
-            </Badge>
 
             
 
