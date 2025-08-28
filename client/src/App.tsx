@@ -8,6 +8,7 @@ import { AuthProvider } from "./hooks/useAuth";
 import AuthGuard from "./components/AuthGuard";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
+import Deporte from "./pages/Deporte";
 import SesionesPreparacion from "./pages/SesionesPreparacion";
 import EntrenamientosJudo from "./pages/EntrenamientosJudo";
 import TecnicasJudo from "./pages/TecnicasJudo";
@@ -35,6 +36,11 @@ const App = () => (
               <Route path="/" element={
                 <AuthGuard>
                   <Index />
+                </AuthGuard>
+              } />
+              <Route path="/deporte" element={
+                <AuthGuard>
+                  <Deporte />
                 </AuthGuard>
               } />
               <Route path="/sesiones-preparacion" element={

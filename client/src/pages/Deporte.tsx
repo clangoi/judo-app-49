@@ -1,56 +1,74 @@
-
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRoles } from "@/hooks/useUserRoles";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
 import { 
-  BarChart3, 
-  Target
+  Dumbbell, 
+  Target, 
+  Zap, 
+  Brain, 
+  Scale 
 } from "lucide-react";
 import NavHeader from "@/components/NavHeader";
 
-
-const Index = () => {
+const Deporte = () => {
   const { user } = useAuth();
   const { currentUserRole } = useUserRoles(user?.id);
   const navigate = useNavigate();
 
-  const getGreeting = () => {
-    const hour = new Date().getHours();
-    if (hour < 12) return "Buenos días";
-    if (hour < 18) return "Buenas tardes";
-    return "Buenas noches";
-  };
-
-  const menuItems = [
+  const sportsItems = [
     {
-      title: "Deporte",
-      description: "Accede a todas las funciones deportivas: entrenamiento, técnicas, táctica y más",
-      icon: Target,
-      path: "/deporte",
+      title: "Preparación Física",
+      description: "Registra y administra tus sesiones de entrenamiento físico",
+      icon: Dumbbell,
+      path: "/sesiones-preparacion",
       color: "bg-gray-700",
       roles: ['deportista', 'entrenador', 'admin']
     },
     {
-      title: "Gráficos y Análisis",
-      description: "Visualiza tu progreso con gráficos detallados",
-      icon: BarChart3,
-      path: "/graficos",
+      title: "Entrenamientos Deportivos",
+      description: "Documenta tus sesiones deportivas y combates",
+      icon: Target,
+      path: "/entrenamientos-deportivo",
+      color: "bg-gray-700",
+      roles: ['deportista', 'entrenador', 'admin']
+    },
+    {
+      title: "Técnicas Deportivas",
+      description: "Explora y aprende técnicas por categorías",
+      icon: Zap,
+      path: "/tecnicas-deportivo",
+      color: "bg-gray-700",
+      roles: ['deportista', 'entrenador', 'admin']
+    },
+    {
+      title: "Táctica Deportiva",
+      description: "Desarrolla estrategias y tácticas de combate",
+      icon: Brain,
+      path: "/tactica-deportivo",
+      color: "bg-gray-700",
+      roles: ['deportista', 'entrenador', 'admin']
+    },
+    {
+      title: "Control de Peso",
+      description: "Monitorea tu peso y progreso físico",
+      icon: Scale,
+      path: "/peso",
       color: "bg-gray-700",
       roles: ['deportista', 'entrenador', 'admin']
     }
   ];
 
-  const availableItems = menuItems.filter(item => 
+  const availableItems = sportsItems.filter(item => 
     item.roles.includes(currentUserRole as string)
   );
 
   return (
     <div className="min-h-screen bg-[#1A1A1A]">
       <NavHeader 
-        title={`${getGreeting()}, ${user?.email?.split('@')[0] || 'Usuario'}`}
-        subtitle="¿Qué quieres hacer hoy?"
+        title="Deporte"
+        subtitle="Accede a todas las funciones deportivas"
       />
 
       <div className="max-w-6xl mx-auto p-4">
@@ -87,4 +105,4 @@ const Index = () => {
   );
 };
 
-export default Index;
+export default Deporte;
