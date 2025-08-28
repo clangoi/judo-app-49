@@ -146,7 +146,9 @@ const Index = () => {
                     <div className="p-2 rounded-lg bg-[#283750]">
                       <IconComponent className="h-6 w-6 text-white" />
                     </div>
-                    <CardTitle className="text-[#1A1A1A]">{item.title}</CardTitle>
+                    {item.title !== "Logros y Insignias" && (
+                      <CardTitle className="text-[#1A1A1A]">{item.title}</CardTitle>
+                    )}
                   </div>
                 </CardHeader>
                 <CardContent>
