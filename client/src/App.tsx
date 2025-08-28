@@ -17,10 +17,6 @@ import Peso from "./pages/Peso";
 
 import Graficos from "./pages/Graficos";
 import Gestion from "./pages/Gestion";
-import Admin from "./pages/Admin";
-import { AdminSports } from "./pages/AdminSports";
-import TrainerClubs from "./pages/TrainerClubs";
-import TrainerDashboard from "./pages/TrainerDashboard";
 import Achievements from "./pages/Achievements";
 import Configuracion from "./pages/Configuracion";
 
@@ -78,26 +74,6 @@ const App = () => (
               <Route path="/gestion" element={
                 <AuthGuard>
                   <Gestion />
-                </AuthGuard>
-              } />
-              <Route path="/admin" element={
-                <AuthGuard>
-                  <Admin />
-                </AuthGuard>
-              } />
-              <Route path="/admin/deportes" element={
-                <AuthGuard>
-                  <AdminSports />
-                </AuthGuard>
-              } />
-              <Route path="/clubes" element={
-                <AuthGuard>
-                  <TrainerClubs />
-                </AuthGuard>
-              } />
-              <Route path="/entrenador/dashboard" element={
-                <AuthGuard>
-                  <TrainerDashboard />
                 </AuthGuard>
               } />
               <Route path="/logros" element={

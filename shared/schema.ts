@@ -2,8 +2,7 @@ import { pgTable, text, uuid, timestamp, integer, numeric, boolean, jsonb, pgEnu
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-// Enums
-export const appRoleEnum = pgEnum('app_role', ['deportista', 'entrenador', 'admin']);
+// Enums - Simplified for deportista only
 export const genderTypeEnum = pgEnum('gender_type', ['male', 'female']);
 export const beltLevelEnum = pgEnum('belt_level', ['white', 'yellow', 'orange', 'green', 'blue', 'brown', 'black']);
 
@@ -15,8 +14,6 @@ export const profiles = pgTable("profiles", {
   fullName: text("full_name"),
   avatarUrl: text("avatar_url"),
   genderPreference: text("gender_preference"),
-  clubId: uuid("club_id"),
-  clubName: text("club_name"),
   currentBelt: beltLevelEnum("current_belt"),
   gender: genderTypeEnum("gender"),
   competitionCategory: text("competition_category"),
@@ -24,64 +21,14 @@ export const profiles = pgTable("profiles", {
   injuryDescription: text("injury_description"),
   profileImageUrl: text("profile_image_url"),
   birthDate: date("birth_date"),
-  selectedClubLogoId: uuid("selected_club_logo_id"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow()
 });
 
-// User roles table
-export const userRoles = pgTable("user_roles", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  userId: uuid("user_id").notNull(),
-  role: appRoleEnum("role").notNull().default('deportista'),
-  assignedAt: timestamp("assigned_at").defaultNow(),
-  assignedBy: uuid("assigned_by")
-});
 
-// Clubs table
-export const clubs = pgTable("clubs", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  name: text("name").notNull(),
-  description: text("description"),
-  logo_url: text("logo_url"),
-  createdBy: uuid("created_by").notNull(),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow()
-});
 
-// Sports table - Types of sports (Judo, Karate, JiuJitsu, etc.)
-export const sports = pgTable("sports", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  name: text("name").notNull().unique(),
-  description: text("description"),
-  belts: jsonb("belts").notNull(), // Array of belt configurations
-  genderCategories: jsonb("gender_categories").notNull(), // Male/Female specific categories
-  ageCategories: jsonb("age_categories").notNull(), // Age divisions with weight categories
-  weightCategories: jsonb("weight_categories").notNull(), // Weight categories by age and gender
-  isActive: boolean("is_active").notNull().default(true),
-  createdBy: uuid("created_by").notNull(),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow()
-});
 
-// Sport trainer assignments - Links trainers to specific sports
-export const sportTrainerAssignments = pgTable("sport_trainer_assignments", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  sportId: uuid("sport_id").notNull(),
-  trainerId: uuid("trainer_id").notNull(),
-  assignedAt: timestamp("assigned_at").defaultNow(),
-  assignedBy: uuid("assigned_by").notNull(),
-  isActive: boolean("is_active").notNull().default(true)
-});
 
-// Trainer assignments table
-export const trainerAssignments = pgTable("trainer_assignments", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  trainerId: uuid("trainer_id").notNull(),
-  studentId: uuid("student_id").notNull(),
-  assignedAt: timestamp("assigned_at").defaultNow(),
-  assignedBy: uuid("assigned_by")
-});
 
 // Training sessions table
 export const trainingSessions = pgTable("training_sessions", {
@@ -291,11 +238,6 @@ export const notificationSettings = pgTable("notification_settings", {
 
 // Insert schemas
 export const insertProfileSchema = createInsertSchema(profiles);
-export const insertUserRoleSchema = createInsertSchema(userRoles);
-export const insertClubSchema = createInsertSchema(clubs);
-export const insertSportSchema = createInsertSchema(sports);
-export const insertSportTrainerAssignmentSchema = createInsertSchema(sportTrainerAssignments);
-export const insertTrainerAssignmentSchema = createInsertSchema(trainerAssignments);
 export const insertTrainingSessionSchema = createInsertSchema(trainingSessions);
 export const insertJudoTrainingSessionSchema = createInsertSchema(judoTrainingSessions);
 export const insertSportsTrainingSessionSchema = createInsertSchema(sportsTrainingSessions);
@@ -315,16 +257,6 @@ export const insertNotificationSettingsSchema = createInsertSchema(notificationS
 // Type exports
 export type Profile = typeof profiles.$inferSelect;
 export type InsertProfile = z.infer<typeof insertProfileSchema>;
-export type UserRole = typeof userRoles.$inferSelect;
-export type InsertUserRole = z.infer<typeof insertUserRoleSchema>;
-export type Club = typeof clubs.$inferSelect;
-export type InsertClub = z.infer<typeof insertClubSchema>;
-export type Sport = typeof sports.$inferSelect;
-export type InsertSport = z.infer<typeof insertSportSchema>;
-export type SportTrainerAssignment = typeof sportTrainerAssignments.$inferSelect;
-export type InsertSportTrainerAssignment = z.infer<typeof insertSportTrainerAssignmentSchema>;
-export type TrainerAssignment = typeof trainerAssignments.$inferSelect;
-export type InsertTrainerAssignment = z.infer<typeof insertTrainerAssignmentSchema>;
 export type TrainingSession = typeof trainingSessions.$inferSelect;
 export type InsertTrainingSession = z.infer<typeof insertTrainingSessionSchema>;
 export type SportsTrainingSession = typeof sportsTrainingSessions.$inferSelect;
@@ -353,27 +285,8 @@ export type NotificationAlarm = typeof notificationAlarms.$inferSelect;
 export type InsertNotificationAlarm = z.infer<typeof insertNotificationAlarmsSchema>;
 export type NotificationSettings = typeof notificationSettings.$inferSelect;
 export type InsertNotificationSettings = z.infer<typeof insertNotificationSettingsSchema>;
-export type TrainerDashboardWidget = typeof trainerDashboardWidgets.$inferSelect;
-export type InsertTrainerDashboardWidget = z.infer<typeof insertTrainerDashboardWidgetSchema>;
 
-// Trainer Dashboard Widgets table
-export const trainerDashboardWidgets = pgTable("trainer_dashboard_widgets", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  trainerId: uuid("trainer_id").notNull(),
-  widgetType: text("widget_type").notNull(), // 'athlete_overview', 'session_stats', 'recent_activities', 'performance_charts', etc.
-  position: jsonb("position").notNull(), // {x: number, y: number, w: number, h: number}
-  config: jsonb("config").notNull().default({}), // Widget-specific configuration
-  isVisible: boolean("is_visible").notNull().default(true),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow()
-});
 
-// Trainer widget configurations schema
-export const insertTrainerDashboardWidgetSchema = createInsertSchema(trainerDashboardWidgets).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true
-});
 
 // Legacy exports for compatibility
 export const users = profiles;
