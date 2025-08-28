@@ -83,7 +83,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       // Simplified authentication - everyone is a deportista
       const mockUser: User = {
-        id: `user-${Date.now()}`,
+        id: crypto.randomUUID(),
         email,
         fullName: email.split('@')[0] || "Deportista",
         avatarUrl: null,
@@ -113,7 +113,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       // Create a mock user profile for demo purposes
       const mockUser: User = {
-        id: `user-${Date.now()}`,
+        id: crypto.randomUUID(),
         email,
         fullName: fullName || "New User",
         avatarUrl: null,

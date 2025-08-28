@@ -5,7 +5,6 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./hooks/useAuth";
-import { AchievementProvider } from "./components/achievements/AchievementProvider";
 import AuthGuard from "./components/AuthGuard";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
@@ -17,7 +16,6 @@ import Peso from "./pages/Peso";
 
 import Graficos from "./pages/Graficos";
 import Gestion from "./pages/Gestion";
-import Achievements from "./pages/Achievements";
 import Configuracion from "./pages/Configuracion";
 
 
@@ -32,7 +30,6 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <AuthProvider>
-          <AchievementProvider>
             <Routes>
               <Route path="/auth" element={<Auth />} />
               <Route path="/" element={
@@ -76,11 +73,6 @@ const App = () => (
                   <Gestion />
                 </AuthGuard>
               } />
-              <Route path="/logros" element={
-                <AuthGuard>
-                  <Achievements />
-                </AuthGuard>
-              } />
               <Route path="/configuracion" element={
                 <AuthGuard>
                   <Configuracion />
@@ -90,7 +82,6 @@ const App = () => (
               <Route path="/404" element={<NotFound />} />
               <Route path="*" element={<Navigate to="/404" replace />} />
             </Routes>
-          </AchievementProvider>
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>

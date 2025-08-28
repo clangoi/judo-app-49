@@ -3,7 +3,6 @@ import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { LogOut, ArrowLeft, Settings } from "lucide-react";
-import { SocialShareButton } from "./SocialShareButton";
 import { NotificationButton } from "./NotificationButton";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -79,7 +78,6 @@ const NavHeader = ({ title, subtitle }: NavHeaderProps) => {
 
             <NotificationButton />
             
-            <SocialShareButton />
             
             <Button
               variant="ghost"
