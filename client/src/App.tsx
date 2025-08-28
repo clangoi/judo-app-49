@@ -9,6 +9,7 @@ import AuthGuard from "./components/AuthGuard";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Deporte from "./pages/Deporte";
+import MentalCheck from "./pages/MentalCheck";
 import SesionesPreparacion from "./pages/SesionesPreparacion";
 import EntrenamientosJudo from "./pages/EntrenamientosJudo";
 import TecnicasJudo from "./pages/TecnicasJudo";
@@ -41,6 +42,11 @@ const App = () => (
               <Route path="/deporte" element={
                 <AuthGuard>
                   <Deporte />
+                </AuthGuard>
+              } />
+              <Route path="/mentalcheck" element={
+                <AuthGuard>
+                  <MentalCheck />
                 </AuthGuard>
               } />
               <Route path="/sesiones-preparacion" element={

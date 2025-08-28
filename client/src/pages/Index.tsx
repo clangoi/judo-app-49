@@ -6,7 +6,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useNavigate } from "react-router-dom";
 import { 
   BarChart3, 
-  Target
+  Target,
+  Brain
 } from "lucide-react";
 import NavHeader from "@/components/NavHeader";
 
@@ -29,6 +30,14 @@ const Index = () => {
       description: "Accede a todas las funciones deportivas: entrenamiento, técnicas, táctica y más",
       icon: Target,
       path: "/deporte",
+      color: "bg-gray-700",
+      roles: ['deportista', 'entrenador', 'admin']
+    },
+    {
+      title: "MentalCheck",
+      description: "Evalúa y mejora tu estado mental y bienestar psicológico",
+      icon: Brain,
+      path: "/mentalcheck",
       color: "bg-gray-700",
       roles: ['deportista', 'entrenador', 'admin']
     },
