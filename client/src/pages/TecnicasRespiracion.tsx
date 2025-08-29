@@ -222,31 +222,31 @@ const BreathingExercise: React.FC<BreathingExerciseProps> = ({ technique, onComp
           {/* Visualización especial para respiración alternada */}
           {technique.id === 'alternate_nostril' && (
             <div className="flex flex-col items-center space-y-6 mb-8">
-              {/* Nariz con indicaciones de fosas nasales */}
-              <div className="relative w-48 h-24 flex items-center justify-center">
-                {/* Nariz */}
-                <div className="w-8 h-16 bg-orange-200 rounded-xl relative border-2 border-orange-300">
+              {/* Nariz emoji con indicaciones de fosas nasales */}
+              <div className="relative w-48 h-32 flex items-center justify-center">
+                {/* Nariz emoji */}
+                <div className="text-8xl relative">
+                  👃
                   
-                  {/* Fosa nasal izquierda */}
-                  <div className={`absolute top-6 left-1 w-2 h-8 rounded-full transition-all duration-300 ${
+                  {/* Indicadores visuales de actividad en fosas */}
+                  <div className={`absolute top-8 left-4 w-3 h-3 rounded-full transition-all duration-300 ${
                     (currentCycle % 2 === 1 && phase === 'inhale') || (currentCycle % 2 === 0 && phase === 'exhale')
-                      ? 'bg-red-500 scale-125 shadow-lg' 
-                      : 'bg-gray-400'
+                      ? 'bg-red-500 scale-150 shadow-lg animate-pulse' 
+                      : 'bg-gray-300 scale-75'
                   }`}></div>
                   
-                  {/* Fosa nasal derecha */}
-                  <div className={`absolute top-6 right-1 w-2 h-8 rounded-full transition-all duration-300 ${
+                  <div className={`absolute top-8 right-4 w-3 h-3 rounded-full transition-all duration-300 ${
                     (currentCycle % 2 === 0 && phase === 'inhale') || (currentCycle % 2 === 1 && phase === 'exhale')
-                      ? 'bg-red-500 scale-125 shadow-lg' 
-                      : 'bg-gray-400'
+                      ? 'bg-red-500 scale-150 shadow-lg animate-pulse' 
+                      : 'bg-gray-300 scale-75'
                   }`}></div>
                 </div>
 
-                {/* Indicador de mano tapando fosa - se mueve animadamente */}
+                {/* Indicador de mano tapando fosa - se posiciona sobre cada fosa nasal */}
                 <div className={`absolute transition-all duration-500 text-3xl ${
                   (currentCycle % 2 === 1 && phase === 'inhale') || (currentCycle % 2 === 0 && phase === 'exhale')
-                    ? 'right-8 text-red-600' 
-                    : 'left-8 text-red-600'
+                    ? 'right-6 top-4 text-red-600' 
+                    : 'left-6 top-4 text-red-600'
                 }`}>
                   👆
                 </div>
