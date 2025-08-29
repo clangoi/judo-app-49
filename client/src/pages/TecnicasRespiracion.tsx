@@ -201,20 +201,6 @@ const BreathingExercise: React.FC<BreathingExerciseProps> = ({ technique, onComp
                   <div className="absolute inset-0 bg-green-600 rounded-full animate-ping opacity-75"></div>
                 </div>
                 
-                {/* Etiquetas de las fases en las esquinas */}
-                <div className="absolute -bottom-6 left-0 text-xs text-green-700 font-medium">
-                  Inhalar ⬆️
-                </div>
-                <div className="absolute -top-6 left-0 text-xs text-yellow-700 font-medium">
-                  Mantener ➡️
-                </div>
-                <div className="absolute -top-6 right-0 text-xs text-blue-700 font-medium">
-                  Exhalar ⬇️
-                </div>
-                <div className="absolute -bottom-6 right-0 text-xs text-gray-700 font-medium">
-                  Pausa ⬅️
-                </div>
-                
                 
               </div>
               
