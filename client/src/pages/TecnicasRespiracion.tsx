@@ -17,7 +17,7 @@ import {
   Timer, 
   TrendingUp,
   CheckCircle,
-  Lung,
+  Square,
   Heart,
   Sparkles
 } from "lucide-react";
@@ -41,7 +41,7 @@ const BREATHING_TECHNIQUES = [
     id: 'box_breathing', 
     name: 'Respiración de Caja', 
     description: 'Inhala 4, mantén 4, exhala 4, pausa 4. Perfecta para enfoque y calma.',
-    icon: Lung,
+    icon: Square,
     color: 'bg-green-500',
     inhale: 4,
     hold: 4,
