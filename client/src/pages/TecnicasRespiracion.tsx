@@ -222,39 +222,33 @@ const BreathingExercise: React.FC<BreathingExerciseProps> = ({ technique, onComp
           {/* Visualización especial para respiración alternada */}
           {technique.id === 'alternate_nostril' && (
             <div className="flex flex-col items-center space-y-6 mb-8">
-              {/* Rostro con indicaciones de fosas nasales */}
-              <div className="relative w-48 h-48 flex items-center justify-center">
-                {/* Cara base */}
-                <div className="w-32 h-40 bg-orange-50 border-4 border-orange-300 rounded-full relative">
-                  {/* Nariz */}
-                  <div className="absolute top-12 left-1/2 transform -translate-x-1/2 w-4 h-8 bg-orange-200 rounded-lg"></div>
+              {/* Nariz con indicaciones de fosas nasales */}
+              <div className="relative w-48 h-24 flex items-center justify-center">
+                {/* Nariz */}
+                <div className="w-8 h-16 bg-orange-200 rounded-xl relative border-2 border-orange-300">
                   
                   {/* Fosa nasal izquierda */}
-                  <div className={`absolute top-14 left-12 w-3 h-3 rounded-full transition-all duration-300 ${
+                  <div className={`absolute top-6 left-1 w-2 h-8 rounded-full transition-all duration-300 ${
                     (currentCycle % 2 === 1 && phase === 'inhale') || (currentCycle % 2 === 0 && phase === 'exhale')
                       ? 'bg-red-500 scale-125 shadow-lg' 
-                      : 'bg-gray-300'
+                      : 'bg-gray-400'
                   }`}></div>
                   
                   {/* Fosa nasal derecha */}
-                  <div className={`absolute top-14 right-12 w-3 h-3 rounded-full transition-all duration-300 ${
+                  <div className={`absolute top-6 right-1 w-2 h-8 rounded-full transition-all duration-300 ${
                     (currentCycle % 2 === 0 && phase === 'inhale') || (currentCycle % 2 === 1 && phase === 'exhale')
                       ? 'bg-red-500 scale-125 shadow-lg' 
-                      : 'bg-gray-300'
+                      : 'bg-gray-400'
                   }`}></div>
-                  
-                  {/* Ojos */}
-                  <div className="absolute top-8 left-8 w-2 h-2 bg-gray-600 rounded-full"></div>
-                  <div className="absolute top-8 right-8 w-2 h-2 bg-gray-600 rounded-full"></div>
-                  
-                  {/* Indicador de mano tapando fosa */}
-                  <div className={`absolute top-12 transition-all duration-500 ${
-                    (currentCycle % 2 === 1 && phase === 'inhale') || (currentCycle % 2 === 0 && phase === 'exhale')
-                      ? 'right-10 text-red-600' 
-                      : 'left-10 text-red-600'
-                  }`}>
-                    <span className="text-2xl">👆</span>
-                  </div>
+                </div>
+
+                {/* Indicador de mano tapando fosa - se mueve animadamente */}
+                <div className={`absolute transition-all duration-500 text-3xl ${
+                  (currentCycle % 2 === 1 && phase === 'inhale') || (currentCycle % 2 === 0 && phase === 'exhale')
+                    ? 'right-8 text-red-600' 
+                    : 'left-8 text-red-600'
+                }`}>
+                  👆
                 </div>
               </div>
               
