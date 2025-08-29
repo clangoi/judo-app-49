@@ -244,9 +244,11 @@ const BreathingExercise: React.FC<BreathingExerciseProps> = ({ technique, onComp
 
                 {/* Indicador de mano tapando fosa - se posiciona sobre cada fosa nasal */}
                 <div className={`absolute transition-all duration-500 text-3xl ${
-                  (currentCycle % 2 === 1 && phase === 'inhale') || (currentCycle % 2 === 0 && phase === 'exhale')
-                    ? 'right-6 top-4 text-red-600' 
-                    : 'left-6 top-4 text-red-600'
+                  phase === 'hold' 
+                    ? 'top-16 left-1/2 transform -translate-x-1/2 text-blue-600'
+                    : (currentCycle % 2 === 1 && phase === 'inhale') || (currentCycle % 2 === 0 && phase === 'exhale')
+                      ? 'right-6 top-4 text-red-600' 
+                      : 'left-6 top-4 text-red-600'
                 }`}>
                   👆
                 </div>
