@@ -219,8 +219,70 @@ const BreathingExercise: React.FC<BreathingExerciseProps> = ({ technique, onComp
             </div>
           )}
           
+          {/* Visualización especial para respiración alternada */}
+          {technique.id === 'alternate_nostril' && (
+            <div className="flex flex-col items-center space-y-6 mb-8">
+              {/* Rostro con indicaciones de fosas nasales */}
+              <div className="relative w-48 h-48 flex items-center justify-center">
+                {/* Cara base */}
+                <div className="w-32 h-40 bg-orange-50 border-4 border-orange-300 rounded-full relative">
+                  {/* Nariz */}
+                  <div className="absolute top-12 left-1/2 transform -translate-x-1/2 w-4 h-8 bg-orange-200 rounded-lg"></div>
+                  
+                  {/* Fosa nasal izquierda */}
+                  <div className={`absolute top-14 left-12 w-3 h-3 rounded-full transition-all duration-300 ${
+                    (currentCycle % 2 === 1 && phase === 'inhale') || (currentCycle % 2 === 0 && phase === 'exhale')
+                      ? 'bg-red-500 scale-125 shadow-lg' 
+                      : 'bg-gray-300'
+                  }`}></div>
+                  
+                  {/* Fosa nasal derecha */}
+                  <div className={`absolute top-14 right-12 w-3 h-3 rounded-full transition-all duration-300 ${
+                    (currentCycle % 2 === 0 && phase === 'inhale') || (currentCycle % 2 === 1 && phase === 'exhale')
+                      ? 'bg-red-500 scale-125 shadow-lg' 
+                      : 'bg-gray-300'
+                  }`}></div>
+                  
+                  {/* Ojos */}
+                  <div className="absolute top-8 left-8 w-2 h-2 bg-gray-600 rounded-full"></div>
+                  <div className="absolute top-8 right-8 w-2 h-2 bg-gray-600 rounded-full"></div>
+                  
+                  {/* Indicador de mano tapando fosa */}
+                  <div className={`absolute top-12 transition-all duration-500 ${
+                    (currentCycle % 2 === 1 && phase === 'inhale') || (currentCycle % 2 === 0 && phase === 'exhale')
+                      ? 'right-10 text-red-600' 
+                      : 'left-10 text-red-600'
+                  }`}>
+                    <span className="text-2xl">👆</span>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Instrucciones específicas */}
+              <div className="text-center space-y-2">
+                <div className="text-6xl font-mono text-gray-800">
+                  {count}
+                </div>
+                <div className="text-lg text-gray-600 font-medium">
+                  {phase === 'inhale' ? `Inhala ${technique.inhale}s` : 
+                   phase === 'hold' ? `Mantén ${technique.hold}s` : 
+                   `Exhala ${technique.exhale}s`}
+                </div>
+                <div className="text-sm text-orange-600 font-semibold">
+                  {phase === 'inhale' ? (
+                    currentCycle % 2 === 1 ? 'Tapa fosa derecha - Inhala por izquierda' : 'Tapa fosa izquierda - Inhala por derecha'
+                  ) : phase === 'hold' ? (
+                    'Mantén ambas fosas tapadas'
+                  ) : (
+                    currentCycle % 2 === 1 ? 'Tapa fosa izquierda - Exhala por derecha' : 'Tapa fosa derecha - Exhala por izquierda'
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Visualización estándar para otras técnicas */}
-          {technique.id !== 'box_breathing' && (
+          {technique.id !== 'box_breathing' && technique.id !== 'alternate_nostril' && (
             <div>
               <div className="text-8xl font-mono text-gray-800 mb-2">
                 {count}
