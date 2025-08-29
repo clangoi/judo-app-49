@@ -188,24 +188,20 @@ const BreathingExercise: React.FC<BreathingExerciseProps> = ({ technique, onComp
                 <div 
                   className="absolute w-4 h-4 bg-green-600 rounded-full shadow-lg z-10"
                   style={{
-                    // Posición basada en la fase actual - recorre el perímetro paso a paso
+                    // Posición inicial en esquina inferior izquierda y se mueve según la fase
                     left: 
-                      phase === 'inhale' ? '0px' :          // Lado izquierdo
-                      phase === 'hold' ? '0px' :            // Empieza a moverse hacia la derecha
-                      phase === 'exhale' ? '176px' :        // Lado derecho
-                      '176px',                               // Termina en lado derecho (pausa)
+                      phase === 'inhale' ? '0px' :          // Se queda en lado izquierdo (inhalar)
+                      phase === 'hold' ? '176px' :          // Se mueve hacia la derecha (mantener)
+                      phase === 'exhale' ? '176px' :        // Se queda en lado derecho (exhalar)  
+                      '0px',                                 // Se mueve hacia la izquierda (pausa)
                     top: 
-                      phase === 'inhale' ? '176px' :        // Empieza abajo, sube
-                      phase === 'hold' ? '0px' :            // Ya está arriba
-                      phase === 'exhale' ? '0px' :          // Empieza arriba, baja
-                      '176px',                               // Ya está abajo
+                      phase === 'inhale' ? '0px' :          // Se mueve hacia arriba (inhalar)
+                      phase === 'hold' ? '0px' :            // Se queda arriba (mantener)
+                      phase === 'exhale' ? '176px' :        // Se mueve hacia abajo (exhalar)
+                      '176px',                               // Se queda abajo (pausa)
                     
-                    // Transiciones diferenciadas por fase
-                    transition: !isActive ? 'none' :
-                      phase === 'inhale' ? 'top 4s ease-linear' :           // Solo movimiento vertical (arriba)
-                      phase === 'hold' ? 'left 4s ease-linear' :            // Solo movimiento horizontal (derecha)
-                      phase === 'exhale' ? 'top 4s ease-linear' :           // Solo movimiento vertical (abajo)
-                      'left 4s ease-linear'                                  // Solo movimiento horizontal (izquierda)
+                    // Transición activa solo cuando el ejercicio está corriendo
+                    transition: !isActive ? 'none' : 'all 4s ease-linear'
                   }}
                 >
                   {/* Pulso del punto */}
