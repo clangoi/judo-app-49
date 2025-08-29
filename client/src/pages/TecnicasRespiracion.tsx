@@ -184,28 +184,17 @@ const BreathingExercise: React.FC<BreathingExerciseProps> = ({ technique, onComp
                 {/* Cuadrado base */}
                 <div className="absolute inset-0 border-4 border-green-400 rounded-lg bg-green-50/20"></div>
                 
-                {/* Punto guía que recorre el perímetro del cuadrado progresivamente */}
+                {/* Punto guía que recorre el perímetro del cuadrado */}
                 <div 
-                  className="absolute w-4 h-4 bg-green-600 rounded-full shadow-lg z-10"
+                  className={`absolute w-4 h-4 bg-green-600 rounded-full shadow-lg z-10 ${
+                    isActive ? 'animate-box-breathing' : ''
+                  }`}
                   style={{
-                    // Posición calculada progresivamente según el tiempo restante
-                    left: (() => {
-                      const progress = isActive ? (technique.inhale - count) / technique.inhale : 0;
-                      if (phase === 'pause') return `${176 - (176 * progress)}px`;      // Se mueve de derecha (176) a izquierda (0)
-                      if (phase === 'inhale') return '0px';                             // Se mantiene en lado izquierdo
-                      if (phase === 'hold') return `${176 * progress}px`;               // Se mueve de izquierda (0) a derecha (176)
-                      if (phase === 'exhale') return '176px';                           // Se mantiene en lado derecho
-                      return '0px';
-                    })(),
-                    top: (() => {
-                      const progress = isActive ? (technique.inhale - count) / technique.inhale : 0;
-                      if (phase === 'pause') return '176px';                            // Se mantiene abajo
-                      if (phase === 'inhale') return `${176 - (176 * progress)}px`;     // Se mueve de abajo (176) a arriba (0)
-                      if (phase === 'hold') return '0px';                               // Se mantiene arriba
-                      if (phase === 'exhale') return `${176 * progress}px`;             // Se mueve de arriba (0) a abajo (176)
-                      return '176px';
-                    })(),
-                    transition: 'all 0.1s ease-out'
+                    left: '0px',
+                    top: '176px',
+                    animationDuration: isActive ? '16s' : '0s',
+                    animationIterationCount: 'infinite',
+                    animationTimingFunction: 'linear'
                   }}
                 >
                   {/* Pulso del punto */}

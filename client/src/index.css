@@ -100,39 +100,35 @@ All colors MUST be HSL.
   }
 }
 
-/* Animaciones para el círculo de respiración de caja */
-@keyframes move-up {
-  from { top: 176px; }
-  to { top: 0px; }
+/* Animación para el círculo de respiración de caja - recorre todo el perímetro */
+@keyframes box-breathing {
+  /* Comienza en esquina inferior izquierda */
+  0% { 
+    left: 0px; 
+    top: 176px; 
+  }
+  /* Inhalar: sube por el lado izquierdo (4 segundos) */
+  25% { 
+    left: 0px; 
+    top: 0px; 
+  }
+  /* Mantener: se mueve por arriba hacia la derecha (4 segundos) */
+  50% { 
+    left: 176px; 
+    top: 0px; 
+  }
+  /* Exhalar: baja por el lado derecho (4 segundos) */
+  75% { 
+    left: 176px; 
+    top: 176px; 
+  }
+  /* Pausa: regresa por abajo hacia la izquierda (4 segundos) */
+  100% { 
+    left: 0px; 
+    top: 176px; 
+  }
 }
 
-@keyframes move-right {
-  from { left: 0px; }
-  to { left: 176px; }
-}
-
-@keyframes move-down {
-  from { top: 0px; }
-  to { top: 176px; }
-}
-
-@keyframes move-left {
-  from { left: 176px; }
-  to { left: 0px; }
-}
-
-.animate-move-up {
-  animation: move-up 4s ease-linear;
-}
-
-.animate-move-right {
-  animation: move-right 4s ease-linear;
-}
-
-.animate-move-down {
-  animation: move-down 4s ease-linear;
-}
-
-.animate-move-left {
-  animation: move-left 4s ease-linear;
+.animate-box-breathing {
+  animation: box-breathing 16s linear infinite;
 }
