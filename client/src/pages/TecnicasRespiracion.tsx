@@ -215,17 +215,7 @@ const BreathingExercise: React.FC<BreathingExerciseProps> = ({ technique, onComp
                   Pausa ⬅️
                 </div>
                 
-                {/* Flecha direccional */}
-                <div className={`absolute text-2xl transition-all duration-500 ${
-                  phase === 'inhale' ? 'bottom-2 left-1/2 transform -translate-x-1/2' :
-                  phase === 'hold' ? 'top-1/2 right-2 transform -translate-y-1/2' :
-                  phase === 'exhale' ? 'top-2 left-1/2 transform -translate-x-1/2' :
-                  'top-1/2 left-2 transform -translate-y-1/2'
-                }`}>
-                  {phase === 'inhale' ? '⬆️' : 
-                   phase === 'hold' ? '➡️' : 
-                   phase === 'exhale' ? '⬇️' : '⬅️'}
-                </div>
+                
               </div>
               
               {/* Contador e instrucciones */}
