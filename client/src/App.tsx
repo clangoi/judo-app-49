@@ -16,6 +16,7 @@ import BienestarMental from "./pages/BienestarMental";
 import Concentracion from "./pages/Concentracion";
 import EvaluacionProfunda from "./pages/EvaluacionProfunda";
 import CheckinRapido from "./pages/CheckinRapido";
+import ManejoCrisis from "./pages/ManejoCrisis";
 import SesionesPreparacion from "./pages/SesionesPreparacion";
 import EntrenamientosJudo from "./pages/EntrenamientosJudo";
 import TecnicasJudo from "./pages/TecnicasJudo";
@@ -83,6 +84,11 @@ const App = () => (
               <Route path="/checkin-rapido" element={
                 <AuthGuard>
                   <CheckinRapido />
+                </AuthGuard>
+              } />
+              <Route path="/manejo-crisis" element={
+                <AuthGuard>
+                  <ManejoCrisis />
                 </AuthGuard>
               } />
               <Route path="/sesiones-preparacion" element={

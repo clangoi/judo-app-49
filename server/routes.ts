@@ -11,7 +11,7 @@ import {
   insertJudoTrainingSessionSchema, insertSportsTrainingSessionSchema, insertExerciseSchema, insertExerciseRecordSchema, 
   insertWeightEntrySchema, insertNutritionEntrySchema, insertTechniqueSchema, 
   insertTacticalNoteSchema, insertRandoriSessionSchema, insertAchievementBadgeSchema, 
-  insertUserAchievementSchema, insertMoodEntrySchema, stressEntries, insertStressEntrySchema, mentalWellnessEntries, insertMentalWellnessEntrySchema, concentrationEntries, insertConcentrationEntrySchema, deepAssessmentEntries, insertDeepAssessmentEntrySchema, quickCheckInEntries, insertQuickCheckInEntrySchema
+  insertUserAchievementSchema, insertMoodEntrySchema, stressEntries, insertStressEntrySchema, mentalWellnessEntries, insertMentalWellnessEntrySchema, concentrationEntries, insertConcentrationEntrySchema, deepAssessmentEntries, insertDeepAssessmentEntrySchema, quickCheckInEntries, insertQuickCheckInEntrySchema, crisisManagementSessions, insertCrisisManagementSessionSchema
 } from "@shared/schema";
 import { eq, and, desc, sql, isNull, gte, lte } from "drizzle-orm";
 
@@ -1214,6 +1214,101 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error deleting quick check-in entry:", error);
       res.status(500).json({ error: "Failed to delete quick check-in entry" });
+    }
+  });
+
+  // Crisis Management Sessions - Manejo de crisis para momentos de alta ansiedad
+  app.get("/api/crisis-management-sessions", async (req, res) => {
+    try {
+      const userId = req.headers["x-user-id"] as string;
+      if (!userId) {
+        return res.status(401).json({ error: "User not authenticated" });
+      }
+      
+      const result = await db.select()
+        .from(crisisManagementSessions)
+        .where(eq(crisisManagementSessions.userId, userId))
+        .orderBy(desc(crisisManagementSessions.timestamp));
+      res.json(result);
+    } catch (error) {
+      console.error("Error fetching crisis management sessions:", error);
+      res.status(500).json({ error: "Failed to fetch crisis management sessions" });
+    }
+  });
+
+  app.post("/api/crisis-management-sessions", async (req, res) => {
+    try {
+      const userId = req.headers["x-user-id"] as string;
+      if (!userId) {
+        return res.status(401).json({ error: "User not authenticated" });
+      }
+
+      // Agregar metadatos automáticamente
+      const now = new Date();
+      const hour = now.getHours();
+      let timeOfDay: string;
+      if (hour < 6) timeOfDay = 'night';
+      else if (hour < 12) timeOfDay = 'morning';
+      else if (hour < 18) timeOfDay = 'afternoon';
+      else timeOfDay = 'evening';
+
+      const dayOfWeek = now.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
+
+      const validated = insertCrisisManagementSessionSchema.parse({
+        ...req.body,
+        userId,
+        timeOfDay,
+        dayOfWeek
+      });
+      
+      const result = await db.insert(crisisManagementSessions).values(validated).returning();
+      res.json(result[0]);
+    } catch (error) {
+      console.error("Error creating crisis management session:", error);
+      res.status(400).json({ error: "Invalid crisis management data" });
+    }
+  });
+
+  app.get("/api/crisis-management-sessions/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const result = await db.select().from(crisisManagementSessions).where(eq(crisisManagementSessions.id, id)).limit(1);
+      if (result.length === 0) {
+        return res.status(404).json({ error: "Crisis management session not found" });
+      }
+      res.json(result[0]);
+    } catch (error) {
+      console.error("Error fetching crisis management session:", error);
+      res.status(500).json({ error: "Failed to fetch crisis management session" });
+    }
+  });
+
+  app.patch("/api/crisis-management-sessions/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const validated = insertCrisisManagementSessionSchema.partial().parse(req.body);
+      const result = await db.update(crisisManagementSessions).set(validated).where(eq(crisisManagementSessions.id, id)).returning();
+      if (result.length === 0) {
+        return res.status(404).json({ error: "Crisis management session not found" });
+      }
+      res.json(result[0]);
+    } catch (error) {
+      console.error("Error updating crisis management session:", error);
+      res.status(400).json({ error: "Failed to update crisis management session" });
+    }
+  });
+
+  app.delete("/api/crisis-management-sessions/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const result = await db.delete(crisisManagementSessions).where(eq(crisisManagementSessions.id, id)).returning();
+      if (result.length === 0) {
+        return res.status(404).json({ error: "Crisis management session not found" });
+      }
+      res.json({ message: "Crisis management session deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting crisis management session:", error);
+      res.status(500).json({ error: "Failed to delete crisis management session" });
     }
   });
 

@@ -2,7 +2,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Brain, Heart, Smile, Activity, Zap, Timer, TrendingUp } from "lucide-react";
+import { Brain, Heart, Smile, Activity, Zap, Timer, TrendingUp, AlertTriangle, Wind } from "lucide-react";
 import NavHeader from "@/components/NavHeader";
 
 const MentalCheck = () => {
@@ -88,7 +88,7 @@ const MentalCheck = () => {
             <p className="text-gray-400">Elige la opción que mejor se adapte a tu tiempo disponible</p>
           </div>
           
-          <div className="grid gap-4 md:grid-cols-2 max-w-4xl mx-auto">
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 max-w-6xl mx-auto">
             {/* Check-in Rápido */}
             <Card 
               className="bg-gradient-to-br from-orange-50 to-yellow-50 hover:shadow-xl transition-all duration-300 cursor-pointer border-2 border-orange-200 hover:border-orange-300 transform hover:scale-105"
@@ -200,6 +200,70 @@ const MentalCheck = () => {
                 >
                   <Brain className="mr-2 h-4 w-4" />
                   Comenzar Evaluación Completa
+                </Button>
+              </CardContent>
+            </Card>
+
+            {/* Manejo de Crisis */}
+            <Card 
+              className="bg-gradient-to-br from-red-50 to-pink-50 hover:shadow-xl transition-all duration-300 cursor-pointer border-2 border-red-200 hover:border-red-300 transform hover:scale-105"
+              onClick={() => navigate('/manejo-crisis')}
+            >
+              <CardHeader className="pb-4">
+                <div className="flex items-center gap-4">
+                  <div className="p-4 rounded-xl bg-gradient-to-br from-red-500 to-pink-600 shadow-lg">
+                    <AlertTriangle className="h-8 w-8 text-white" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-[#1A1A1A] text-xl flex items-center gap-2">
+                      Manejo de Crisis
+                      <div className="bg-red-500 text-white text-xs px-2 py-1 rounded-full font-bold">
+                        🚨 SOS
+                      </div>
+                    </CardTitle>
+                    <div className="text-sm text-red-600 font-medium mt-1">Herramientas de emergencia</div>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <CardDescription className="text-[#575757] text-base leading-relaxed">
+                  Para momentos de alta ansiedad, pánico o estrés intenso. Técnicas de emergencia para recuperar el control.
+                </CardDescription>
+                
+                <div className="bg-red-100 border border-red-200 p-3 rounded-lg">
+                  <h4 className="font-semibold text-red-900 mb-2 text-sm flex items-center gap-1">
+                    <Wind className="h-4 w-4" />
+                    Técnicas incluidas:
+                  </h4>
+                  <div className="grid grid-cols-2 gap-2 text-xs text-red-800">
+                    <div className="flex items-center gap-1">
+                      <Wind className="h-3 w-3" />
+                      <span>Respiración 4-7-8</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Activity className="h-3 w-3" />
+                      <span>Técnica 5-4-3-2-1</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Brain className="h-3 w-3" />
+                      <span>Visualización</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Heart className="h-3 w-3" />
+                      <span>Movimiento Suave</span>
+                    </div>
+                  </div>
+                </div>
+                
+                <Button 
+                  className="w-full bg-gradient-to-r from-red-500 to-pink-600 hover:from-red-600 hover:to-pink-700 text-white font-semibold py-3 shadow-lg"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigate('/manejo-crisis');
+                  }}
+                >
+                  <AlertTriangle className="mr-2 h-4 w-4" />
+                  Iniciar Manejo de Crisis
                 </Button>
               </CardContent>
             </Card>

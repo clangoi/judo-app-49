@@ -327,6 +327,51 @@ export const quickCheckInEntries = pgTable("quick_checkin_entries", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// Crisis management sessions table - Manejo de crisis para momentos de alta ansiedad
+export const crisisManagementSessions = pgTable("crisis_management_sessions", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id").notNull().references(() => profiles.id, { onDelete: "cascade" }),
+  timestamp: timestamp("timestamp").defaultNow().notNull(),
+  
+  // Evaluación inicial de crisis
+  anxietyLevel: integer("anxiety_level").notNull(), // 1-10 scale
+  panicLevel: integer("panic_level").notNull(), // 1-10 scale  
+  stressIntensity: integer("stress_intensity").notNull(), // 1-10 scale
+  emotionalControl: integer("emotional_control").notNull(), // 1-10 scale
+  
+  // Técnicas utilizadas (array de técnicas seleccionadas)
+  techniquesUsed: text("techniques_used").array(), // breathing, grounding, etc.
+  
+  // Efectividad de las técnicas
+  breathingEffectiveness: integer("breathing_effectiveness"), // 1-5 if used
+  groundingEffectiveness: integer("grounding_effectiveness"), // 1-5 if used
+  visualizationEffectiveness: integer("visualization_effectiveness"), // 1-5 if used
+  movementEffectiveness: integer("movement_effectiveness"), // 1-5 if used
+  
+  // Contexto de la crisis
+  crisisTrigger: text("crisis_trigger"), // ¿Qué desencadenó la crisis?
+  location: text("location"), // ¿Dónde ocurrió?
+  duration: integer("duration"), // Duración en minutos
+  
+  // Evaluación post-crisis
+  postAnxietyLevel: integer("post_anxiety_level"), // 1-10 después de las técnicas
+  postPanicLevel: integer("post_panic_level"), // 1-10 después
+  postStressIntensity: integer("post_stress_intensity"), // 1-10 después
+  postEmotionalControl: integer("post_emotional_control"), // 1-10 después
+  
+  // Reflexiones
+  whatHelped: text("what_helped"), // ¿Qué fue lo que más ayudó?
+  whatDidntHelp: text("what_didnt_help"), // ¿Qué no funcionó?
+  lessonsLearned: text("lessons_learned"), // Aprendizajes para el futuro
+  notes: text("notes"), // Notas adicionales
+  
+  // Metadatos
+  timeOfDay: text("time_of_day").notNull(), // morning, afternoon, evening, night
+  dayOfWeek: text("day_of_week").notNull(),
+  
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 // Sistema de notificaciones
 export const notificationTypeEnum = pgEnum('notification_type', [
   'training_reminder', 
@@ -398,6 +443,7 @@ export const insertMentalWellnessEntrySchema = createInsertSchema(mentalWellness
 export const insertConcentrationEntrySchema = createInsertSchema(concentrationEntries);
 export const insertDeepAssessmentEntrySchema = createInsertSchema(deepAssessmentEntries);
 export const insertQuickCheckInEntrySchema = createInsertSchema(quickCheckInEntries);
+export const insertCrisisManagementSessionSchema = createInsertSchema(crisisManagementSessions);
 export const insertNotificationSchema = createInsertSchema(notifications);
 export const insertNotificationAlarmsSchema = createInsertSchema(notificationAlarms);
 export const insertNotificationSettingsSchema = createInsertSchema(notificationSettings);
@@ -439,6 +485,8 @@ export type DeepAssessmentEntry = typeof deepAssessmentEntries.$inferSelect;
 export type InsertDeepAssessmentEntry = z.infer<typeof insertDeepAssessmentEntrySchema>;
 export type QuickCheckInEntry = typeof quickCheckInEntries.$inferSelect;
 export type InsertQuickCheckInEntry = z.infer<typeof insertQuickCheckInEntrySchema>;
+export type CrisisManagementSession = typeof crisisManagementSessions.$inferSelect;
+export type InsertCrisisManagementSession = z.infer<typeof insertCrisisManagementSessionSchema>;
 export type Notification = typeof notifications.$inferSelect;
 export type InsertNotification = z.infer<typeof insertNotificationSchema>;
 export type NotificationAlarm = typeof notificationAlarms.$inferSelect;
