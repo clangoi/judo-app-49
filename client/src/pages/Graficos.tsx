@@ -5,8 +5,8 @@ import { api } from "@/lib/api";
 import { useAuth } from "@/hooks/useAuth";
 import NavHeader from "@/components/NavHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-import { Loader2, TrendingUp, Activity, Target, ChevronDown, ChevronUp } from "lucide-react";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, BarChart, Bar } from 'recharts';
+import { Loader2, TrendingUp, Activity, Target, ChevronDown, ChevronUp, Brain, Heart, Smile, BarChart3 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Button } from "@/components/ui/button";
@@ -20,8 +20,13 @@ const Graficos = () => {
     weight: false,
     activity: false,
     exercise: false,
-    nutrition: false
+    nutrition: false,
+    mentalTrends: false,
+    sportTrends: false
   });
+
+  // Estado para controlar qué sección está visible
+  const [activeSection, setActiveSection] = useState<'sport' | 'mental'>('sport');
 
   const toggleChart = (chartName: keyof typeof collapsedCharts) => {
     setCollapsedCharts(prev => ({
@@ -86,6 +91,36 @@ const Graficos = () => {
     enabled: !!user && !!selectedExercise,
   });
 
+  // Query para datos de estado de ánimo
+  const { data: moodData = [], isLoading: isLoadingMood } = useQuery<any[]>({
+    queryKey: ['/api/mood-entries'],
+    enabled: !!user,
+  });
+
+  // Query para datos de estrés
+  const { data: stressData = [], isLoading: isLoadingStress } = useQuery<any[]>({
+    queryKey: ['/api/stress-entries'],
+    enabled: !!user,
+  });
+
+  // Query para datos de concentración
+  const { data: concentrationData = [], isLoading: isLoadingConcentration } = useQuery<any[]>({
+    queryKey: ['/api/concentration-entries'],
+    enabled: !!user,
+  });
+
+  // Query para datos de bienestar mental
+  const { data: mentalWellnessData = [], isLoading: isLoadingMentalWellness } = useQuery<any[]>({
+    queryKey: ['/api/mental-wellness-entries'],
+    enabled: !!user,
+  });
+
+  // Query para evaluaciones profundas
+  const { data: deepAssessmentData = [], isLoading: isLoadingDeepAssessment } = useQuery<any[]>({
+    queryKey: ['/api/deep-assessment-entries'],
+    enabled: !!user,
+  });
+
   // Establecer ejercicio por defecto (el primero alfabéticamente)
   React.useEffect(() => {
     if (exercisesList.length > 0 && !selectedExercise) {
@@ -93,16 +128,57 @@ const Graficos = () => {
     }
   }, [exercisesList, selectedExercise]);
 
-  const isLoading = isLoadingWeight || isLoadingNutrition || isLoadingProgress || isLoadingExercises;
+  const isLoading = isLoadingWeight || isLoadingNutrition || isLoadingProgress || isLoadingExercises || isLoadingMood || isLoadingStress || isLoadingConcentration || isLoadingMentalWellness || isLoadingDeepAssessment;
 
   // Training frequency chart removed as requested
 
-  // Datos para el gráfico de distribución de actividades
+  // Datos para el gráfico de distribución de actividades deportivas
   const activityDistribution = [
     { name: 'Preparación Física', value: Number(progressSummary.physicalTraining) || 0, color: '#8884d8' },
     { name: 'Deportivo', value: Number(progressSummary.deportivoTraining) || 0, color: '#C5A46C' },
     { name: 'Técnicas', value: Number(progressSummary.techniques) || 0, color: '#82ca9d' },
     { name: 'Táctica', value: Number(progressSummary.tacticalNotes) || 0, color: '#ffc658' }
+  ].filter(item => item.value > 0);
+
+  // Procesar datos mentales para gráficos
+  const mentalTrendsData = React.useMemo(() => {
+    if (!deepAssessmentData.length) return [];
+    
+    return (deepAssessmentData as any[]).slice(-30).map((entry: any) => ({
+      date: entry.date,
+      'Estado de Ánimo': entry.moodLevel,
+      'Estrés': 6 - entry.stressLevel, // Invertir escala para que más alto sea mejor
+      'Concentración': entry.focusLevel,
+      'Bienestar': entry.overallWellness
+    }));
+  }, [deepAssessmentData]);
+
+  // Resumen mental para estadísticas
+  const mentalSummary = React.useMemo(() => {
+    if (!deepAssessmentData.length) return {
+      avgMood: 0,
+      avgStress: 0,
+      avgFocus: 0,
+      avgWellness: 0,
+      totalEvaluations: 0
+    };
+
+    const recent = (deepAssessmentData as any[]).slice(-30);
+    return {
+      avgMood: (recent.reduce((sum: number, entry: any) => sum + entry.moodLevel, 0) / recent.length).toFixed(1),
+      avgStress: (recent.reduce((sum: number, entry: any) => sum + entry.stressLevel, 0) / recent.length).toFixed(1),
+      avgFocus: (recent.reduce((sum: number, entry: any) => sum + entry.focusLevel, 0) / recent.length).toFixed(1),
+      avgWellness: (recent.reduce((sum: number, entry: any) => sum + entry.overallWellness, 0) / recent.length).toFixed(1),
+      totalEvaluations: (deepAssessmentData as any[]).length
+    };
+  }, [deepAssessmentData]);
+
+  // Datos para distribución de bienestar mental
+  const mentalDistribution = [
+    { name: 'Excelente (9-10)', value: (deepAssessmentData as any[]).filter((entry: any) => entry.overallWellness >= 9).length, color: '#22c55e' },
+    { name: 'Bueno (7-8)', value: (deepAssessmentData as any[]).filter((entry: any) => entry.overallWellness >= 7 && entry.overallWellness < 9).length, color: '#84cc16' },
+    { name: 'Regular (5-6)', value: (deepAssessmentData as any[]).filter((entry: any) => entry.overallWellness >= 5 && entry.overallWellness < 7).length, color: '#eab308' },
+    { name: 'Bajo (1-4)', value: (deepAssessmentData as any[]).filter((entry: any) => entry.overallWellness < 5).length, color: '#ef4444' }
   ].filter(item => item.value > 0);
 
   console.log('Progress Summary:', progressSummary);
@@ -124,56 +200,250 @@ const Graficos = () => {
       />
       
       <div className="max-w-6xl mx-auto p-4 space-y-6">
-        {/* Estadísticas generales */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-          <Card className="bg-white border-[#C5A46C]">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-[#575757]">Preparación Física</p>
-                  <p className="text-2xl font-bold text-[#1A1A1A]">{progressSummary.physicalTraining || 0}</p>
-                </div>
-                <Activity className="h-8 w-8 text-[#C5A46C]" />
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card className="bg-white border-[#C5A46C]">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-[#575757]">Entrenamientos Deportivo</p>
-                  <p className="text-2xl font-bold text-[#1A1A1A]">{progressSummary.deportivoTraining || 0}</p>
-                </div>
-                <Target className="h-8 w-8 text-[#C5A46C]" />
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card className="bg-white border-[#C5A46C]">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-[#575757]">Técnicas</p>
-                  <p className="text-2xl font-bold text-[#1A1A1A]">{progressSummary.techniques || 0}</p>
-                </div>
-                <TrendingUp className="h-8 w-8 text-[#C5A46C]" />
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card className="bg-white border-[#C5A46C]">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-[#575757]">Notas Tácticas</p>
-                  <p className="text-2xl font-bold text-[#1A1A1A]">{progressSummary.tacticalNotes || 0}</p>
-                </div>
-                <Target className="h-8 w-8 text-[#C5A46C]" />
-              </div>
-            </CardContent>
-          </Card>
+        {/* Selector de Sección */}
+        <div className="flex justify-center mb-6">
+          <div className="bg-white p-1 rounded-lg border border-[#C5A46C] shadow-sm">
+            <div className="flex">
+              <button
+                onClick={() => setActiveSection('sport')}
+                className={`px-6 py-3 rounded-md font-medium transition-all duration-200 flex items-center gap-2 ${
+                  activeSection === 'sport'
+                    ? 'bg-[#C5A46C] text-white shadow-md'
+                    : 'text-[#1A1A1A] hover:bg-gray-50'
+                }`}
+              >
+                <Target className="h-4 w-4" />
+                Análisis Deportivo
+              </button>
+              <button
+                onClick={() => setActiveSection('mental')}
+                className={`px-6 py-3 rounded-md font-medium transition-all duration-200 flex items-center gap-2 ${
+                  activeSection === 'mental'
+                    ? 'bg-[#C5A46C] text-white shadow-md'
+                    : 'text-[#1A1A1A] hover:bg-gray-50'
+                }`}
+              >
+                <Brain className="h-4 w-4" />
+                Análisis Mental
+              </button>
+            </div>
+          </div>
         </div>
+
+        {/* Sección Deportiva */}
+        {activeSection === 'sport' && (
+          <>
+            {/* Estadísticas Deportivas */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+              <Card className="bg-white border-[#C5A46C]">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-[#575757]">Preparación Física</p>
+                      <p className="text-2xl font-bold text-[#1A1A1A]">{progressSummary.physicalTraining || 0}</p>
+                    </div>
+                    <Activity className="h-8 w-8 text-[#C5A46C]" />
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <Card className="bg-white border-[#C5A46C]">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-[#575757]">Entrenamientos Deportivo</p>
+                      <p className="text-2xl font-bold text-[#1A1A1A]">{progressSummary.deportivoTraining || 0}</p>
+                    </div>
+                    <Target className="h-8 w-8 text-[#C5A46C]" />
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <Card className="bg-white border-[#C5A46C]">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-[#575757]">Técnicas</p>
+                      <p className="text-2xl font-bold text-[#1A1A1A]">{progressSummary.techniques || 0}</p>
+                    </div>
+                    <TrendingUp className="h-8 w-8 text-[#C5A46C]" />
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <Card className="bg-white border-[#C5A46C]">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-[#575757]">Notas Tácticas</p>
+                      <p className="text-2xl font-bold text-[#1A1A1A]">{progressSummary.tacticalNotes || 0}</p>
+                    </div>
+                    <Target className="h-8 w-8 text-[#C5A46C]" />
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </>
+        )}
+
+        {/* Sección Mental */}
+        {activeSection === 'mental' && (
+          <>
+            {/* Estadísticas Mentales */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+              <Card className="bg-white border-[#C5A46C]">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-[#575757]">Estado de Ánimo Prom.</p>
+                      <p className="text-2xl font-bold text-[#1A1A1A]">{mentalSummary.avgMood}/5</p>
+                    </div>
+                    <Smile className="h-8 w-8 text-blue-500" />
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <Card className="bg-white border-[#C5A46C]">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-[#575757]">Concentración Prom.</p>
+                      <p className="text-2xl font-bold text-[#1A1A1A]">{mentalSummary.avgFocus}/10</p>
+                    </div>
+                    <Brain className="h-8 w-8 text-purple-500" />
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <Card className="bg-white border-[#C5A46C]">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-[#575757]">Bienestar Prom.</p>
+                      <p className="text-2xl font-bold text-[#1A1A1A]">{mentalSummary.avgWellness}/10</p>
+                    </div>
+                    <Heart className="h-8 w-8 text-pink-500" />
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <Card className="bg-white border-[#C5A46C]">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-[#575757]">Total Evaluaciones</p>
+                      <p className="text-2xl font-bold text-[#1A1A1A]">{mentalSummary.totalEvaluations}</p>
+                    </div>
+                    <BarChart3 className="h-8 w-8 text-green-500" />
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Gráfico de Tendencias Mentales */}
+            <Collapsible open={!collapsedCharts.mentalTrends} onOpenChange={() => toggleChart('mentalTrends')}>
+              <Card className="bg-white border-[#C5A46C]">
+                <CardHeader>
+                  <CollapsibleTrigger asChild>
+                    <Button variant="ghost" className="w-full p-0 h-auto justify-between hover:bg-transparent">
+                      <CardTitle className="text-[#1A1A1A] flex items-center">
+                        <Brain className="mr-2 h-5 w-5 text-[#C5A46C]" />
+                        Tendencias de Bienestar Mental (Últimos 30 días)
+                      </CardTitle>
+                      {collapsedCharts.mentalTrends ? 
+                        <ChevronDown className="h-4 w-4 text-[#C5A46C]" /> : 
+                        <ChevronUp className="h-4 w-4 text-[#C5A46C]" />
+                      }
+                    </Button>
+                  </CollapsibleTrigger>
+                </CardHeader>
+                <CollapsibleContent>
+                  <CardContent>
+                    {mentalTrendsData.length > 0 ? (
+                      <ResponsiveContainer width="100%" height={400}>
+                        <LineChart data={mentalTrendsData}>
+                          <CartesianGrid strokeDasharray="3 3" />
+                          <XAxis dataKey="date" />
+                          <YAxis domain={[1, 10]} />
+                          <Tooltip />
+                          <Legend />
+                          <Line 
+                            type="monotone" 
+                            dataKey="Estado de Ánimo" 
+                            stroke="#3b82f6" 
+                            strokeWidth={2}
+                            dot={{ r: 4 }}
+                          />
+                          <Line 
+                            type="monotone" 
+                            dataKey="Estrés" 
+                            stroke="#f97316" 
+                            strokeWidth={2}
+                            dot={{ r: 4 }}
+                          />
+                          <Line 
+                            type="monotone" 
+                            dataKey="Concentración" 
+                            stroke="#8b5cf6" 
+                            strokeWidth={2}
+                            dot={{ r: 4 }}
+                          />
+                          <Line 
+                            type="monotone" 
+                            dataKey="Bienestar" 
+                            stroke="#ec4899" 
+                            strokeWidth={2}
+                            dot={{ r: 4 }}
+                          />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    ) : (
+                      <div className="text-center py-8 text-[#575757]">
+                        No hay datos de evaluaciones mentales suficientes para mostrar tendencias
+                      </div>
+                    )}
+                  </CardContent>
+                </CollapsibleContent>
+              </Card>
+            </Collapsible>
+
+            {/* Distribución de Bienestar Mental */}
+            {mentalDistribution.length > 0 && (
+              <Card className="bg-white border-[#C5A46C]">
+                <CardHeader>
+                  <CardTitle className="text-[#1A1A1A] flex items-center">
+                    <Heart className="mr-2 h-5 w-5 text-[#C5A46C]" />
+                    Distribución de Niveles de Bienestar
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <PieChart>
+                      <Pie
+                        data={mentalDistribution}
+                        cx="50%"
+                        cy="50%"
+                        outerRadius={80}
+                        fill="#8884d8"
+                        dataKey="value"
+                        label={({ name, value }) => `${name}: ${value}`}
+                      >
+                        {mentalDistribution.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                      </Pie>
+                      <Tooltip />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </CardContent>
+              </Card>
+            )}
+          </>
+        )}
+
+        {/* Los gráficos deportivos existentes solo se muestran en la sección deportiva */}
+        {activeSection === 'sport' && (
+          <>
 
         {/* Gráfico de Peso */}
         <Collapsible open={!collapsedCharts.weight} onOpenChange={() => toggleChart('weight')}>
@@ -386,6 +656,8 @@ const Graficos = () => {
             </CollapsibleContent>
           </Card>
         </Collapsible>
+          </>
+        )}
       </div>
     </div>
   );
