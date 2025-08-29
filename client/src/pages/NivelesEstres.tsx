@@ -222,7 +222,7 @@ const NivelesEstres = () => {
     <div className="min-h-screen bg-[#1A1A1A]">
       <NavHeader 
         title="Niveles de Estrés"
-        subtitle="Monitorea y gestiona tu estrés diario"
+        subtitle="¿Qué te estresa y cómo lo manejas? Identifica desencadenantes y mejora tus estrategias de afrontamiento"
       />
 
       <div className="max-w-6xl mx-auto p-4">

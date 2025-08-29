@@ -184,7 +184,7 @@ const EstadoAnimo = () => {
     <div className="min-h-screen bg-[#1A1A1A]">
       <NavHeader 
         title="Estado de Ánimo"
-        subtitle="Registra y monitorea tu bienestar emocional diario"
+        subtitle="¿Cómo te sientes hoy? Evalúa tu bienestar emocional general: ánimo, energía, sueño y motivación"
       />
 
       <div className="max-w-6xl mx-auto p-4">

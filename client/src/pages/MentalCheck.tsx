@@ -12,14 +12,14 @@ const MentalCheck = () => {
   const mentalHealthItems = [
     {
       title: "Estado de Ánimo",
-      description: "Registra y monitorea tu estado emocional diario",
+      description: "Evalúa tu bienestar emocional general del día: ánimo, energía, sueño y motivación",
       icon: Smile,
       action: "Evaluar Ahora",
       path: "/estado-animo"
     },
     {
       title: "Niveles de Estrés",
-      description: "Mide y controla tus niveles de estrés",
+      description: "Identifica qué te estresa y registra estrategias para manejarlo efectivamente",
       icon: Activity,
       action: "Medir Estrés",
       path: "/niveles-estres"
@@ -50,9 +50,34 @@ const MentalCheck = () => {
           <h2 className="text-xl font-semibold text-white mb-2">
             Bienvenido a tu evaluación mental
           </h2>
-          <p className="text-gray-400">
+          <p className="text-gray-400 mb-4">
             Tu salud mental es tan importante como tu entrenamiento físico. Utiliza estas herramientas para monitorear y mejorar tu bienestar psicológico.
           </p>
+          
+          {/* Explanation cards */}
+          <div className="grid gap-3 md:grid-cols-2 mb-4">
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+              <div className="flex items-center gap-2 mb-1">
+                <Smile className="h-4 w-4 text-blue-600" />
+                <h3 className="text-sm font-medium text-blue-900">Estado de Ánimo</h3>
+              </div>
+              <p className="text-xs text-blue-700">
+                <strong>¿Cómo me siento en general hoy?</strong><br/>
+                Evalúa tu bienestar emocional completo del día
+              </p>
+            </div>
+            
+            <div className="bg-orange-50 border border-orange-200 rounded-lg p-3">
+              <div className="flex items-center gap-2 mb-1">
+                <Activity className="h-4 w-4 text-orange-600" />
+                <h3 className="text-sm font-medium text-orange-900">Niveles de Estrés</h3>
+              </div>
+              <p className="text-xs text-orange-700">
+                <strong>¿Qué me estresa y cómo lo manejo?</strong><br/>
+                Identifica causas del estrés y mejora tus estrategias
+              </p>
+            </div>
+          </div>
         </div>
 
         <div className="grid gap-6 md:grid-cols-2">
