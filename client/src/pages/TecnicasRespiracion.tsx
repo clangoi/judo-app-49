@@ -186,12 +186,18 @@ const BreathingExercise: React.FC<BreathingExerciseProps> = ({ technique, onComp
                 
                 {/* Punto guía que se mueve por el perímetro */}
                 <div 
-                  className={`absolute w-4 h-4 bg-green-600 rounded-full shadow-lg transition-all duration-1000 ease-linear ${
-                    phase === 'inhale' ? 'bottom-0 left-4 transform translate-y-1/2' :
-                    phase === 'hold' ? 'top-4 right-0 transform translate-x-1/2' :
-                    phase === 'exhale' ? 'top-0 right-4 transform -translate-y-1/2' :
-                    'bottom-4 left-0 transform -translate-x-1/2'
-                  }`}
+                  className="absolute w-4 h-4 bg-green-600 rounded-full shadow-lg z-10"
+                  style={{
+                    left: phase === 'inhale' ? '0px' :      // Esquina inferior izquierda → superior izquierda
+                          phase === 'hold' ? '176px' :      // Superior izquierda → superior derecha  
+                          phase === 'exhale' ? '176px' :    // Superior derecha → inferior derecha
+                          '0px',                             // Inferior derecha → inferior izquierda (pausa)
+                    top: phase === 'inhale' ? '0px' :       // Se mueve hacia arriba (inhalar)
+                         phase === 'hold' ? '0px' :         // Se mantiene arriba (mantener)
+                         phase === 'exhale' ? '176px' :     // Se mueve hacia abajo (exhalar)
+                         '176px',                            // Se mantiene abajo (pausa)
+                    transition: `all ${count}s ease-linear`
+                  }}
                 >
                   {/* Pulso del punto */}
                   <div className="absolute inset-0 bg-green-600 rounded-full animate-ping opacity-75"></div>
