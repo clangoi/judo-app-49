@@ -11,7 +11,7 @@ import {
   insertJudoTrainingSessionSchema, insertSportsTrainingSessionSchema, insertExerciseSchema, insertExerciseRecordSchema, 
   insertWeightEntrySchema, insertNutritionEntrySchema, insertTechniqueSchema, 
   insertTacticalNoteSchema, insertRandoriSessionSchema, insertAchievementBadgeSchema, 
-  insertUserAchievementSchema, insertMoodEntrySchema, stressEntries, insertStressEntrySchema, mentalWellnessEntries, insertMentalWellnessEntrySchema, concentrationEntries, insertConcentrationEntrySchema
+  insertUserAchievementSchema, insertMoodEntrySchema, stressEntries, insertStressEntrySchema, mentalWellnessEntries, insertMentalWellnessEntrySchema, concentrationEntries, insertConcentrationEntrySchema, deepAssessmentEntries, insertDeepAssessmentEntrySchema
 } from "@shared/schema";
 import { eq, and, desc, sql, isNull, gte, lte } from "drizzle-orm";
 
@@ -1043,6 +1043,83 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error deleting concentration entry:", error);
       res.status(500).json({ error: "Failed to delete concentration entry" });
+    }
+  });
+
+  // Deep assessment entries routes
+  app.get("/api/deep-assessment-entries", async (req, res) => {
+    try {
+      const userId = getUserId(req);
+      if (!userId) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+      
+      const result = await db.select()
+        .from(deepAssessmentEntries)
+        .where(eq(deepAssessmentEntries.userId, userId))
+        .orderBy(desc(deepAssessmentEntries.date));
+      
+      res.json(result);
+    } catch (error) {
+      console.error("Error fetching deep assessment entries:", error);
+      res.status(500).json({ error: "Failed to fetch deep assessment entries" });
+    }
+  });
+
+  app.post("/api/deep-assessment-entries", async (req, res) => {
+    try {
+      const userId = getUserId(req);
+      if (!userId) return res.status(401).json({ error: "Unauthorized" });
+      
+      const validated = insertDeepAssessmentEntrySchema.parse({ ...req.body, userId });
+      const result = await db.insert(deepAssessmentEntries).values(validated).returning();
+      res.json(result[0]);
+    } catch (error) {
+      console.error("Error creating deep assessment entry:", error);
+      res.status(400).json({ error: "Invalid deep assessment entry data" });
+    }
+  });
+
+  app.get("/api/deep-assessment-entries/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const result = await db.select().from(deepAssessmentEntries).where(eq(deepAssessmentEntries.id, id)).limit(1);
+      if (result.length === 0) {
+        return res.status(404).json({ error: "Deep assessment entry not found" });
+      }
+      res.json(result[0]);
+    } catch (error) {
+      console.error("Error fetching deep assessment entry:", error);
+      res.status(500).json({ error: "Failed to fetch deep assessment entry" });
+    }
+  });
+
+  app.patch("/api/deep-assessment-entries/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const validated = insertDeepAssessmentEntrySchema.partial().parse(req.body);
+      const result = await db.update(deepAssessmentEntries).set(validated).where(eq(deepAssessmentEntries.id, id)).returning();
+      if (result.length === 0) {
+        return res.status(404).json({ error: "Deep assessment entry not found" });
+      }
+      res.json(result[0]);
+    } catch (error) {
+      console.error("Error updating deep assessment entry:", error);
+      res.status(400).json({ error: "Failed to update deep assessment entry" });
+    }
+  });
+
+  app.delete("/api/deep-assessment-entries/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const result = await db.delete(deepAssessmentEntries).where(eq(deepAssessmentEntries.id, id)).returning();
+      if (result.length === 0) {
+        return res.status(404).json({ error: "Deep assessment entry not found" });
+      }
+      res.json({ message: "Deep assessment entry deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting deep assessment entry:", error);
+      res.status(500).json({ error: "Failed to delete deep assessment entry" });
     }
   });
 

@@ -9,36 +9,13 @@ const MentalCheck = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  const mentalHealthItems = [
-    {
-      title: "Estado de Ánimo",
-      description: "Evalúa tu bienestar emocional general del día: ánimo, energía, sueño y motivación",
-      icon: Smile,
-      action: "Evaluar Ahora",
-      path: "/estado-animo"
-    },
-    {
-      title: "Niveles de Estrés",
-      description: "Identifica qué te estresa y registra estrategias para manejarlo efectivamente",
-      icon: Activity,
-      action: "Medir Estrés",
-      path: "/niveles-estres"
-    },
-    {
-      title: "Evaluación del Día",
-      description: "Evalúa tu bienestar psicológico integral: autoestima, propósito, conexión social",
-      icon: Heart,
-      action: "Evaluar Día",
-      path: "/bienestar-mental"
-    },
-    {
-      title: "Concentración",
-      description: "Evalúa tu capacidad de concentración y enfoque",
-      icon: Brain,
-      action: "Test de Enfoque",
-      path: "/concentracion"
-    }
-  ];
+  const mentalHealthItem = {
+    title: "Evaluación Profunda",
+    description: "Evaluación integral que combina estado de ánimo, niveles de estrés, concentración y bienestar mental en una sola herramienta completa",
+    icon: Brain,
+    action: "Comenzar Evaluación",
+    path: "/evaluacion-profunda"
+  };
 
   return (
     <div className="min-h-screen bg-[#1A1A1A]">
@@ -104,40 +81,60 @@ const MentalCheck = () => {
           </div>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-2">
-          {mentalHealthItems.map((item, index) => {
-            const IconComponent = item.icon;
-            return (
-              <Card key={index} className="bg-white hover:shadow-lg transition-shadow cursor-pointer border-[#C5A46C]">
-                <CardHeader className="pb-3">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-lg bg-[#283750]">
-                      <IconComponent className="h-6 w-6 text-white" />
-                    </div>
-                    <CardTitle className="text-[#1A1A1A]">{item.title}</CardTitle>
+        <div className="max-w-2xl mx-auto">
+          <Card 
+            className="bg-white hover:shadow-lg transition-all duration-300 cursor-pointer border-[#C5A46C]"
+            onClick={() => navigate(mentalHealthItem.path)}
+          >
+            <CardHeader className="pb-4">
+              <div className="flex items-center gap-4">
+                <div className="p-4 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600">
+                  <Brain className="h-10 w-10 text-white" />
+                </div>
+                <div>
+                  <CardTitle className="text-[#1A1A1A] text-2xl">{mentalHealthItem.title}</CardTitle>
+                  <div className="text-sm text-gray-500 mt-1">Herramienta completa de evaluación mental</div>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <CardDescription className="text-[#575757] text-base leading-relaxed">
+                {mentalHealthItem.description}
+              </CardDescription>
+              
+              <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg">
+                <h4 className="font-semibold text-blue-900 mb-3">¿Qué incluye esta evaluación?</h4>
+                <div className="grid grid-cols-2 gap-3 text-sm text-blue-800">
+                  <div className="flex items-center gap-2">
+                    <Smile className="h-4 w-4" />
+                    <span>Estado de Ánimo</span>
                   </div>
-                </CardHeader>
-                <CardContent>
-                  <CardDescription className="text-[#575757] mb-4">
-                    {item.description}
-                  </CardDescription>
-                  <Button 
-                    onClick={() => {
-                      if (item.path) {
-                        navigate(item.path);
-                      } else {
-                        // Por ahora solo mostramos un mensaje, se puede implementar funcionalidad específica después
-                        alert(`Funcionalidad de ${item.title} próximamente disponible`);
-                      }
-                    }}
-                    className="w-full bg-[#C5A46C] hover:bg-[#A08B5A] text-white"
-                  >
-                    {item.action}
-                  </Button>
-                </CardContent>
-              </Card>
-            );
-          })}
+                  <div className="flex items-center gap-2">
+                    <Activity className="h-4 w-4" />
+                    <span>Niveles de Estrés</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Brain className="h-4 w-4" />
+                    <span>Concentración</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Heart className="h-4 w-4" />
+                    <span>Bienestar Mental</span>
+                  </div>
+                </div>
+              </div>
+              
+              <Button 
+                className="w-full bg-[#C5A46C] hover:bg-[#A08B5A] text-white text-lg py-6"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  navigate(mentalHealthItem.path);
+                }}
+              >
+                {mentalHealthItem.action}
+              </Button>
+            </CardContent>
+          </Card>
         </div>
 
         <div className="mt-8">

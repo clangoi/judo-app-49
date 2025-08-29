@@ -256,6 +256,54 @@ export const concentrationEntries = pgTable("concentration_entries", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+// Deep assessment entries table - Evaluación profunda integrada
+export const deepAssessmentEntries = pgTable("deep_assessment_entries", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id").notNull().references(() => profiles.id, { onDelete: "cascade" }),
+  date: date("date").notNull(),
+  
+  // Estado de ánimo
+  moodLevel: integer("mood_level").notNull(), // 1-5 scale
+  energyLevel: integer("energy_level").notNull(), // 1-5 scale
+  sleepQuality: integer("sleep_quality").notNull(), // 1-5 scale
+  motivation: integer("motivation").notNull(), // 1-5 scale
+  moodFactors: text("mood_factors").array(), // Factores que afectaron el estado de ánimo
+  
+  // Niveles de estrés
+  stressLevel: integer("stress_level").notNull(), // 1-5 scale
+  stressType: text("stress_type"), // físico, mental, emocional
+  stressTriggers: text("stress_triggers").array(), // Desencadenantes del estrés
+  copingStrategies: text("coping_strategies").array(), // Estrategias de afrontamiento
+  copingEffectiveness: integer("coping_effectiveness"), // 1-5 qué tan efectivas fueron
+  
+  // Concentración
+  focusLevel: integer("focus_level").notNull(), // 1-10 scale
+  attentionSpan: integer("attention_span").notNull(), // 1-10 scale
+  mentalClarity: integer("mental_clarity").notNull(), // 1-10 scale
+  distractionLevel: integer("distraction_level").notNull(), // 1-10 scale
+  concentrationTechniques: text("concentration_techniques").array(),
+  distractionSources: text("distraction_sources").array(),
+  taskCompleted: integer("task_completed"), // 1-10
+  
+  // Evaluación del día (bienestar mental)
+  overallWellness: integer("overall_wellness").notNull(), // 1-10 scale
+  lifeSatisfaction: integer("life_satisfaction").notNull(), // 1-10 scale
+  selfEsteem: integer("self_esteem").notNull(), // 1-10 scale
+  socialConnection: integer("social_connection").notNull(), // 1-10 scale
+  purposeMeaning: integer("purpose_meaning").notNull(), // 1-10 scale
+  emotionalRegulation: integer("emotional_regulation").notNull(), // 1-10 scale
+  anxietyLevel: integer("anxiety_level").notNull(), // 1-10 scale
+  
+  // Reflexiones integradas
+  positiveThoughts: text("positive_thoughts").array(),
+  challengesOvercome: text("challenges_overcome").array(), 
+  gratitudeItems: text("gratitude_items").array(),
+  notes: text("notes"), // Reflexiones generales del día
+  
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 // Sistema de notificaciones
 export const notificationTypeEnum = pgEnum('notification_type', [
   'training_reminder', 
@@ -325,6 +373,7 @@ export const insertMoodEntrySchema = createInsertSchema(moodEntries);
 export const insertStressEntrySchema = createInsertSchema(stressEntries);
 export const insertMentalWellnessEntrySchema = createInsertSchema(mentalWellnessEntries);
 export const insertConcentrationEntrySchema = createInsertSchema(concentrationEntries);
+export const insertDeepAssessmentEntrySchema = createInsertSchema(deepAssessmentEntries);
 export const insertNotificationSchema = createInsertSchema(notifications);
 export const insertNotificationAlarmsSchema = createInsertSchema(notificationAlarms);
 export const insertNotificationSettingsSchema = createInsertSchema(notificationSettings);
@@ -362,6 +411,8 @@ export type MentalWellnessEntry = typeof mentalWellnessEntries.$inferSelect;
 export type InsertMentalWellnessEntry = z.infer<typeof insertMentalWellnessEntrySchema>;
 export type ConcentrationEntry = typeof concentrationEntries.$inferSelect;
 export type InsertConcentrationEntry = z.infer<typeof insertConcentrationEntrySchema>;
+export type DeepAssessmentEntry = typeof deepAssessmentEntries.$inferSelect;
+export type InsertDeepAssessmentEntry = z.infer<typeof insertDeepAssessmentEntrySchema>;
 export type Notification = typeof notifications.$inferSelect;
 export type InsertNotification = z.infer<typeof insertNotificationSchema>;
 export type NotificationAlarm = typeof notificationAlarms.$inferSelect;
