@@ -1,5 +1,5 @@
 import { useAuth } from "@/hooks/useAuth";
-import { useNavigate } from "wouter";
+import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Brain, Heart, Smile, Activity, Zap, Timer, TrendingUp } from "lucide-react";
@@ -7,7 +7,7 @@ import NavHeader from "@/components/NavHeader";
 
 const MentalCheck = () => {
   const { user } = useAuth();
-  const navigate = useNavigate();
+  const [location, setLocation] = useLocation();
 
   const mentalHealthItem = {
     title: "Evaluación Profunda",
@@ -92,7 +92,7 @@ const MentalCheck = () => {
             {/* Check-in Rápido */}
             <Card 
               className="bg-gradient-to-br from-orange-50 to-yellow-50 hover:shadow-xl transition-all duration-300 cursor-pointer border-2 border-orange-200 hover:border-orange-300 transform hover:scale-105"
-              onClick={() => navigate('/checkin-rapido')}
+              onClick={() => setLocation('/checkin-rapido')}
             >
               <CardHeader className="pb-4">
                 <div className="flex items-center gap-4">
@@ -131,7 +131,7 @@ const MentalCheck = () => {
                   className="w-full bg-gradient-to-r from-orange-400 to-yellow-500 hover:from-orange-500 hover:to-yellow-600 text-white font-semibold py-3 shadow-lg"
                   onClick={(e) => {
                     e.stopPropagation();
-                    navigate('/checkin-rapido');
+                    setLocation('/checkin-rapido');
                   }}
                 >
                   <Zap className="mr-2 h-4 w-4" />
@@ -143,7 +143,7 @@ const MentalCheck = () => {
             {/* Evaluación Profunda */}
             <Card 
               className="bg-gradient-to-br from-blue-50 to-purple-50 hover:shadow-xl transition-all duration-300 cursor-pointer border-2 border-blue-200 hover:border-blue-300 transform hover:scale-105"
-              onClick={() => navigate(mentalHealthItem.path)}
+              onClick={() => setLocation(mentalHealthItem.path)}
             >
               <CardHeader className="pb-4">
                 <div className="flex items-center gap-4">
@@ -195,7 +195,7 @@ const MentalCheck = () => {
                   className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-semibold py-3 shadow-lg"
                   onClick={(e) => {
                     e.stopPropagation();
-                    navigate(mentalHealthItem.path);
+                    setLocation(mentalHealthItem.path);
                   }}
                 >
                   <Brain className="mr-2 h-4 w-4" />
@@ -209,7 +209,7 @@ const MentalCheck = () => {
         <div className="max-w-2xl mx-auto hidden">
           <Card 
             className="bg-white hover:shadow-lg transition-all duration-300 cursor-pointer border-[#C5A46C]"
-            onClick={() => navigate(mentalHealthItem.path)}
+            onClick={() => setLocation(mentalHealthItem.path)}
           >
             <CardHeader className="pb-4">
               <div className="flex items-center gap-4">
@@ -253,7 +253,7 @@ const MentalCheck = () => {
                 className="w-full bg-[#C5A46C] hover:bg-[#A08B5A] text-white text-lg py-6"
                 onClick={(e) => {
                   e.stopPropagation();
-                  navigate(mentalHealthItem.path);
+                  setLocation(mentalHealthItem.path);
                 }}
               >
                 {mentalHealthItem.action}

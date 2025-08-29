@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useNavigate } from "wouter";
+import { useLocation } from "wouter";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -57,7 +57,7 @@ const EmojiRating: React.FC<EmojiRatingProps> = ({
 );
 
 export default function CheckinRapido() {
-  const navigate = useNavigate();
+  const [location, setLocation] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -65,7 +65,7 @@ export default function CheckinRapido() {
   const [energyLevel, setEnergyLevel] = useState<number>(3);
   const [stressLevel, setStressLevel] = useState<number>(3);
   const [currentActivity, setCurrentActivity] = useState<string>('');
-  const [location, setLocation] = useState<string>('');
+  const [userLocation, setUserLocation] = useState<string>('');
   const [quickNote, setQuickNote] = useState<string>('');
   const [startTime] = useState<number>(Date.now());
 
@@ -96,7 +96,7 @@ export default function CheckinRapido() {
         duration: 3000,
       });
       
-      navigate('/mentalcheck');
+      setLocation('/mentalcheck');
     },
     onError: () => {
       toast({
@@ -115,7 +115,7 @@ export default function CheckinRapido() {
       energyLevel,
       stressLevel,
       currentActivity: currentActivity.trim() || null,
-      location: location.trim() || null,
+      location: userLocation.trim() || null,
       quickNote: quickNote.trim() || null
     };
     
@@ -143,7 +143,7 @@ export default function CheckinRapido() {
         <div className="flex items-center justify-between mb-6">
           <Button
             variant="ghost"
-            onClick={() => navigate('/mentalcheck')}
+            onClick={() => setLocation('/mentalcheck')}
             className="flex items-center text-[#C5A46C] hover:text-[#A08751]"
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
@@ -243,8 +243,8 @@ export default function CheckinRapido() {
                   </Label>
                   <Input
                     id="location"
-                    value={location}
-                    onChange={(e) => setLocation(e.target.value)}
+                    value={userLocation}
+                    onChange={(e) => setUserLocation(e.target.value)}
                     placeholder="ej: casa, gimnasio, oficina"
                     className="mt-1 bg-white border-[#C5A46C]/20"
                   />
