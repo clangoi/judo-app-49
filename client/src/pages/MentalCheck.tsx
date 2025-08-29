@@ -21,7 +21,8 @@ const MentalCheck = () => {
       title: "Niveles de Estrés",
       description: "Mide y controla tus niveles de estrés",
       icon: Activity,
-      action: "Medir Estrés"
+      action: "Medir Estrés",
+      path: "/niveles-estres"
     },
     {
       title: "Bienestar Mental",

@@ -11,7 +11,7 @@ import {
   insertJudoTrainingSessionSchema, insertSportsTrainingSessionSchema, insertExerciseSchema, insertExerciseRecordSchema, 
   insertWeightEntrySchema, insertNutritionEntrySchema, insertTechniqueSchema, 
   insertTacticalNoteSchema, insertRandoriSessionSchema, insertAchievementBadgeSchema, 
-  insertUserAchievementSchema, insertMoodEntrySchema
+  insertUserAchievementSchema, insertMoodEntrySchema, stressEntries, insertStressEntrySchema
 } from "@shared/schema";
 import { eq, and, desc, sql, isNull, gte, lte } from "drizzle-orm";
 
@@ -822,6 +822,78 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error deleting mood entry:", error);
       res.status(500).json({ error: "Failed to delete mood entry" });
+    }
+  });
+
+  // Stress Entries API Routes
+  app.get("/api/stress-entries", async (req, res) => {
+    try {
+      const userId = req.query.user_id as string;
+      let query = db.select().from(stressEntries);
+      
+      if (userId) {
+        query = query.where(eq(stressEntries.userId, userId));
+      }
+      
+      const result = await query.orderBy(desc(stressEntries.date));
+      res.json(result);
+    } catch (error) {
+      console.error("Error fetching stress entries:", error);
+      res.status(500).json({ error: "Failed to fetch stress entries" });
+    }
+  });
+
+  app.post("/api/stress-entries", async (req, res) => {
+    try {
+      const validated = insertStressEntrySchema.parse(req.body);
+      const result = await db.insert(stressEntries).values(validated).returning();
+      res.json(result[0]);
+    } catch (error) {
+      console.error("Error creating stress entry:", error);
+      res.status(400).json({ error: "Invalid stress entry data" });
+    }
+  });
+
+  app.get("/api/stress-entries/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const result = await db.select().from(stressEntries).where(eq(stressEntries.id, id)).limit(1);
+      if (result.length === 0) {
+        return res.status(404).json({ error: "Stress entry not found" });
+      }
+      res.json(result[0]);
+    } catch (error) {
+      console.error("Error fetching stress entry:", error);
+      res.status(500).json({ error: "Failed to fetch stress entry" });
+    }
+  });
+
+  app.patch("/api/stress-entries/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const validated = insertStressEntrySchema.partial().parse(req.body);
+      const result = await db.update(stressEntries).set(validated).where(eq(stressEntries.id, id)).returning();
+      if (result.length === 0) {
+        return res.status(404).json({ error: "Stress entry not found" });
+      }
+      res.json(result[0]);
+    } catch (error) {
+      console.error("Error updating stress entry:", error);
+      res.status(400).json({ error: "Failed to update stress entry" });
+    }
+  });
+
+  app.delete("/api/stress-entries/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const result = await db.delete(stressEntries).where(eq(stressEntries.id, id)).returning();
+      if (result.length === 0) {
+        return res.status(404).json({ error: "Stress entry not found" });
+      }
+      res.json({ message: "Stress entry deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting stress entry:", error);
+      res.status(500).json({ error: "Failed to delete stress entry" });
     }
   });
 

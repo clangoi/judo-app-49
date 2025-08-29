@@ -201,6 +201,21 @@ export const moodEntries = pgTable("mood_entries", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+// Stress entries table - Niveles de estrés
+export const stressEntries = pgTable("stress_entries", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id").notNull().references(() => profiles.id, { onDelete: "cascade" }),
+  date: date("date").notNull(),
+  stressLevel: integer("stress_level").notNull(), // 1-5 scale (1 = muy relajado, 5 = muy estresado)
+  stressType: text("stress_type"), // físico, mental, emocional
+  triggers: text("triggers").array(), // Desencadenantes del estrés
+  copingStrategies: text("coping_strategies").array(), // Estrategias de afrontamiento utilizadas
+  effectiveness: integer("effectiveness"), // 1-5 qué tan efectivas fueron las estrategias
+  notes: text("notes"), // Notas adicionales
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 // Sistema de notificaciones
 export const notificationTypeEnum = pgEnum('notification_type', [
   'training_reminder', 
@@ -267,6 +282,7 @@ export const insertRandoriSessionSchema = createInsertSchema(randoriSessions);
 export const insertAchievementBadgeSchema = createInsertSchema(achievementBadges);
 export const insertUserAchievementSchema = createInsertSchema(userAchievements);
 export const insertMoodEntrySchema = createInsertSchema(moodEntries);
+export const insertStressEntrySchema = createInsertSchema(stressEntries);
 export const insertNotificationSchema = createInsertSchema(notifications);
 export const insertNotificationAlarmsSchema = createInsertSchema(notificationAlarms);
 export const insertNotificationSettingsSchema = createInsertSchema(notificationSettings);
@@ -298,6 +314,8 @@ export type UserAchievement = typeof userAchievements.$inferSelect;
 export type InsertUserAchievement = z.infer<typeof insertUserAchievementSchema>;
 export type MoodEntry = typeof moodEntries.$inferSelect;
 export type InsertMoodEntry = z.infer<typeof insertMoodEntrySchema>;
+export type StressEntry = typeof stressEntries.$inferSelect;
+export type InsertStressEntry = z.infer<typeof insertStressEntrySchema>;
 export type Notification = typeof notifications.$inferSelect;
 export type InsertNotification = z.infer<typeof insertNotificationSchema>;
 export type NotificationAlarm = typeof notificationAlarms.$inferSelect;

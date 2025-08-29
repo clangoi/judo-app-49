@@ -11,6 +11,7 @@ import Auth from "./pages/Auth";
 import Deporte from "./pages/Deporte";
 import MentalCheck from "./pages/MentalCheck";
 import EstadoAnimo from "./pages/EstadoAnimo";
+import NivelesEstres from "./pages/NivelesEstres";
 import SesionesPreparacion from "./pages/SesionesPreparacion";
 import EntrenamientosJudo from "./pages/EntrenamientosJudo";
 import TecnicasJudo from "./pages/TecnicasJudo";
@@ -53,6 +54,11 @@ const App = () => (
               <Route path="/estado-animo" element={
                 <AuthGuard>
                   <EstadoAnimo />
+                </AuthGuard>
+              } />
+              <Route path="/niveles-estres" element={
+                <AuthGuard>
+                  <NivelesEstres />
                 </AuthGuard>
               } />
               <Route path="/sesiones-preparacion" element={
