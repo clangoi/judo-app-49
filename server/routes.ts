@@ -6,12 +6,12 @@ import * as path from "path";
 import { 
   profiles, trainingSessions, judoTrainingSessions, sportsTrainingSessions,
   exercises, exerciseRecords, weightEntries, nutritionEntries, 
-  techniques, tacticalNotes, randoriSessions, achievementBadges, userAchievements,
+  techniques, tacticalNotes, randoriSessions, achievementBadges, userAchievements, moodEntries,
   insertProfileSchema, insertTrainingSessionSchema, 
   insertJudoTrainingSessionSchema, insertSportsTrainingSessionSchema, insertExerciseSchema, insertExerciseRecordSchema, 
   insertWeightEntrySchema, insertNutritionEntrySchema, insertTechniqueSchema, 
   insertTacticalNoteSchema, insertRandoriSessionSchema, insertAchievementBadgeSchema, 
-  insertUserAchievementSchema
+  insertUserAchievementSchema, insertMoodEntrySchema
 } from "@shared/schema";
 import { eq, and, desc, sql, isNull, gte, lte } from "drizzle-orm";
 
@@ -750,6 +750,78 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error creating notification alarm:", error);
       res.status(400).json({ error: "Invalid alarm data" });
+    }
+  });
+
+  // Mood Entries API Routes
+  app.get("/api/mood-entries", async (req, res) => {
+    try {
+      const userId = req.query.user_id as string;
+      let query = db.select().from(moodEntries);
+      
+      if (userId) {
+        query = query.where(eq(moodEntries.userId, userId));
+      }
+      
+      const result = await query.orderBy(desc(moodEntries.date));
+      res.json(result);
+    } catch (error) {
+      console.error("Error fetching mood entries:", error);
+      res.status(500).json({ error: "Failed to fetch mood entries" });
+    }
+  });
+
+  app.post("/api/mood-entries", async (req, res) => {
+    try {
+      const validated = insertMoodEntrySchema.parse(req.body);
+      const result = await db.insert(moodEntries).values(validated).returning();
+      res.json(result[0]);
+    } catch (error) {
+      console.error("Error creating mood entry:", error);
+      res.status(400).json({ error: "Invalid mood entry data" });
+    }
+  });
+
+  app.get("/api/mood-entries/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const result = await db.select().from(moodEntries).where(eq(moodEntries.id, id)).limit(1);
+      if (result.length === 0) {
+        return res.status(404).json({ error: "Mood entry not found" });
+      }
+      res.json(result[0]);
+    } catch (error) {
+      console.error("Error fetching mood entry:", error);
+      res.status(500).json({ error: "Failed to fetch mood entry" });
+    }
+  });
+
+  app.patch("/api/mood-entries/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const validated = insertMoodEntrySchema.partial().parse(req.body);
+      const result = await db.update(moodEntries).set(validated).where(eq(moodEntries.id, id)).returning();
+      if (result.length === 0) {
+        return res.status(404).json({ error: "Mood entry not found" });
+      }
+      res.json(result[0]);
+    } catch (error) {
+      console.error("Error updating mood entry:", error);
+      res.status(400).json({ error: "Failed to update mood entry" });
+    }
+  });
+
+  app.delete("/api/mood-entries/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const result = await db.delete(moodEntries).where(eq(moodEntries.id, id)).returning();
+      if (result.length === 0) {
+        return res.status(404).json({ error: "Mood entry not found" });
+      }
+      res.json({ message: "Mood entry deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting mood entry:", error);
+      res.status(500).json({ error: "Failed to delete mood entry" });
     }
   });
 

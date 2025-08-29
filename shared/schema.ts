@@ -185,6 +185,22 @@ export const userAchievements = pgTable("user_achievements", {
   isNotified: boolean("is_notified").default(false)
 });
 
+// Mood entries table - Estado de ánimo
+export const moodEntries = pgTable("mood_entries", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id").notNull().references(() => profiles.id, { onDelete: "cascade" }),
+  date: date("date").notNull(),
+  moodLevel: integer("mood_level").notNull(), // 1-5 scale (1 = muy malo, 5 = excelente)
+  energyLevel: integer("energy_level").notNull(), // 1-5 scale
+  stressLevel: integer("stress_level").notNull(), // 1-5 scale (1 = muy relajado, 5 = muy estresado)
+  sleepQuality: integer("sleep_quality").notNull(), // 1-5 scale
+  motivation: integer("motivation").notNull(), // 1-5 scale
+  notes: text("notes"), // Notas adicionales del usuario
+  factors: text("factors").array(), // Factores que afectaron el estado de ánimo
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 // Sistema de notificaciones
 export const notificationTypeEnum = pgEnum('notification_type', [
   'training_reminder', 
@@ -250,6 +266,7 @@ export const insertTacticalNoteSchema = createInsertSchema(tacticalNotes);
 export const insertRandoriSessionSchema = createInsertSchema(randoriSessions);
 export const insertAchievementBadgeSchema = createInsertSchema(achievementBadges);
 export const insertUserAchievementSchema = createInsertSchema(userAchievements);
+export const insertMoodEntrySchema = createInsertSchema(moodEntries);
 export const insertNotificationSchema = createInsertSchema(notifications);
 export const insertNotificationAlarmsSchema = createInsertSchema(notificationAlarms);
 export const insertNotificationSettingsSchema = createInsertSchema(notificationSettings);
@@ -279,6 +296,8 @@ export type AchievementBadge = typeof achievementBadges.$inferSelect;
 export type InsertAchievementBadge = z.infer<typeof insertAchievementBadgeSchema>;
 export type UserAchievement = typeof userAchievements.$inferSelect;
 export type InsertUserAchievement = z.infer<typeof insertUserAchievementSchema>;
+export type MoodEntry = typeof moodEntries.$inferSelect;
+export type InsertMoodEntry = z.infer<typeof insertMoodEntrySchema>;
 export type Notification = typeof notifications.$inferSelect;
 export type InsertNotification = z.infer<typeof insertNotificationSchema>;
 export type NotificationAlarm = typeof notificationAlarms.$inferSelect;

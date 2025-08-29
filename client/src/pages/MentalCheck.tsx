@@ -1,4 +1,5 @@
 import { useAuth } from "@/hooks/useAuth";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Brain, Heart, Smile, Activity } from "lucide-react";
@@ -6,13 +7,15 @@ import NavHeader from "@/components/NavHeader";
 
 const MentalCheck = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
 
   const mentalHealthItems = [
     {
       title: "Estado de Ánimo",
       description: "Registra y monitorea tu estado emocional diario",
       icon: Smile,
-      action: "Evaluar Ahora"
+      action: "Evaluar Ahora",
+      path: "/estado-animo"
     },
     {
       title: "Niveles de Estrés",
@@ -70,8 +73,12 @@ const MentalCheck = () => {
                   </CardDescription>
                   <Button 
                     onClick={() => {
-                      // Por ahora solo mostramos un mensaje, se puede implementar funcionalidad específica después
-                      alert(`Funcionalidad de ${item.title} próximamente disponible`);
+                      if (item.path) {
+                        navigate(item.path);
+                      } else {
+                        // Por ahora solo mostramos un mensaje, se puede implementar funcionalidad específica después
+                        alert(`Funcionalidad de ${item.title} próximamente disponible`);
+                      }
                     }}
                     className="w-full bg-[#C5A46C] hover:bg-[#A08B5A] text-white"
                   >
