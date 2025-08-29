@@ -304,6 +304,29 @@ export const deepAssessmentEntries = pgTable("deep_assessment_entries", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+// Quick check-in entries table - Check-in rápido de 30 segundos
+export const quickCheckInEntries = pgTable("quick_checkin_entries", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id").notNull().references(() => profiles.id, { onDelete: "cascade" }),
+  timestamp: timestamp("timestamp").defaultNow().notNull(), // Momento exacto del check-in
+  
+  // Evaluación rápida (solo 3 preguntas esenciales)
+  currentMood: integer("current_mood").notNull(), // 1-5 scale (😰 😔 😐 😊 😄)
+  energyLevel: integer("energy_level").notNull(), // 1-5 scale (🔋 Low to High)
+  stressLevel: integer("stress_level").notNull(), // 1-5 scale (😌 to 😵‍💫)
+  
+  // Contexto del momento (opcional pero rápido)
+  currentActivity: text("current_activity"), // ¿Qué estás haciendo?
+  location: text("location"), // ¿Dónde estás?
+  quickNote: text("quick_note"), // Una reflexión rápida (max 100 chars)
+  
+  // Metadatos para análisis
+  timeOfDay: text("time_of_day").notNull(), // morning, afternoon, evening, night
+  dayOfWeek: text("day_of_week").notNull(), // monday, tuesday, etc.
+  
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 // Sistema de notificaciones
 export const notificationTypeEnum = pgEnum('notification_type', [
   'training_reminder', 
@@ -374,6 +397,7 @@ export const insertStressEntrySchema = createInsertSchema(stressEntries);
 export const insertMentalWellnessEntrySchema = createInsertSchema(mentalWellnessEntries);
 export const insertConcentrationEntrySchema = createInsertSchema(concentrationEntries);
 export const insertDeepAssessmentEntrySchema = createInsertSchema(deepAssessmentEntries);
+export const insertQuickCheckInEntrySchema = createInsertSchema(quickCheckInEntries);
 export const insertNotificationSchema = createInsertSchema(notifications);
 export const insertNotificationAlarmsSchema = createInsertSchema(notificationAlarms);
 export const insertNotificationSettingsSchema = createInsertSchema(notificationSettings);
@@ -413,6 +437,8 @@ export type ConcentrationEntry = typeof concentrationEntries.$inferSelect;
 export type InsertConcentrationEntry = z.infer<typeof insertConcentrationEntrySchema>;
 export type DeepAssessmentEntry = typeof deepAssessmentEntries.$inferSelect;
 export type InsertDeepAssessmentEntry = z.infer<typeof insertDeepAssessmentEntrySchema>;
+export type QuickCheckInEntry = typeof quickCheckInEntries.$inferSelect;
+export type InsertQuickCheckInEntry = z.infer<typeof insertQuickCheckInEntrySchema>;
 export type Notification = typeof notifications.$inferSelect;
 export type InsertNotification = z.infer<typeof insertNotificationSchema>;
 export type NotificationAlarm = typeof notificationAlarms.$inferSelect;

@@ -121,6 +121,12 @@ const Graficos = () => {
     enabled: !!user,
   });
 
+  // Query para check-ins rápidos
+  const { data: quickCheckInData = [], isLoading: isLoadingQuickCheckIns } = useQuery<any[]>({
+    queryKey: ['/api/quick-checkin-entries'],
+    enabled: !!user,
+  });
+
   // Establecer ejercicio por defecto (el primero alfabéticamente)
   React.useEffect(() => {
     if (exercisesList.length > 0 && !selectedExercise) {
@@ -140,38 +146,77 @@ const Graficos = () => {
     { name: 'Táctica', value: Number(progressSummary.tacticalNotes) || 0, color: '#ffc658' }
   ].filter(item => item.value > 0);
 
-  // Procesar datos mentales para gráficos
+  // Procesar datos mentales combinados (evaluaciones profundas + check-ins rápidos)
   const mentalTrendsData = React.useMemo(() => {
-    if (!deepAssessmentData.length) return [];
+    const combinedData = [];
     
-    return (deepAssessmentData as any[]).slice(-30).map((entry: any) => ({
-      date: entry.date,
-      'Estado de Ánimo': entry.moodLevel,
-      'Estrés': 6 - entry.stressLevel, // Invertir escala para que más alto sea mejor
-      'Concentración': entry.focusLevel,
-      'Bienestar': entry.overallWellness
-    }));
-  }, [deepAssessmentData]);
+    // Agregar datos de evaluaciones profundas
+    if (deepAssessmentData.length > 0) {
+      (deepAssessmentData as any[]).forEach((entry: any) => {
+        combinedData.push({
+          date: entry.date,
+          timestamp: entry.date,
+          'Estado de Ánimo': entry.moodLevel,
+          'Estrés': 6 - entry.stressLevel, // Invertir escala
+          'Concentración': entry.focusLevel,
+          'Bienestar': entry.overallWellness,
+          type: 'profunda'
+        });
+      });
+    }
+    
+    // Agregar datos de check-ins rápidos (convertir escalas para consistencia)
+    if (quickCheckInData.length > 0) {
+      (quickCheckInData as any[]).forEach((entry: any) => {
+        const date = new Date(entry.timestamp).toISOString().split('T')[0];
+        combinedData.push({
+          date: date,
+          timestamp: entry.timestamp,
+          'Estado de Ánimo': entry.currentMood, // Ya en escala 1-5
+          'Estrés': 6 - entry.stressLevel, // Invertir escala 1-5 
+          'Concentración': entry.energyLevel * 2, // Convertir de 1-5 a 1-10
+          'Bienestar': (entry.currentMood + (6 - entry.stressLevel) + entry.energyLevel) / 3 * 2, // Promedio escalado a 1-10
+          type: 'rapida'
+        });
+      });
+    }
+    
+    // Ordenar por timestamp y tomar los últimos 30 días
+    return combinedData
+      .sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime())
+      .slice(-30)
+      .map(entry => ({
+        date: entry.date,
+        'Estado de Ánimo': Math.round(entry['Estado de Ánimo'] * 10) / 10,
+        'Estrés': Math.round(entry['Estrés'] * 10) / 10,
+        'Concentración': Math.round(entry['Concentración'] * 10) / 10,
+        'Bienestar': Math.round(entry['Bienestar'] * 10) / 10,
+        type: entry.type
+      }));
+  }, [deepAssessmentData, quickCheckInData]);
 
-  // Resumen mental para estadísticas
+  // Resumen mental combinado para estadísticas
   const mentalSummary = React.useMemo(() => {
-    if (!deepAssessmentData.length) return {
+    if (mentalTrendsData.length === 0) return {
       avgMood: 0,
       avgStress: 0,
       avgFocus: 0,
       avgWellness: 0,
-      totalEvaluations: 0
+      totalEvaluations: 0,
+      totalQuickCheckIns: 0,
+      totalDeepAssessments: 0
     };
 
-    const recent = (deepAssessmentData as any[]).slice(-30);
     return {
-      avgMood: (recent.reduce((sum: number, entry: any) => sum + entry.moodLevel, 0) / recent.length).toFixed(1),
-      avgStress: (recent.reduce((sum: number, entry: any) => sum + entry.stressLevel, 0) / recent.length).toFixed(1),
-      avgFocus: (recent.reduce((sum: number, entry: any) => sum + entry.focusLevel, 0) / recent.length).toFixed(1),
-      avgWellness: (recent.reduce((sum: number, entry: any) => sum + entry.overallWellness, 0) / recent.length).toFixed(1),
-      totalEvaluations: (deepAssessmentData as any[]).length
+      avgMood: (mentalTrendsData.reduce((sum: number, entry: any) => sum + entry['Estado de Ánimo'], 0) / mentalTrendsData.length).toFixed(1),
+      avgStress: (6 - mentalTrendsData.reduce((sum: number, entry: any) => sum + entry['Estrés'], 0) / mentalTrendsData.length).toFixed(1), // Convertir de vuelta
+      avgFocus: (mentalTrendsData.reduce((sum: number, entry: any) => sum + entry['Concentración'], 0) / mentalTrendsData.length).toFixed(1),
+      avgWellness: (mentalTrendsData.reduce((sum: number, entry: any) => sum + entry['Bienestar'], 0) / mentalTrendsData.length).toFixed(1),
+      totalEvaluations: (deepAssessmentData as any[]).length + (quickCheckInData as any[]).length,
+      totalQuickCheckIns: (quickCheckInData as any[]).length,
+      totalDeepAssessments: (deepAssessmentData as any[]).length
     };
-  }, [deepAssessmentData]);
+  }, [mentalTrendsData, deepAssessmentData, quickCheckInData]);
 
   // Datos para distribución de bienestar mental
   const mentalDistribution = [
@@ -331,8 +376,13 @@ const Graficos = () => {
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm text-[#575757]">Total Evaluaciones</p>
+                      <p className="text-sm text-[#575757]">Registros Totales</p>
                       <p className="text-2xl font-bold text-[#1A1A1A]">{mentalSummary.totalEvaluations}</p>
+                      <div className="flex text-xs text-[#575757] mt-1 gap-2">
+                        <span>{mentalSummary.totalDeepAssessments} profundas</span>
+                        <span>•</span>
+                        <span>{mentalSummary.totalQuickCheckIns} rápidas</span>
+                      </div>
                     </div>
                     <BarChart3 className="h-8 w-8 text-green-500" />
                   </div>

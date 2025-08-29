@@ -11,7 +11,7 @@ import {
   insertJudoTrainingSessionSchema, insertSportsTrainingSessionSchema, insertExerciseSchema, insertExerciseRecordSchema, 
   insertWeightEntrySchema, insertNutritionEntrySchema, insertTechniqueSchema, 
   insertTacticalNoteSchema, insertRandoriSessionSchema, insertAchievementBadgeSchema, 
-  insertUserAchievementSchema, insertMoodEntrySchema, stressEntries, insertStressEntrySchema, mentalWellnessEntries, insertMentalWellnessEntrySchema, concentrationEntries, insertConcentrationEntrySchema, deepAssessmentEntries, insertDeepAssessmentEntrySchema
+  insertUserAchievementSchema, insertMoodEntrySchema, stressEntries, insertStressEntrySchema, mentalWellnessEntries, insertMentalWellnessEntrySchema, concentrationEntries, insertConcentrationEntrySchema, deepAssessmentEntries, insertDeepAssessmentEntrySchema, quickCheckInEntries, insertQuickCheckInEntrySchema
 } from "@shared/schema";
 import { eq, and, desc, sql, isNull, gte, lte } from "drizzle-orm";
 
@@ -1120,6 +1120,100 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error deleting deep assessment entry:", error);
       res.status(500).json({ error: "Failed to delete deep assessment entry" });
+    }
+  });
+
+  // Quick Check-In Entries - Check-in rápido de 30 segundos
+  app.get("/api/quick-checkin-entries", async (req, res) => {
+    try {
+      const userId = req.headers["x-user-id"] as string;
+      if (!userId) {
+        return res.status(401).json({ error: "User not authenticated" });
+      }
+      
+      const result = await db.select()
+        .from(quickCheckInEntries)
+        .where(eq(quickCheckInEntries.userId, userId))
+        .orderBy(desc(quickCheckInEntries.timestamp));
+      res.json(result);
+    } catch (error) {
+      console.error("Error fetching quick check-in entries:", error);
+      res.status(500).json({ error: "Failed to fetch quick check-in entries" });
+    }
+  });
+
+  app.post("/api/quick-checkin-entries", async (req, res) => {
+    try {
+      const userId = req.headers["x-user-id"] as string;
+      if (!userId) {
+        return res.status(401).json({ error: "User not authenticated" });
+      }
+
+      // Agregar metadatos automáticamente
+      const now = new Date();
+      const hour = now.getHours();
+      let timeOfDay: string;
+      if (hour < 6) timeOfDay = 'night';
+      else if (hour < 12) timeOfDay = 'morning';
+      else if (hour < 18) timeOfDay = 'afternoon';
+      else timeOfDay = 'evening';
+
+      const dayOfWeek = now.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
+
+      const validated = insertQuickCheckInEntrySchema.parse({
+        ...req.body,
+        userId,
+        timeOfDay,
+        dayOfWeek
+      });
+      const result = await db.insert(quickCheckInEntries).values(validated).returning();
+      res.json(result[0]);
+    } catch (error) {
+      console.error("Error creating quick check-in entry:", error);
+      res.status(400).json({ error: "Invalid quick check-in data" });
+    }
+  });
+
+  app.get("/api/quick-checkin-entries/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const result = await db.select().from(quickCheckInEntries).where(eq(quickCheckInEntries.id, id)).limit(1);
+      if (result.length === 0) {
+        return res.status(404).json({ error: "Quick check-in entry not found" });
+      }
+      res.json(result[0]);
+    } catch (error) {
+      console.error("Error fetching quick check-in entry:", error);
+      res.status(500).json({ error: "Failed to fetch quick check-in entry" });
+    }
+  });
+
+  app.patch("/api/quick-checkin-entries/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const validated = insertQuickCheckInEntrySchema.partial().parse(req.body);
+      const result = await db.update(quickCheckInEntries).set(validated).where(eq(quickCheckInEntries.id, id)).returning();
+      if (result.length === 0) {
+        return res.status(404).json({ error: "Quick check-in entry not found" });
+      }
+      res.json(result[0]);
+    } catch (error) {
+      console.error("Error updating quick check-in entry:", error);
+      res.status(400).json({ error: "Failed to update quick check-in entry" });
+    }
+  });
+
+  app.delete("/api/quick-checkin-entries/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const result = await db.delete(quickCheckInEntries).where(eq(quickCheckInEntries.id, id)).returning();
+      if (result.length === 0) {
+        return res.status(404).json({ error: "Quick check-in entry not found" });
+      }
+      res.json({ message: "Quick check-in entry deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting quick check-in entry:", error);
+      res.status(500).json({ error: "Failed to delete quick check-in entry" });
     }
   });
 
