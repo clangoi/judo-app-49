@@ -186,27 +186,15 @@ const BreathingExercise: React.FC<BreathingExerciseProps> = ({ technique, onComp
                 
                 {/* Punto guía que recorre el perímetro del cuadrado */}
                 <div 
-                  className="absolute w-4 h-4 bg-green-600 rounded-full shadow-lg z-10"
+                  className={`absolute w-4 h-4 bg-green-600 rounded-full shadow-lg z-10 ${
+                    isActive && phase === 'inhale' ? 'animate-move-up' :
+                    isActive && phase === 'hold' ? 'animate-move-right' :
+                    isActive && phase === 'exhale' ? 'animate-move-down' :
+                    isActive && phase === 'pause' ? 'animate-move-left' : ''
+                  }`}
                   style={{
-                    // El punto comienza en la esquina inferior izquierda y se mueve por el perímetro
-                    // Inicio: esquina inferior izquierda (0px, 176px)
-                    // Inhalar: sube por el lado izquierdo -> (0px, 0px)
-                    // Mantener: se mueve por arriba -> (176px, 0px)  
-                    // Exhalar: baja por el lado derecho -> (176px, 176px)
-                    // Pausa: regresa por abajo -> (0px, 176px)
-                    
-                    left: phase === 'pause' ? '0px' :     // Empieza en izquierda (pausa→inhalar)
-                          phase === 'inhale' ? '0px' :    // Se mantiene en izquierda (inhalar)
-                          phase === 'hold' ? '176px' :    // Se mueve a derecha (mantener)
-                          '176px',                         // Se mantiene en derecha (exhalar)
-                    
-                    top: phase === 'pause' ? '176px' :    // Empieza abajo (pausa→inhalar)
-                         phase === 'inhale' ? '0px' :     // Se mueve arriba (inhalar)  
-                         phase === 'hold' ? '0px' :       // Se mantiene arriba (mantener)
-                         '176px',                          // Se mueve abajo (exhalar)
-                    
-                    // Transición suave solo cuando está activo
-                    transition: !isActive ? 'none' : 'all 4s ease-linear'
+                    left: phase === 'pause' || phase === 'inhale' ? '0px' : '176px',
+                    top: phase === 'inhale' || phase === 'hold' ? '0px' : '176px'
                   }}
                 >
                   {/* Pulso del punto */}

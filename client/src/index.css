@@ -99,3 +99,40 @@ All colors MUST be HSL.
     @apply bg-background text-foreground;
   }
 }
+
+/* Animaciones para el círculo de respiración de caja */
+@keyframes move-up {
+  from { top: 176px; }
+  to { top: 0px; }
+}
+
+@keyframes move-right {
+  from { left: 0px; }
+  to { left: 176px; }
+}
+
+@keyframes move-down {
+  from { top: 0px; }
+  to { top: 176px; }
+}
+
+@keyframes move-left {
+  from { left: 176px; }
+  to { left: 0px; }
+}
+
+.animate-move-up {
+  animation: move-up 4s ease-linear;
+}
+
+.animate-move-right {
+  animation: move-right 4s ease-linear;
+}
+
+.animate-move-down {
+  animation: move-down 4s ease-linear;
+}
+
+.animate-move-left {
+  animation: move-left 4s ease-linear;
+}
