@@ -25,10 +25,10 @@ const MentalCheck = () => {
       path: "/niveles-estres"
     },
     {
-      title: "Bienestar Mental",
+      title: "Evaluación del Día",
       description: "Evalúa tu bienestar psicológico integral: autoestima, propósito, conexión social",
       icon: Heart,
-      action: "Autoevaluación",
+      action: "Evaluar Día",
       path: "/bienestar-mental"
     },
     {
@@ -82,7 +82,7 @@ const MentalCheck = () => {
             <div className="bg-pink-50 border border-pink-200 rounded-lg p-3">
               <div className="flex items-center gap-2 mb-1">
                 <Heart className="h-4 w-4 text-pink-600" />
-                <h3 className="text-sm font-medium text-pink-900">Bienestar Mental</h3>
+                <h3 className="text-sm font-medium text-pink-900">Evaluación del Día</h3>
               </div>
               <p className="text-xs text-pink-700">
                 <strong>¿Cómo está mi salud psicológica integral?</strong><br/>

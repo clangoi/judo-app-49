@@ -228,8 +228,8 @@ const BienestarMental = () => {
   return (
     <div className="min-h-screen bg-[#1A1A1A]">
       <NavHeader 
-        title="Bienestar Mental"
-        subtitle="Evalúa tu bienestar psicológico integral y reflexiona sobre tu crecimiento personal"
+        title="Evaluación del Día"
+        subtitle="Evalúa tu bienestar psicológico integral y reflexiona sobre tu crecimiento personal diario"
       />
 
       <div className="max-w-6xl mx-auto p-4">
@@ -240,7 +240,7 @@ const BienestarMental = () => {
               <CardHeader>
                 <CardTitle className="text-[#1A1A1A] flex items-center gap-2">
                   <Calendar className="h-5 w-5" />
-                  Evaluación de Bienestar de Hoy
+                  Evaluación del Día
                 </CardTitle>
                 <CardDescription>
                   Registrado el {new Date(todaysEntry.date).toLocaleDateString()}
@@ -333,7 +333,7 @@ const BienestarMental = () => {
               <CardHeader>
                 <CardTitle className="text-[#1A1A1A] flex items-center gap-2">
                   <Heart className="h-5 w-5" />
-                  ¿Cómo está tu bienestar mental hoy?
+                  ¿Cómo ha sido tu día en general?
                 </CardTitle>
                 <CardDescription>
                   Realiza una evaluación integral de tu estado psicológico y reflexiona sobre tu crecimiento personal
@@ -346,7 +346,7 @@ const BienestarMental = () => {
                     className="w-full bg-[#C5A46C] hover:bg-[#A08B5A] text-white"
                   >
                     <Plus className="h-4 w-4 mr-2" />
-                    Realizar Evaluación de Bienestar
+                    Realizar Evaluación del Día
                   </Button>
                 ) : (
                   <form onSubmit={handleSubmit} className="space-y-6">
@@ -534,10 +534,10 @@ const BienestarMental = () => {
             <CardHeader>
               <CardTitle className="text-[#1A1A1A] flex items-center gap-2">
                 <TrendingUp className="h-5 w-5" />
-                Historial de Bienestar Mental
+                Historial de Evaluaciones
               </CardTitle>
               <CardDescription>
-                Tus evaluaciones recientes de bienestar psicológico
+                Tus evaluaciones recientes del día
               </CardDescription>
             </CardHeader>
             <CardContent>
