@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useLocation } from "wouter";
+import { useNavigate } from "react-router-dom";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -57,7 +57,7 @@ const EmojiRating: React.FC<EmojiRatingProps> = ({
 );
 
 export default function CheckinRapido() {
-  const [location, setLocation] = useLocation();
+  const navigate = useNavigate();
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -96,7 +96,7 @@ export default function CheckinRapido() {
         duration: 3000,
       });
       
-      setLocation('/mentalcheck');
+      navigate('/mentalcheck');
     },
     onError: () => {
       toast({
@@ -143,7 +143,7 @@ export default function CheckinRapido() {
         <div className="flex items-center justify-between mb-6">
           <Button
             variant="ghost"
-            onClick={() => setLocation('/mentalcheck')}
+            onClick={() => navigate('/mentalcheck')}
             className="flex items-center text-[#C5A46C] hover:text-[#A08751]"
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
