@@ -184,23 +184,28 @@ const BreathingExercise: React.FC<BreathingExerciseProps> = ({ technique, onComp
                 {/* Cuadrado base */}
                 <div className="absolute inset-0 border-4 border-green-400 rounded-lg bg-green-50/20"></div>
                 
-                {/* Punto guía que recorre el perímetro suavemente */}
+                {/* Punto guía que recorre el perímetro del cuadrado */}
                 <div 
                   className="absolute w-4 h-4 bg-green-600 rounded-full shadow-lg z-10"
                   style={{
-                    // Posición inicial en esquina inferior izquierda y se mueve según la fase
-                    left: 
-                      phase === 'inhale' ? '0px' :          // Se queda en lado izquierdo (inhalar)
-                      phase === 'hold' ? '176px' :          // Se mueve hacia la derecha (mantener)
-                      phase === 'exhale' ? '176px' :        // Se queda en lado derecho (exhalar)  
-                      '0px',                                 // Se mueve hacia la izquierda (pausa)
-                    top: 
-                      phase === 'inhale' ? '0px' :          // Se mueve hacia arriba (inhalar)
-                      phase === 'hold' ? '0px' :            // Se queda arriba (mantener)
-                      phase === 'exhale' ? '176px' :        // Se mueve hacia abajo (exhalar)
-                      '176px',                               // Se queda abajo (pausa)
+                    // El punto comienza en la esquina inferior izquierda y se mueve por el perímetro
+                    // Inicio: esquina inferior izquierda (0px, 176px)
+                    // Inhalar: sube por el lado izquierdo -> (0px, 0px)
+                    // Mantener: se mueve por arriba -> (176px, 0px)  
+                    // Exhalar: baja por el lado derecho -> (176px, 176px)
+                    // Pausa: regresa por abajo -> (0px, 176px)
                     
-                    // Transición activa solo cuando el ejercicio está corriendo
+                    left: phase === 'pause' ? '0px' :     // Empieza en izquierda (pausa→inhalar)
+                          phase === 'inhale' ? '0px' :    // Se mantiene en izquierda (inhalar)
+                          phase === 'hold' ? '176px' :    // Se mueve a derecha (mantener)
+                          '176px',                         // Se mantiene en derecha (exhalar)
+                    
+                    top: phase === 'pause' ? '176px' :    // Empieza abajo (pausa→inhalar)
+                         phase === 'inhale' ? '0px' :     // Se mueve arriba (inhalar)  
+                         phase === 'hold' ? '0px' :       // Se mantiene arriba (mantener)
+                         '176px',                          // Se mueve abajo (exhalar)
+                    
+                    // Transición suave solo cuando está activo
                     transition: !isActive ? 'none' : 'all 4s ease-linear'
                   }}
                 >
