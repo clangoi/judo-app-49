@@ -176,15 +176,83 @@ const BreathingExercise: React.FC<BreathingExerciseProps> = ({ technique, onComp
         </div>
         
         <div className="relative">
-          <div className="text-8xl font-mono text-gray-800 mb-2">
-            {count}
-          </div>
-          <div className="text-lg text-gray-600">
-            {phase === 'inhale' ? `Inhala ${technique.inhale}s` : 
-             phase === 'hold' ? `Mantén ${technique.hold}s` : 
-             phase === 'exhale' ? `Exhala ${technique.exhale}s` :
-             `Pausa ${technique.pause || 4}s`}
-          </div>
+          {/* Animación especial para respiración de caja */}
+          {technique.id === 'box_breathing' && (
+            <div className="flex flex-col items-center space-y-6 mb-8">
+              {/* Cuadrado con guía animada */}
+              <div className="relative w-48 h-48">
+                {/* Cuadrado base */}
+                <div className="absolute inset-0 border-4 border-green-400 rounded-lg bg-green-50/20"></div>
+                
+                {/* Punto guía que se mueve por el perímetro */}
+                <div 
+                  className={`absolute w-4 h-4 bg-green-600 rounded-full shadow-lg transition-all duration-1000 ease-linear ${
+                    phase === 'inhale' ? 'bottom-0 left-4 transform translate-y-1/2' :
+                    phase === 'hold' ? 'top-4 right-0 transform translate-x-1/2' :
+                    phase === 'exhale' ? 'top-0 right-4 transform -translate-y-1/2' :
+                    'bottom-4 left-0 transform -translate-x-1/2'
+                  }`}
+                >
+                  {/* Pulso del punto */}
+                  <div className="absolute inset-0 bg-green-600 rounded-full animate-ping opacity-75"></div>
+                </div>
+                
+                {/* Etiquetas de las fases en las esquinas */}
+                <div className="absolute -bottom-6 left-0 text-xs text-green-700 font-medium">
+                  Inhalar ⬆️
+                </div>
+                <div className="absolute -top-6 left-0 text-xs text-yellow-700 font-medium">
+                  Mantener ➡️
+                </div>
+                <div className="absolute -top-6 right-0 text-xs text-blue-700 font-medium">
+                  Exhalar ⬇️
+                </div>
+                <div className="absolute -bottom-6 right-0 text-xs text-gray-700 font-medium">
+                  Pausa ⬅️
+                </div>
+                
+                {/* Flecha direccional */}
+                <div className={`absolute text-2xl transition-all duration-500 ${
+                  phase === 'inhale' ? 'bottom-2 left-1/2 transform -translate-x-1/2' :
+                  phase === 'hold' ? 'top-1/2 right-2 transform -translate-y-1/2' :
+                  phase === 'exhale' ? 'top-2 left-1/2 transform -translate-x-1/2' :
+                  'top-1/2 left-2 transform -translate-y-1/2'
+                }`}>
+                  {phase === 'inhale' ? '⬆️' : 
+                   phase === 'hold' ? '➡️' : 
+                   phase === 'exhale' ? '⬇️' : '⬅️'}
+                </div>
+              </div>
+              
+              {/* Contador e instrucciones */}
+              <div className="text-center">
+                <div className="text-6xl font-mono text-gray-800 mb-2">
+                  {count}
+                </div>
+                <div className="text-lg text-gray-600">
+                  {phase === 'inhale' ? `Inhala ${technique.inhale}s` : 
+                   phase === 'hold' ? `Mantén ${technique.hold}s` : 
+                   phase === 'exhale' ? `Exhala ${technique.exhale}s` :
+                   `Pausa ${technique.pause || 4}s`}
+                </div>
+              </div>
+            </div>
+          )}
+          
+          {/* Visualización estándar para otras técnicas */}
+          {technique.id !== 'box_breathing' && (
+            <div>
+              <div className="text-8xl font-mono text-gray-800 mb-2">
+                {count}
+              </div>
+              <div className="text-lg text-gray-600">
+                {phase === 'inhale' ? `Inhala ${technique.inhale}s` : 
+                 phase === 'hold' ? `Mantén ${technique.hold}s` : 
+                 phase === 'exhale' ? `Exhala ${technique.exhale}s` :
+                 `Pausa ${technique.pause || 4}s`}
+              </div>
+            </div>
+          )}
         </div>
       </div>
       
