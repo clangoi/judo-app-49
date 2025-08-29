@@ -27,7 +27,7 @@ const NavHeader = ({ title, subtitle }: NavHeaderProps) => {
 
   const handleBack = () => {
     // Si estamos en alguna página de mental health, regresar a mentalcheck
-    const mentalHealthPaths = ['/estado-animo', '/niveles-estres', '/bienestar-mental'];
+    const mentalHealthPaths = ['/estado-animo', '/niveles-estres', '/bienestar-mental', '/concentracion'];
     if (mentalHealthPaths.includes(location.pathname)) {
       navigate('/mentalcheck');
     } else {

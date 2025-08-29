@@ -11,7 +11,7 @@ import {
   insertJudoTrainingSessionSchema, insertSportsTrainingSessionSchema, insertExerciseSchema, insertExerciseRecordSchema, 
   insertWeightEntrySchema, insertNutritionEntrySchema, insertTechniqueSchema, 
   insertTacticalNoteSchema, insertRandoriSessionSchema, insertAchievementBadgeSchema, 
-  insertUserAchievementSchema, insertMoodEntrySchema, stressEntries, insertStressEntrySchema, mentalWellnessEntries, insertMentalWellnessEntrySchema
+  insertUserAchievementSchema, insertMoodEntrySchema, stressEntries, insertStressEntrySchema, mentalWellnessEntries, insertMentalWellnessEntrySchema, concentrationEntries, insertConcentrationEntrySchema
 } from "@shared/schema";
 import { eq, and, desc, sql, isNull, gte, lte } from "drizzle-orm";
 
@@ -966,6 +966,83 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error deleting mental wellness entry:", error);
       res.status(500).json({ error: "Failed to delete mental wellness entry" });
+    }
+  });
+
+  // Concentration entries routes
+  app.get("/api/concentration-entries", async (req, res) => {
+    try {
+      const userId = getUserId(req);
+      if (!userId) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+      
+      const result = await db.select()
+        .from(concentrationEntries)
+        .where(eq(concentrationEntries.userId, userId))
+        .orderBy(desc(concentrationEntries.date));
+      
+      res.json(result);
+    } catch (error) {
+      console.error("Error fetching concentration entries:", error);
+      res.status(500).json({ error: "Failed to fetch concentration entries" });
+    }
+  });
+
+  app.post("/api/concentration-entries", async (req, res) => {
+    try {
+      const userId = getUserId(req);
+      if (!userId) return res.status(401).json({ error: "Unauthorized" });
+      
+      const validated = insertConcentrationEntrySchema.parse({ ...req.body, userId });
+      const result = await db.insert(concentrationEntries).values(validated).returning();
+      res.json(result[0]);
+    } catch (error) {
+      console.error("Error creating concentration entry:", error);
+      res.status(400).json({ error: "Invalid concentration entry data" });
+    }
+  });
+
+  app.get("/api/concentration-entries/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const result = await db.select().from(concentrationEntries).where(eq(concentrationEntries.id, id)).limit(1);
+      if (result.length === 0) {
+        return res.status(404).json({ error: "Concentration entry not found" });
+      }
+      res.json(result[0]);
+    } catch (error) {
+      console.error("Error fetching concentration entry:", error);
+      res.status(500).json({ error: "Failed to fetch concentration entry" });
+    }
+  });
+
+  app.patch("/api/concentration-entries/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const validated = insertConcentrationEntrySchema.partial().parse(req.body);
+      const result = await db.update(concentrationEntries).set(validated).where(eq(concentrationEntries.id, id)).returning();
+      if (result.length === 0) {
+        return res.status(404).json({ error: "Concentration entry not found" });
+      }
+      res.json(result[0]);
+    } catch (error) {
+      console.error("Error updating concentration entry:", error);
+      res.status(400).json({ error: "Failed to update concentration entry" });
+    }
+  });
+
+  app.delete("/api/concentration-entries/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const result = await db.delete(concentrationEntries).where(eq(concentrationEntries.id, id)).returning();
+      if (result.length === 0) {
+        return res.status(404).json({ error: "Concentration entry not found" });
+      }
+      res.json({ message: "Concentration entry deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting concentration entry:", error);
+      res.status(500).json({ error: "Failed to delete concentration entry" });
     }
   });
 

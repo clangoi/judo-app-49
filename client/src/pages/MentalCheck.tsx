@@ -35,7 +35,8 @@ const MentalCheck = () => {
       title: "Concentración",
       description: "Evalúa tu capacidad de concentración y enfoque",
       icon: Brain,
-      action: "Test de Enfoque"
+      action: "Test de Enfoque",
+      path: "/concentracion"
     }
   ];
 
@@ -56,7 +57,7 @@ const MentalCheck = () => {
           </p>
           
           {/* Explanation cards */}
-          <div className="grid gap-3 md:grid-cols-3 mb-4">
+          <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4 mb-4">
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
               <div className="flex items-center gap-2 mb-1">
                 <Smile className="h-4 w-4 text-blue-600" />
@@ -89,10 +90,21 @@ const MentalCheck = () => {
                 Evalúa autoestima, propósito, conexiones y crecimiento
               </p>
             </div>
+            
+            <div className="bg-purple-50 border border-purple-200 rounded-lg p-3">
+              <div className="flex items-center gap-2 mb-1">
+                <Brain className="h-4 w-4 text-purple-600" />
+                <h3 className="text-sm font-medium text-purple-900">Concentración</h3>
+              </div>
+              <p className="text-xs text-purple-700">
+                <strong>¿Cómo está mi capacidad de enfoque?</strong><br/>
+                Evalúa concentración, claridad mental y técnicas
+              </p>
+            </div>
           </div>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-2">
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-2">
           {mentalHealthItems.map((item, index) => {
             const IconComponent = item.icon;
             return (

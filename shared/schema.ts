@@ -236,6 +236,26 @@ export const mentalWellnessEntries = pgTable("mental_wellness_entries", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+// Concentration entries table - Concentración
+export const concentrationEntries = pgTable("concentration_entries", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id").notNull().references(() => profiles.id, { onDelete: "cascade" }),
+  date: date("date").notNull(),
+  focusLevel: integer("focus_level").notNull(), // 1-10 scale (1 = muy distraído, 10 = muy concentrado)
+  attentionSpan: integer("attention_span").notNull(), // 1-10 scale (duración de la concentración)
+  mentalClarity: integer("mental_clarity").notNull(), // 1-10 scale (claridad mental)
+  distractionLevel: integer("distraction_level").notNull(), // 1-10 scale (1 = sin distracciones, 10 = muy distraído)
+  concentrationTechniques: text("concentration_techniques").array(), // Técnicas de concentración utilizadas
+  distractionSources: text("distraction_sources").array(), // Fuentes de distracción
+  taskCompleted: integer("task_completed"), // 1-10 qué tan bien completó las tareas
+  environment: text("environment"), // ambiente donde se concentró
+  timeOfDay: text("time_of_day"), // momento del día (mañana, tarde, noche)
+  exerciseDuration: integer("exercise_duration"), // minutos de ejercicio de concentración
+  notes: text("notes"), // Reflexiones adicionales
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 // Sistema de notificaciones
 export const notificationTypeEnum = pgEnum('notification_type', [
   'training_reminder', 
@@ -304,6 +324,7 @@ export const insertUserAchievementSchema = createInsertSchema(userAchievements);
 export const insertMoodEntrySchema = createInsertSchema(moodEntries);
 export const insertStressEntrySchema = createInsertSchema(stressEntries);
 export const insertMentalWellnessEntrySchema = createInsertSchema(mentalWellnessEntries);
+export const insertConcentrationEntrySchema = createInsertSchema(concentrationEntries);
 export const insertNotificationSchema = createInsertSchema(notifications);
 export const insertNotificationAlarmsSchema = createInsertSchema(notificationAlarms);
 export const insertNotificationSettingsSchema = createInsertSchema(notificationSettings);
@@ -339,6 +360,8 @@ export type StressEntry = typeof stressEntries.$inferSelect;
 export type InsertStressEntry = z.infer<typeof insertStressEntrySchema>;
 export type MentalWellnessEntry = typeof mentalWellnessEntries.$inferSelect;
 export type InsertMentalWellnessEntry = z.infer<typeof insertMentalWellnessEntrySchema>;
+export type ConcentrationEntry = typeof concentrationEntries.$inferSelect;
+export type InsertConcentrationEntry = z.infer<typeof insertConcentrationEntrySchema>;
 export type Notification = typeof notifications.$inferSelect;
 export type InsertNotification = z.infer<typeof insertNotificationSchema>;
 export type NotificationAlarm = typeof notificationAlarms.$inferSelect;
