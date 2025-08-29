@@ -2,7 +2,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Brain, Heart, Smile, Activity, Zap, Timer, TrendingUp, AlertTriangle, Wind } from "lucide-react";
+import { Brain, Heart, Smile, Activity, Zap, Timer, TrendingUp, AlertTriangle, Wind, Sparkles } from "lucide-react";
 import NavHeader from "@/components/NavHeader";
 
 const MentalCheck = () => {
@@ -88,7 +88,7 @@ const MentalCheck = () => {
             <p className="text-gray-400">Elige la opción que mejor se adapte a tu tiempo disponible</p>
           </div>
           
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 max-w-6xl mx-auto">
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 max-w-7xl mx-auto">
             {/* Check-in Rápido */}
             <Card 
               className="bg-gradient-to-br from-orange-50 to-yellow-50 hover:shadow-xl transition-all duration-300 cursor-pointer border-2 border-orange-200 hover:border-orange-300 transform hover:scale-105"
@@ -264,6 +264,134 @@ const MentalCheck = () => {
                 >
                   <AlertTriangle className="mr-2 h-4 w-4" />
                   Iniciar Manejo de Crisis
+                </Button>
+              </CardContent>
+            </Card>
+
+            {/* Técnicas de Respiración */}
+            <Card 
+              className="bg-gradient-to-br from-blue-50 to-cyan-50 hover:shadow-xl transition-all duration-300 cursor-pointer border-2 border-blue-200 hover:border-blue-300 transform hover:scale-105"
+              onClick={() => navigate('/tecnicas-respiracion')}
+            >
+              <CardHeader className="pb-4">
+                <div className="flex items-center gap-4">
+                  <div className="p-4 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-600 shadow-lg">
+                    <Wind className="h-8 w-8 text-white" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-[#1A1A1A] text-xl flex items-center gap-2">
+                      Técnicas de Respiración
+                      <div className="bg-blue-500 text-white text-xs px-2 py-1 rounded-full font-bold">
+                        💨 RESPIRA
+                      </div>
+                    </CardTitle>
+                    <div className="text-sm text-blue-600 font-medium mt-1">Ejercicios guiados de relajación</div>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <CardDescription className="text-[#575757] text-base leading-relaxed">
+                  Ejercicios de respiración guiados para reducir estrés, ansiedad y mejorar tu enfoque mental.
+                </CardDescription>
+                
+                <div className="bg-blue-100 border border-blue-200 p-3 rounded-lg">
+                  <h4 className="font-semibold text-blue-900 mb-2 text-sm flex items-center gap-1">
+                    <Wind className="h-4 w-4" />
+                    Técnicas incluidas:
+                  </h4>
+                  <div className="grid grid-cols-2 gap-2 text-xs text-blue-800">
+                    <div className="flex items-center gap-1">
+                      <Timer className="h-3 w-3" />
+                      <span>Respiración 4-7-8</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Brain className="h-3 w-3" />
+                      <span>Respiración de Caja</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Heart className="h-3 w-3" />
+                      <span>Respiración Abdominal</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Sparkles className="h-3 w-3" />
+                      <span>Respiración Alternada</span>
+                    </div>
+                  </div>
+                </div>
+                
+                <Button 
+                  className="w-full bg-gradient-to-r from-blue-500 to-cyan-600 hover:from-blue-600 hover:to-cyan-700 text-white font-semibold py-3 shadow-lg"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigate('/tecnicas-respiracion');
+                  }}
+                >
+                  <Wind className="mr-2 h-4 w-4" />
+                  Iniciar Respiración
+                </Button>
+              </CardContent>
+            </Card>
+
+            {/* Mindfulness Express */}
+            <Card 
+              className="bg-gradient-to-br from-purple-50 to-indigo-50 hover:shadow-xl transition-all duration-300 cursor-pointer border-2 border-purple-200 hover:border-purple-300 transform hover:scale-105"
+              onClick={() => navigate('/mindfulness-express')}
+            >
+              <CardHeader className="pb-4">
+                <div className="flex items-center gap-4">
+                  <div className="p-4 rounded-xl bg-gradient-to-br from-purple-500 to-indigo-600 shadow-lg">
+                    <Brain className="h-8 w-8 text-white" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-[#1A1A1A] text-xl flex items-center gap-2">
+                      Mindfulness Express
+                      <div className="bg-purple-500 text-white text-xs px-2 py-1 rounded-full font-bold">
+                        🧘 ZEN
+                      </div>
+                    </CardTitle>
+                    <div className="text-sm text-purple-600 font-medium mt-1">Meditaciones de 2-5 minutos</div>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <CardDescription className="text-[#575757] text-base leading-relaxed">
+                  Meditaciones cortas y guiadas perfectas para cualquier momento del día. Cultiva calma y presencia.
+                </CardDescription>
+                
+                <div className="bg-purple-100 border border-purple-200 p-3 rounded-lg">
+                  <h4 className="font-semibold text-purple-900 mb-2 text-sm flex items-center gap-1">
+                    <Brain className="h-4 w-4" />
+                    Meditaciones incluidas:
+                  </h4>
+                  <div className="grid grid-cols-2 gap-2 text-xs text-purple-800">
+                    <div className="flex items-center gap-1">
+                      <Activity className="h-3 w-3" />
+                      <span>Escaneo Corporal</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Wind className="h-3 w-3" />
+                      <span>Atención Respiración</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Heart className="h-3 w-3" />
+                      <span>Bondad Amorosa</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Smile className="h-3 w-3" />
+                      <span>Gratitud Profunda</span>
+                    </div>
+                  </div>
+                </div>
+                
+                <Button 
+                  className="w-full bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white font-semibold py-3 shadow-lg"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigate('/mindfulness-express');
+                  }}
+                >
+                  <Brain className="mr-2 h-4 w-4" />
+                  Iniciar Meditación
                 </Button>
               </CardContent>
             </Card>

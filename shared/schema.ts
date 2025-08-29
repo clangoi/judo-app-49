@@ -382,6 +382,77 @@ export const notificationTypeEnum = pgEnum('notification_type', [
   'general'
 ]);
 
+// Breathing technique sessions table - Sesiones de técnicas de respiración
+export const breathingTechniqueSessions = pgTable("breathing_technique_sessions", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id").notNull().references(() => profiles.id, { onDelete: "cascade" }),
+  timestamp: timestamp("timestamp").defaultNow().notNull(),
+  
+  // Tipo de técnica y duración
+  techniqueType: text("technique_type").notNull(), // 4-7-8, box_breathing, deep_belly, alternate_nostril
+  durationMinutes: integer("duration_minutes").notNull(), // duración real de la sesión
+  cycles: integer("cycles"), // número de ciclos completados
+  
+  // Evaluación antes y después
+  stressLevelBefore: integer("stress_level_before").notNull(), // 1-10
+  anxietyLevelBefore: integer("anxiety_level_before").notNull(), // 1-10
+  energyLevelBefore: integer("energy_level_before").notNull(), // 1-10
+  
+  stressLevelAfter: integer("stress_level_after").notNull(), // 1-10
+  anxietyLevelAfter: integer("anxiety_level_after").notNull(), // 1-10
+  energyLevelAfter: integer("energy_level_after").notNull(), // 1-10
+  
+  // Efectividad y contexto
+  overallEffectiveness: integer("overall_effectiveness").notNull(), // 1-5
+  context: text("context"), // dónde y por qué hizo la sesión
+  notes: text("notes"), // observaciones adicionales
+  
+  // Metadatos para análisis
+  timeOfDay: text("time_of_day").notNull(), // morning, afternoon, evening, night
+  dayOfWeek: text("day_of_week").notNull(), // monday, tuesday, etc.
+  
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Mindfulness sessions table - Sesiones de mindfulness y meditaciones cortas
+export const mindfulnessSessions = pgTable("mindfulness_sessions", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id").notNull().references(() => profiles.id, { onDelete: "cascade" }),
+  timestamp: timestamp("timestamp").defaultNow().notNull(),
+  
+  // Tipo de meditación y duración
+  sessionType: text("session_type").notNull(), // body_scan, breath_awareness, loving_kindness, walking_meditation, gratitude
+  durationMinutes: integer("duration_minutes").notNull(), // 2, 3, 5 minutos típicamente
+  guidance: text("guidance").notNull(), // guided o self_guided
+  
+  // Evaluación antes y después
+  stressLevelBefore: integer("stress_level_before").notNull(), // 1-10
+  focusLevelBefore: integer("focus_level_before").notNull(), // 1-10
+  moodLevelBefore: integer("mood_level_before").notNull(), // 1-10 (sad to happy)
+  
+  stressLevelAfter: integer("stress_level_after").notNull(), // 1-10
+  focusLevelAfter: integer("focus_level_after").notNull(), // 1-10
+  moodLevelAfter: integer("mood_level_after").notNull(), // 1-10
+  
+  // Experiencia de la sesión
+  clarityLevel: integer("clarity_level").notNull(), // 1-5, qué tan clara se sintió la mente
+  calmLevel: integer("calm_level").notNull(), // 1-5, nivel de calma alcanzado
+  presenceLevel: integer("presence_level").notNull(), // 1-5, qué tan presente se sintió
+  overallSatisfaction: integer("overall_satisfaction").notNull(), // 1-5
+  
+  // Contexto y reflexiones
+  intention: text("intention"), // intención con la que empezó
+  insights: text("insights"), // insights o pensamientos que surgieron
+  challenges: text("challenges"), // dificultades durante la práctica
+  location: text("location"), // dónde practicó
+  
+  // Metadatos para análisis
+  timeOfDay: text("time_of_day").notNull(), // morning, afternoon, evening, night
+  dayOfWeek: text("day_of_week").notNull(), // monday, tuesday, etc.
+  
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 export const notifications = pgTable("notifications", {
   id: uuid("id").primaryKey().defaultRandom(),
   userId: uuid("user_id").notNull().references(() => profiles.id, { onDelete: "cascade" }),
@@ -444,6 +515,8 @@ export const insertConcentrationEntrySchema = createInsertSchema(concentrationEn
 export const insertDeepAssessmentEntrySchema = createInsertSchema(deepAssessmentEntries);
 export const insertQuickCheckInEntrySchema = createInsertSchema(quickCheckInEntries);
 export const insertCrisisManagementSessionSchema = createInsertSchema(crisisManagementSessions);
+export const insertBreathingTechniqueSessionSchema = createInsertSchema(breathingTechniqueSessions);
+export const insertMindfulnessSessionSchema = createInsertSchema(mindfulnessSessions);
 export const insertNotificationSchema = createInsertSchema(notifications);
 export const insertNotificationAlarmsSchema = createInsertSchema(notificationAlarms);
 export const insertNotificationSettingsSchema = createInsertSchema(notificationSettings);
@@ -487,6 +560,10 @@ export type QuickCheckInEntry = typeof quickCheckInEntries.$inferSelect;
 export type InsertQuickCheckInEntry = z.infer<typeof insertQuickCheckInEntrySchema>;
 export type CrisisManagementSession = typeof crisisManagementSessions.$inferSelect;
 export type InsertCrisisManagementSession = z.infer<typeof insertCrisisManagementSessionSchema>;
+export type BreathingTechniqueSession = typeof breathingTechniqueSessions.$inferSelect;
+export type InsertBreathingTechniqueSession = z.infer<typeof insertBreathingTechniqueSessionSchema>;
+export type MindfulnessSession = typeof mindfulnessSessions.$inferSelect;
+export type InsertMindfulnessSession = z.infer<typeof insertMindfulnessSessionSchema>;
 export type Notification = typeof notifications.$inferSelect;
 export type InsertNotification = z.infer<typeof insertNotificationSchema>;
 export type NotificationAlarm = typeof notificationAlarms.$inferSelect;

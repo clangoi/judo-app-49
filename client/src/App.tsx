@@ -17,6 +17,8 @@ import Concentracion from "./pages/Concentracion";
 import EvaluacionProfunda from "./pages/EvaluacionProfunda";
 import CheckinRapido from "./pages/CheckinRapido";
 import ManejoCrisis from "./pages/ManejoCrisis";
+import TecnicasRespiracion from "./pages/TecnicasRespiracion";
+import MindfulnessExpress from "./pages/MindfulnessExpress";
 import SesionesPreparacion from "./pages/SesionesPreparacion";
 import EntrenamientosJudo from "./pages/EntrenamientosJudo";
 import TecnicasJudo from "./pages/TecnicasJudo";
@@ -89,6 +91,16 @@ const App = () => (
               <Route path="/manejo-crisis" element={
                 <AuthGuard>
                   <ManejoCrisis />
+                </AuthGuard>
+              } />
+              <Route path="/tecnicas-respiracion" element={
+                <AuthGuard>
+                  <TecnicasRespiracion />
+                </AuthGuard>
+              } />
+              <Route path="/mindfulness-express" element={
+                <AuthGuard>
+                  <MindfulnessExpress />
                 </AuthGuard>
               } />
               <Route path="/sesiones-preparacion" element={
