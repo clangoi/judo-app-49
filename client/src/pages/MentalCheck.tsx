@@ -26,9 +26,10 @@ const MentalCheck = () => {
     },
     {
       title: "Bienestar Mental",
-      description: "Evalúa tu bienestar psicológico general",
+      description: "Evalúa tu bienestar psicológico integral: autoestima, propósito, conexión social",
       icon: Heart,
-      action: "Autoevaluación"
+      action: "Autoevaluación",
+      path: "/bienestar-mental"
     },
     {
       title: "Concentración",
@@ -55,7 +56,7 @@ const MentalCheck = () => {
           </p>
           
           {/* Explanation cards */}
-          <div className="grid gap-3 md:grid-cols-2 mb-4">
+          <div className="grid gap-3 md:grid-cols-3 mb-4">
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
               <div className="flex items-center gap-2 mb-1">
                 <Smile className="h-4 w-4 text-blue-600" />
@@ -75,6 +76,17 @@ const MentalCheck = () => {
               <p className="text-xs text-orange-700">
                 <strong>¿Qué me estresa y cómo lo manejo?</strong><br/>
                 Identifica causas del estrés y mejora tus estrategias
+              </p>
+            </div>
+            
+            <div className="bg-pink-50 border border-pink-200 rounded-lg p-3">
+              <div className="flex items-center gap-2 mb-1">
+                <Heart className="h-4 w-4 text-pink-600" />
+                <h3 className="text-sm font-medium text-pink-900">Bienestar Mental</h3>
+              </div>
+              <p className="text-xs text-pink-700">
+                <strong>¿Cómo está mi salud psicológica integral?</strong><br/>
+                Evalúa autoestima, propósito, conexiones y crecimiento
               </p>
             </div>
           </div>

@@ -11,7 +11,7 @@ import {
   insertJudoTrainingSessionSchema, insertSportsTrainingSessionSchema, insertExerciseSchema, insertExerciseRecordSchema, 
   insertWeightEntrySchema, insertNutritionEntrySchema, insertTechniqueSchema, 
   insertTacticalNoteSchema, insertRandoriSessionSchema, insertAchievementBadgeSchema, 
-  insertUserAchievementSchema, insertMoodEntrySchema, stressEntries, insertStressEntrySchema
+  insertUserAchievementSchema, insertMoodEntrySchema, stressEntries, insertStressEntrySchema, mentalWellnessEntries, insertMentalWellnessEntrySchema
 } from "@shared/schema";
 import { eq, and, desc, sql, isNull, gte, lte } from "drizzle-orm";
 
@@ -894,6 +894,78 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error deleting stress entry:", error);
       res.status(500).json({ error: "Failed to delete stress entry" });
+    }
+  });
+
+  // Mental Wellness Entries API Routes
+  app.get("/api/mental-wellness-entries", async (req, res) => {
+    try {
+      const userId = req.query.user_id as string;
+      let query = db.select().from(mentalWellnessEntries);
+      
+      if (userId) {
+        query = query.where(eq(mentalWellnessEntries.userId, userId));
+      }
+      
+      const result = await query.orderBy(desc(mentalWellnessEntries.date));
+      res.json(result);
+    } catch (error) {
+      console.error("Error fetching mental wellness entries:", error);
+      res.status(500).json({ error: "Failed to fetch mental wellness entries" });
+    }
+  });
+
+  app.post("/api/mental-wellness-entries", async (req, res) => {
+    try {
+      const validated = insertMentalWellnessEntrySchema.parse(req.body);
+      const result = await db.insert(mentalWellnessEntries).values(validated).returning();
+      res.json(result[0]);
+    } catch (error) {
+      console.error("Error creating mental wellness entry:", error);
+      res.status(400).json({ error: "Invalid mental wellness entry data" });
+    }
+  });
+
+  app.get("/api/mental-wellness-entries/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const result = await db.select().from(mentalWellnessEntries).where(eq(mentalWellnessEntries.id, id)).limit(1);
+      if (result.length === 0) {
+        return res.status(404).json({ error: "Mental wellness entry not found" });
+      }
+      res.json(result[0]);
+    } catch (error) {
+      console.error("Error fetching mental wellness entry:", error);
+      res.status(500).json({ error: "Failed to fetch mental wellness entry" });
+    }
+  });
+
+  app.patch("/api/mental-wellness-entries/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const validated = insertMentalWellnessEntrySchema.partial().parse(req.body);
+      const result = await db.update(mentalWellnessEntries).set(validated).where(eq(mentalWellnessEntries.id, id)).returning();
+      if (result.length === 0) {
+        return res.status(404).json({ error: "Mental wellness entry not found" });
+      }
+      res.json(result[0]);
+    } catch (error) {
+      console.error("Error updating mental wellness entry:", error);
+      res.status(400).json({ error: "Failed to update mental wellness entry" });
+    }
+  });
+
+  app.delete("/api/mental-wellness-entries/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const result = await db.delete(mentalWellnessEntries).where(eq(mentalWellnessEntries.id, id)).returning();
+      if (result.length === 0) {
+        return res.status(404).json({ error: "Mental wellness entry not found" });
+      }
+      res.json({ message: "Mental wellness entry deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting mental wellness entry:", error);
+      res.status(500).json({ error: "Failed to delete mental wellness entry" });
     }
   });
 

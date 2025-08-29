@@ -216,6 +216,26 @@ export const stressEntries = pgTable("stress_entries", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+// Mental wellness entries table - Bienestar mental
+export const mentalWellnessEntries = pgTable("mental_wellness_entries", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id").notNull().references(() => profiles.id, { onDelete: "cascade" }),
+  date: date("date").notNull(),
+  overallWellness: integer("overall_wellness").notNull(), // 1-10 scale
+  lifesatisfaction: integer("life_satisfaction").notNull(), // 1-10 scale
+  selfEsteem: integer("self_esteem").notNull(), // 1-10 scale
+  socialConnection: integer("social_connection").notNull(), // 1-10 scale
+  purposeMeaning: integer("purpose_meaning").notNull(), // 1-10 scale
+  emotionalRegulation: integer("emotional_regulation").notNull(), // 1-10 scale
+  anxietyLevel: integer("anxiety_level").notNull(), // 1-10 scale (1 = nada ansioso, 10 = muy ansioso)
+  positiveThoughts: text("positive_thoughts").array(), // Pensamientos positivos del día
+  challengesOvercome: text("challenges_overcome").array(), // Desafíos superados
+  gratitudeItems: text("gratitude_items").array(), // Cosas por las que está agradecido
+  notes: text("notes"), // Reflexiones adicionales
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 // Sistema de notificaciones
 export const notificationTypeEnum = pgEnum('notification_type', [
   'training_reminder', 
@@ -283,6 +303,7 @@ export const insertAchievementBadgeSchema = createInsertSchema(achievementBadges
 export const insertUserAchievementSchema = createInsertSchema(userAchievements);
 export const insertMoodEntrySchema = createInsertSchema(moodEntries);
 export const insertStressEntrySchema = createInsertSchema(stressEntries);
+export const insertMentalWellnessEntrySchema = createInsertSchema(mentalWellnessEntries);
 export const insertNotificationSchema = createInsertSchema(notifications);
 export const insertNotificationAlarmsSchema = createInsertSchema(notificationAlarms);
 export const insertNotificationSettingsSchema = createInsertSchema(notificationSettings);
@@ -316,6 +337,8 @@ export type MoodEntry = typeof moodEntries.$inferSelect;
 export type InsertMoodEntry = z.infer<typeof insertMoodEntrySchema>;
 export type StressEntry = typeof stressEntries.$inferSelect;
 export type InsertStressEntry = z.infer<typeof insertStressEntrySchema>;
+export type MentalWellnessEntry = typeof mentalWellnessEntries.$inferSelect;
+export type InsertMentalWellnessEntry = z.infer<typeof insertMentalWellnessEntrySchema>;
 export type Notification = typeof notifications.$inferSelect;
 export type InsertNotification = z.infer<typeof insertNotificationSchema>;
 export type NotificationAlarm = typeof notificationAlarms.$inferSelect;
