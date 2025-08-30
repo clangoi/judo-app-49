@@ -277,7 +277,7 @@ const EvaluacionProfunda = () => {
           ) : (
             <Card>
               <CardHeader>
-                <CardTitle className="text-[#1A1A1A] flex items-center gap-2">
+                <CardTitle className="text-foreground flex items-center gap-2">
                   <Calendar className="h-5 w-5" />
                   Evaluación Profunda del Día
                 </CardTitle>
@@ -302,7 +302,7 @@ const EvaluacionProfunda = () => {
         {isFormOpen && (
           <Card>
             <CardHeader>
-              <CardTitle className="text-[#1A1A1A] flex items-center gap-2">
+              <CardTitle className="text-foreground flex items-center gap-2">
                 <Target className="h-5 w-5" />
                 Evaluación Profunda - Sección {currentSection} de 5
               </CardTitle>
@@ -805,7 +805,7 @@ const EvaluacionProfunda = () => {
         {/* Historial */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-[#1A1A1A] flex items-center gap-2">
+            <CardTitle className="text-foreground flex items-center gap-2">
               <TrendingUp className="h-5 w-5" />
               Historial de Evaluaciones Profundas
             </CardTitle>

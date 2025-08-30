@@ -400,14 +400,14 @@ const Graficos = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#1A1A1A] flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-[#C5A46C]" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#1A1A1A]">
+    <div className="min-h-screen bg-background">
       <NavHeader 
         title="Gráficos y Progreso" 
         subtitle="Visualiza tu evolución en el tiempo"
@@ -416,14 +416,14 @@ const Graficos = () => {
       <div className="max-w-6xl mx-auto p-4 space-y-6">
         {/* Selector de Sección */}
         <div className="flex justify-center mb-6">
-          <div className="bg-white p-1 rounded-lg border border-[#C5A46C] shadow-sm">
+          <div className="bg-white p-1 rounded-lg border border-primary shadow-sm">
             <div className="flex">
               <button
                 onClick={() => setActiveSection('sport')}
                 className={`px-6 py-3 rounded-md font-medium transition-all duration-200 flex items-center gap-2 ${
                   activeSection === 'sport'
                     ? 'bg-[#C5A46C] text-white shadow-md'
-                    : 'text-[#1A1A1A] hover:bg-gray-50'
+                    : 'text-foreground hover:bg-gray-50'
                 }`}
               >
                 <Target className="h-4 w-4" />
@@ -434,7 +434,7 @@ const Graficos = () => {
                 className={`px-6 py-3 rounded-md font-medium transition-all duration-200 flex items-center gap-2 ${
                   activeSection === 'mental'
                     ? 'bg-[#C5A46C] text-white shadow-md'
-                    : 'text-[#1A1A1A] hover:bg-gray-50'
+                    : 'text-foreground hover:bg-gray-50'
                 }`}
               >
                 <Brain className="h-4 w-4" />
@@ -449,48 +449,48 @@ const Graficos = () => {
           <>
             {/* Estadísticas Deportivas */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-              <Card className="bg-white border-[#C5A46C]">
+              <Card className="bg-white border-primary">
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm text-[#575757]">Preparación Física</p>
-                      <p className="text-2xl font-bold text-[#1A1A1A]">{progressSummary.physicalTraining || 0}</p>
+                      <p className="text-sm text-muted-foreground">Preparación Física</p>
+                      <p className="text-2xl font-bold text-foreground">{progressSummary.physicalTraining || 0}</p>
                     </div>
                     <Activity className="h-8 w-8 text-[#C5A46C]" />
                   </div>
                 </CardContent>
               </Card>
               
-              <Card className="bg-white border-[#C5A46C]">
+              <Card className="bg-white border-primary">
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm text-[#575757]">Entrenamientos Deportivo</p>
-                      <p className="text-2xl font-bold text-[#1A1A1A]">{progressSummary.deportivoTraining || 0}</p>
+                      <p className="text-sm text-muted-foreground">Entrenamientos Deportivo</p>
+                      <p className="text-2xl font-bold text-foreground">{progressSummary.deportivoTraining || 0}</p>
                     </div>
                     <Target className="h-8 w-8 text-[#C5A46C]" />
                   </div>
                 </CardContent>
               </Card>
               
-              <Card className="bg-white border-[#C5A46C]">
+              <Card className="bg-white border-primary">
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm text-[#575757]">Técnicas</p>
-                      <p className="text-2xl font-bold text-[#1A1A1A]">{progressSummary.techniques || 0}</p>
+                      <p className="text-sm text-muted-foreground">Técnicas</p>
+                      <p className="text-2xl font-bold text-foreground">{progressSummary.techniques || 0}</p>
                     </div>
                     <TrendingUp className="h-8 w-8 text-[#C5A46C]" />
                   </div>
                 </CardContent>
               </Card>
               
-              <Card className="bg-white border-[#C5A46C]">
+              <Card className="bg-white border-primary">
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm text-[#575757]">Notas Tácticas</p>
-                      <p className="text-2xl font-bold text-[#1A1A1A]">{progressSummary.tacticalNotes || 0}</p>
+                      <p className="text-sm text-muted-foreground">Notas Tácticas</p>
+                      <p className="text-2xl font-bold text-foreground">{progressSummary.tacticalNotes || 0}</p>
                     </div>
                     <Target className="h-8 w-8 text-[#C5A46C]" />
                   </div>
@@ -505,49 +505,49 @@ const Graficos = () => {
           <>
             {/* Estadísticas Mentales */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-              <Card className="bg-white border-[#C5A46C]">
+              <Card className="bg-white border-primary">
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm text-[#575757]">Estado de Ánimo Prom.</p>
-                      <p className="text-2xl font-bold text-[#1A1A1A]">{mentalSummary.avgMood}/5</p>
+                      <p className="text-sm text-muted-foreground">Estado de Ánimo Prom.</p>
+                      <p className="text-2xl font-bold text-foreground">{mentalSummary.avgMood}/5</p>
                     </div>
                     <Smile className="h-8 w-8 text-blue-500" />
                   </div>
                 </CardContent>
               </Card>
               
-              <Card className="bg-white border-[#C5A46C]">
+              <Card className="bg-white border-primary">
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm text-[#575757]">Concentración Prom.</p>
-                      <p className="text-2xl font-bold text-[#1A1A1A]">{mentalSummary.avgFocus}/10</p>
+                      <p className="text-sm text-muted-foreground">Concentración Prom.</p>
+                      <p className="text-2xl font-bold text-foreground">{mentalSummary.avgFocus}/10</p>
                     </div>
                     <Brain className="h-8 w-8 text-purple-500" />
                   </div>
                 </CardContent>
               </Card>
               
-              <Card className="bg-white border-[#C5A46C]">
+              <Card className="bg-white border-primary">
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm text-[#575757]">Bienestar Prom.</p>
-                      <p className="text-2xl font-bold text-[#1A1A1A]">{mentalSummary.avgWellness}/10</p>
+                      <p className="text-sm text-muted-foreground">Bienestar Prom.</p>
+                      <p className="text-2xl font-bold text-foreground">{mentalSummary.avgWellness}/10</p>
                     </div>
                     <Heart className="h-8 w-8 text-pink-500" />
                   </div>
                 </CardContent>
               </Card>
               
-              <Card className="bg-white border-[#C5A46C]">
+              <Card className="bg-white border-primary">
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm text-[#575757]">Registros Totales</p>
-                      <p className="text-2xl font-bold text-[#1A1A1A]">{mentalSummary.totalEvaluations}</p>
-                      <div className="flex text-xs text-[#575757] mt-1 gap-2">
+                      <p className="text-sm text-muted-foreground">Registros Totales</p>
+                      <p className="text-2xl font-bold text-foreground">{mentalSummary.totalEvaluations}</p>
+                      <div className="flex text-xs text-muted-foreground mt-1 gap-2">
                         <span>{mentalSummary.totalDeepAssessments} profundas</span>
                         <span>•</span>
                         <span>{mentalSummary.totalQuickCheckIns} rápidas</span>
@@ -561,11 +561,11 @@ const Graficos = () => {
 
             {/* Gráfico de Tendencias Mentales */}
             <Collapsible open={!collapsedCharts.mentalTrends} onOpenChange={() => toggleChart('mentalTrends')}>
-              <Card className="bg-white border-[#C5A46C]">
+              <Card className="bg-white border-primary">
                 <CardHeader>
                   <CollapsibleTrigger asChild>
                     <Button variant="ghost" className="w-full p-0 h-auto justify-between hover:bg-transparent">
-                      <CardTitle className="text-[#1A1A1A] flex items-center">
+                      <CardTitle className="text-foreground flex items-center">
                         <Brain className="mr-2 h-5 w-5 text-[#C5A46C]" />
                         Tendencias de Bienestar Mental (Últimos 30 días)
                       </CardTitle>
@@ -617,7 +617,7 @@ const Graficos = () => {
                         </LineChart>
                       </ResponsiveContainer>
                     ) : (
-                      <div className="text-center py-8 text-[#575757]">
+                      <div className="text-center py-8 text-muted-foreground">
                         No hay datos de evaluaciones mentales suficientes para mostrar tendencias
                       </div>
                     )}
@@ -628,9 +628,9 @@ const Graficos = () => {
 
             {/* Distribución de Bienestar Mental */}
             {mentalDistribution.length > 0 && (
-              <Card className="bg-white border-[#C5A46C]">
+              <Card className="bg-white border-primary">
                 <CardHeader>
-                  <CardTitle className="text-[#1A1A1A] flex items-center">
+                  <CardTitle className="text-foreground flex items-center">
                     <Heart className="mr-2 h-5 w-5 text-[#C5A46C]" />
                     Distribución de Niveles de Bienestar
                   </CardTitle>
@@ -661,11 +661,11 @@ const Graficos = () => {
             {/* 1. Gráfico de Factores Protectores (Radar) */}
             {protectiveFactorsData.length > 0 && (
               <Collapsible open={!collapsedCharts.protectiveFactors} onOpenChange={() => toggleChart('protectiveFactors')}>
-                <Card className="bg-white border-[#C5A46C]">
+                <Card className="bg-white border-primary">
                   <CardHeader>
                     <CollapsibleTrigger asChild>
                       <Button variant="ghost" className="w-full p-0 h-auto justify-between hover:bg-transparent">
-                        <CardTitle className="text-[#1A1A1A] flex items-center">
+                        <CardTitle className="text-foreground flex items-center">
                           <Shield className="mr-2 h-5 w-5 text-[#C5A46C]" />
                           Factores Protectores Promedio (Últimas 7 entradas)
                         </CardTitle>
@@ -703,11 +703,11 @@ const Graficos = () => {
             {/* 2. Correlación Estado de Ánimo vs Factores */}
             {correlationData.length > 0 && (
               <Collapsible open={!collapsedCharts.correlations} onOpenChange={() => toggleChart('correlations')}>
-                <Card className="bg-white border-[#C5A46C]">
+                <Card className="bg-white border-primary">
                   <CardHeader>
                     <CollapsibleTrigger asChild>
                       <Button variant="ghost" className="w-full p-0 h-auto justify-between hover:bg-transparent">
-                        <CardTitle className="text-[#1A1A1A] flex items-center">
+                        <CardTitle className="text-foreground flex items-center">
                           <BarChart3 className="mr-2 h-5 w-5 text-[#C5A46C]" />
                           Correlación: Estado de Ánimo vs Factores Protectores
                         </CardTitle>
@@ -749,11 +749,11 @@ const Graficos = () => {
             {/* 3. Patrones por Día de la Semana */}
             {weeklyPatternsData.length > 0 && (
               <Collapsible open={!collapsedCharts.weeklyPatterns} onOpenChange={() => toggleChart('weeklyPatterns')}>
-                <Card className="bg-white border-[#C5A46C]">
+                <Card className="bg-white border-primary">
                   <CardHeader>
                     <CollapsibleTrigger asChild>
                       <Button variant="ghost" className="w-full p-0 h-auto justify-between hover:bg-transparent">
-                        <CardTitle className="text-[#1A1A1A] flex items-center">
+                        <CardTitle className="text-foreground flex items-center">
                           <Calendar className="mr-2 h-5 w-5 text-[#C5A46C]" />
                           Patrones de Bienestar por Día de la Semana
                         </CardTitle>
@@ -784,11 +784,11 @@ const Graficos = () => {
             {/* 4. Patrones por Hora del Día */}
             {dailyPatternsData.length > 0 && (
               <Collapsible open={!collapsedCharts.dailyPatterns} onOpenChange={() => toggleChart('dailyPatterns')}>
-                <Card className="bg-white border-[#C5A46C]">
+                <Card className="bg-white border-primary">
                   <CardHeader>
                     <CollapsibleTrigger asChild>
                       <Button variant="ghost" className="w-full p-0 h-auto justify-between hover:bg-transparent">
-                        <CardTitle className="text-[#1A1A1A] flex items-center">
+                        <CardTitle className="text-foreground flex items-center">
                           <Clock className="mr-2 h-5 w-5 text-[#C5A46C]" />
                           Patrones de Estado de Ánimo por Momento del Día
                         </CardTitle>
@@ -819,11 +819,11 @@ const Graficos = () => {
             {/* 5. Heatmap de Streaks/Rachas */}
             {streaksData.length > 0 && (
               <Collapsible open={!collapsedCharts.streaks} onOpenChange={() => toggleChart('streaks')}>
-                <Card className="bg-white border-[#C5A46C]">
+                <Card className="bg-white border-primary">
                   <CardHeader>
                     <CollapsibleTrigger asChild>
                       <Button variant="ghost" className="w-full p-0 h-auto justify-between hover:bg-transparent">
-                        <CardTitle className="text-[#1A1A1A] flex items-center">
+                        <CardTitle className="text-foreground flex items-center">
                           <Calendar className="mr-2 h-5 w-5 text-[#C5A46C]" />
                           Calendario de Bienestar (Últimos 30 días)
                         </CardTitle>
@@ -879,11 +879,11 @@ const Graficos = () => {
             {/* 6. Análisis de Crisis/Alertas */}
             {crisisData.length > 0 && (
               <Collapsible open={!collapsedCharts.crisis} onOpenChange={() => toggleChart('crisis')}>
-                <Card className="bg-white border-[#C5A46C]">
+                <Card className="bg-white border-primary">
                   <CardHeader>
                     <CollapsibleTrigger asChild>
                       <Button variant="ghost" className="w-full p-0 h-auto justify-between hover:bg-transparent">
-                        <CardTitle className="text-[#1A1A1A] flex items-center">
+                        <CardTitle className="text-foreground flex items-center">
                           <AlertTriangle className="mr-2 h-5 w-5 text-[#C5A46C]" />
                           Análisis de Momentos Críticos
                         </CardTitle>
@@ -934,11 +934,11 @@ const Graficos = () => {
 
         {/* Gráfico de Peso */}
         <Collapsible open={!collapsedCharts.weight} onOpenChange={() => toggleChart('weight')}>
-          <Card className="bg-white border-[#C5A46C]">
+          <Card className="bg-white border-primary">
             <CardHeader>
               <CollapsibleTrigger asChild>
                 <Button variant="ghost" className="w-full p-0 h-auto justify-between hover:bg-transparent">
-                  <CardTitle className="text-[#1A1A1A] flex items-center">
+                  <CardTitle className="text-foreground flex items-center">
                     <TrendingUp className="mr-2 h-5 w-5 text-[#C5A46C]" />
                     Evolución del Peso
                   </CardTitle>
@@ -969,7 +969,7 @@ const Graficos = () => {
                     </LineChart>
                   </ResponsiveContainer>
                 ) : (
-                  <div className="text-center py-8 text-[#575757]">
+                  <div className="text-center py-8 text-muted-foreground">
                     No hay datos de peso suficientes para mostrar el gráfico
                   </div>
                 )}
@@ -980,11 +980,11 @@ const Graficos = () => {
 
         {/* Gráfico de Progresión de Ejercicios */}
         <Collapsible open={!collapsedCharts.exercise} onOpenChange={() => toggleChart('exercise')}>
-          <Card className="bg-white border-[#C5A46C]">
+          <Card className="bg-white border-primary">
             <CardHeader>
               <CollapsibleTrigger asChild>
                 <Button variant="ghost" className="w-full p-0 h-auto justify-between hover:bg-transparent">
-                  <CardTitle className="text-[#1A1A1A] flex items-center">
+                  <CardTitle className="text-foreground flex items-center">
                     <Activity className="mr-2 h-5 w-5 text-[#C5A46C]" />
                     Progresión de Ejercicios
                   </CardTitle>
@@ -1043,7 +1043,7 @@ const Graficos = () => {
                     </LineChart>
                   </ResponsiveContainer>
                 ) : (
-                  <div className="text-center py-8 text-[#575757]">
+                  <div className="text-center py-8 text-muted-foreground">
                     {selectedExercise ? 'No hay datos de progresión para este ejercicio' : 'Selecciona un ejercicio para ver su progresión'}
                   </div>
                 )}
@@ -1054,11 +1054,11 @@ const Graficos = () => {
 
         {/* Gráfico de Nutrición */}
         <Collapsible open={!collapsedCharts.nutrition} onOpenChange={() => toggleChart('nutrition')}>
-          <Card className="bg-white border-[#C5A46C]">
+          <Card className="bg-white border-primary">
             <CardHeader>
               <CollapsibleTrigger asChild>
                 <Button variant="ghost" className="w-full p-0 h-auto justify-between hover:bg-transparent">
-                  <CardTitle className="text-[#1A1A1A] flex items-center">
+                  <CardTitle className="text-foreground flex items-center">
                     <Target className="mr-2 h-5 w-5 text-[#C5A46C]" />
                     Evolución Nutricional
                   </CardTitle>
@@ -1086,7 +1086,7 @@ const Graficos = () => {
                     </LineChart>
                   </ResponsiveContainer>
                 ) : (
-                  <div className="text-center py-8 text-[#575757]">
+                  <div className="text-center py-8 text-muted-foreground">
                     No hay datos nutricionales suficientes para mostrar el gráfico
                   </div>
                 )}
@@ -1097,11 +1097,11 @@ const Graficos = () => {
 
         {/* Distribución de Actividades */}
         <Collapsible open={!collapsedCharts.activity} onOpenChange={() => toggleChart('activity')}>
-          <Card className="bg-white border-[#C5A46C]">
+          <Card className="bg-white border-primary">
             <CardHeader>
               <CollapsibleTrigger asChild>
                 <Button variant="ghost" className="w-full p-0 h-auto justify-between hover:bg-transparent">
-                  <CardTitle className="text-[#1A1A1A] flex items-center">
+                  <CardTitle className="text-foreground flex items-center">
                     <Activity className="mr-2 h-5 w-5 text-[#C5A46C]" />
                     Distribución de Actividades
                   </CardTitle>
@@ -1135,7 +1135,7 @@ const Graficos = () => {
                     </PieChart>
                   </ResponsiveContainer>
                 ) : (
-                  <div className="text-center py-8 text-[#575757]">
+                  <div className="text-center py-8 text-muted-foreground">
                     No hay datos de actividades suficientes para mostrar el gráfico
                   </div>
                 )}

@@ -299,7 +299,7 @@ export default function ManejoCrisis() {
   // Renderizado por fase
   if (currentPhase === 'assessment') {
     return (
-      <div className="min-h-screen bg-[#1A1A1A]">
+      <div className="min-h-screen bg-background">
         <NavHeader 
           title="🚨 Manejo de Crisis" 
           subtitle="Herramientas para momentos de alta ansiedad"
@@ -308,11 +308,11 @@ export default function ManejoCrisis() {
         <div className="max-w-2xl mx-auto p-4 space-y-6">
           <Card className="bg-gradient-to-br from-red-50 to-orange-50 border-2 border-red-200">
             <CardHeader>
-              <CardTitle className="text-[#1A1A1A] flex items-center gap-2">
+              <CardTitle className="text-foreground flex items-center gap-2">
                 <AlertTriangle className="h-6 w-6 text-red-600" />
                 Evaluación Inicial
               </CardTitle>
-              <p className="text-[#575757]">
+              <p className="text-muted-foreground">
                 Primero, evalúa cómo te sientes en este momento. No hay respuestas correctas o incorrectas.
               </p>
             </CardHeader>
@@ -436,7 +436,7 @@ export default function ManejoCrisis() {
       const technique = CRISIS_TECHNIQUES.find(t => t.id === activeTechnique);
       
       return (
-        <div className="min-h-screen bg-[#1A1A1A]">
+        <div className="min-h-screen bg-background">
           <NavHeader 
             title={`🚨 ${technique?.name}`} 
             subtitle="Sigue las instrucciones paso a paso"
@@ -511,17 +511,17 @@ export default function ManejoCrisis() {
     }
 
     return (
-      <div className="min-h-screen bg-[#1A1A1A]">
+      <div className="min-h-screen bg-background">
         <NavHeader 
           title="🚨 Técnicas de Crisis" 
           subtitle="Elige las técnicas que quieres usar"
         />
         
         <div className="max-w-4xl mx-auto p-4 space-y-6">
-          <Card className="bg-white border-[#C5A46C]">
+          <Card className="bg-white border-primary">
             <CardHeader>
-              <CardTitle className="text-[#1A1A1A]">Selecciona las técnicas que quieres probar</CardTitle>
-              <p className="text-[#575757]">Puedes elegir una o varias. Tomate el tiempo que necesites.</p>
+              <CardTitle className="text-foreground">Selecciona las técnicas que quieres probar</CardTitle>
+              <p className="text-muted-foreground">Puedes elegir una o varias. Tomate el tiempo que necesites.</p>
             </CardHeader>
             <CardContent>
               <div className="grid gap-4 md:grid-cols-2">
@@ -556,12 +556,12 @@ export default function ManejoCrisis() {
                             <Icon className="h-6 w-6 text-white" />
                           </div>
                           <div className="flex-1">
-                            <h3 className="font-semibold text-[#1A1A1A] flex items-center gap-2">
+                            <h3 className="font-semibold text-foreground flex items-center gap-2">
                               {technique.name}
                               {isCompleted && <CheckCircle className="h-4 w-4 text-green-600" />}
                               {isSelected && !isCompleted && <Checkbox checked className="h-4 w-4" />}
                             </h3>
-                            <p className="text-sm text-[#575757] mt-1">{technique.description}</p>
+                            <p className="text-sm text-muted-foreground mt-1">{technique.description}</p>
                             {isCompleted && (
                               <div className="mt-2 text-sm text-green-600 font-medium">
                                 Efectividad: {techniquesEffectiveness[technique.id]}/5
@@ -610,7 +610,7 @@ export default function ManejoCrisis() {
 
   // Fase post-evaluación
   return (
-    <div className="min-h-screen bg-[#1A1A1A]">
+    <div className="min-h-screen bg-background">
       <NavHeader 
         title="🚨 Evaluación Final" 
         subtitle="¿Cómo te sientes ahora?"
@@ -619,11 +619,11 @@ export default function ManejoCrisis() {
       <div className="max-w-2xl mx-auto p-4 space-y-6">
         <Card className="bg-gradient-to-br from-green-50 to-blue-50 border-2 border-green-200">
           <CardHeader>
-            <CardTitle className="text-[#1A1A1A] flex items-center gap-2">
+            <CardTitle className="text-foreground flex items-center gap-2">
               <TrendingDown className="h-6 w-6 text-green-600" />
               ¿Cómo te sientes después de las técnicas?
             </CardTitle>
-            <p className="text-[#575757]">
+            <p className="text-muted-foreground">
               Evalúa tu estado actual comparado con el inicio de la sesión.
             </p>
           </CardHeader>

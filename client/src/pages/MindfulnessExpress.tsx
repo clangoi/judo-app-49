@@ -339,7 +339,7 @@ export default function MindfulnessExpress() {
   // Renderizado por fase
   if (currentPhase === 'assessment') {
     return (
-      <div className="min-h-screen bg-[#1A1A1A]">
+      <div className="min-h-screen bg-background">
         <NavHeader 
           title="🧘 Mindfulness Express" 
           subtitle="Meditaciones cortas para el bienestar diario"
@@ -348,11 +348,11 @@ export default function MindfulnessExpress() {
         <div className="max-w-2xl mx-auto p-4 space-y-6">
           <Card className="bg-gradient-to-br from-purple-50 to-blue-50 border-2 border-purple-200">
             <CardHeader>
-              <CardTitle className="text-[#1A1A1A] flex items-center gap-2">
+              <CardTitle className="text-foreground flex items-center gap-2">
                 <Brain className="h-6 w-6 text-purple-600" />
                 ¿Cómo estás en este momento?
               </CardTitle>
-              <p className="text-[#575757]">
+              <p className="text-muted-foreground">
                 Evalúa tu estado actual antes de comenzar tu práctica de mindfulness.
               </p>
             </CardHeader>
@@ -454,17 +454,17 @@ export default function MindfulnessExpress() {
   // Selección de sesión
   if (currentPhase === 'session-selection') {
     return (
-      <div className="min-h-screen bg-[#1A1A1A]">
+      <div className="min-h-screen bg-background">
         <NavHeader 
           title="🧘 Elige tu Meditación" 
           subtitle="Cada práctica tiene beneficios únicos"
         />
         
         <div className="max-w-4xl mx-auto p-4 space-y-6">
-          <Card className="bg-white border-[#C5A46C]">
+          <Card className="bg-white border-primary">
             <CardHeader>
-              <CardTitle className="text-[#1A1A1A]">Meditaciones Disponibles</CardTitle>
-              <p className="text-[#575757]">Todas las sesiones son guiadas y duran entre 2-5 minutos. Perfectas para cualquier momento del día.</p>
+              <CardTitle className="text-foreground">Meditaciones Disponibles</CardTitle>
+              <p className="text-muted-foreground">Todas las sesiones son guiadas y duran entre 2-5 minutos. Perfectas para cualquier momento del día.</p>
             </CardHeader>
             <CardContent>
               <div className="grid gap-4 md:grid-cols-2">
@@ -486,10 +486,10 @@ export default function MindfulnessExpress() {
                             <Icon className="h-8 w-8 text-white" />
                           </div>
                           <div className="flex-1">
-                            <h3 className="font-bold text-[#1A1A1A] text-lg mb-2">
+                            <h3 className="font-bold text-foreground text-lg mb-2">
                               {session.name}
                             </h3>
-                            <p className="text-sm text-[#575757] mb-4 leading-relaxed">
+                            <p className="text-sm text-muted-foreground mb-4 leading-relaxed">
                               {session.description}
                             </p>
                             
@@ -543,7 +543,7 @@ export default function MindfulnessExpress() {
   // Meditación en progreso
   if (currentPhase === 'meditating' && selectedSession) {
     return (
-      <div className="min-h-screen bg-[#1A1A1A]">
+      <div className="min-h-screen bg-background">
         <NavHeader 
           title={`🧘 ${selectedSession.name}`} 
           subtitle="Relájate y sigue las indicaciones"
@@ -562,7 +562,7 @@ export default function MindfulnessExpress() {
 
   // Evaluación final
   return (
-    <div className="min-h-screen bg-[#1A1A1A]">
+    <div className="min-h-screen bg-background">
       <NavHeader 
         title="🧘 ¿Cómo te sientes ahora?" 
         subtitle="Evalúa los beneficios de tu meditación"
@@ -571,11 +571,11 @@ export default function MindfulnessExpress() {
       <div className="max-w-2xl mx-auto p-4 space-y-6">
         <Card className="bg-gradient-to-br from-green-50 to-purple-50 border-2 border-green-200">
           <CardHeader>
-            <CardTitle className="text-[#1A1A1A] flex items-center gap-2">
+            <CardTitle className="text-foreground flex items-center gap-2">
               <TrendingUp className="h-6 w-6 text-green-600" />
               Evaluación Post-Meditación
             </CardTitle>
-            <p className="text-[#575757]">
+            <p className="text-muted-foreground">
               Compara cómo te sientes después de tu práctica de mindfulness.
             </p>
           </CardHeader>

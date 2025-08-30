@@ -30,8 +30,8 @@ const EmojiRating: React.FC<EmojiRatingProps> = ({
 }) => (
   <div className="space-y-3">
     <div className="text-center">
-      <h3 className="text-lg font-medium text-[#1A1A1A]">{title}</h3>
-      <p className="text-sm text-[#575757] mt-1">{description}</p>
+      <h3 className="text-lg font-medium text-foreground">{title}</h3>
+      <p className="text-sm text-muted-foreground mt-1">{description}</p>
     </div>
     
     <div className="flex justify-center space-x-4">
@@ -43,12 +43,12 @@ const EmojiRating: React.FC<EmojiRatingProps> = ({
               type="button"
               onClick={() => onChange(rating)}
               className={`text-4xl p-2 rounded-full transition-all transform hover:scale-110 ${
-                value === rating ? 'bg-[#C5A46C]/20 scale-110' : 'hover:bg-gray-100'
+                value === rating ? 'bg-primary/20 scale-110' : 'hover:bg-gray-100'
               }`}
             >
               {emoji}
             </button>
-            <div className={`text-xs mt-1 ${value === rating ? 'text-[#C5A46C] font-semibold' : 'text-[#575757]'}`}>
+            <div className={`text-xs mt-1 ${value === rating ? 'text-primary font-semibold' : 'text-muted-foreground'}`}>
               {labels[index]}
             </div>
           </div>
@@ -157,15 +157,15 @@ export default function CheckinRapido() {
           <Button
             variant="ghost"
             onClick={() => navigate('/mentalcheck')}
-            className="flex items-center text-[#C5A46C] hover:text-[#A08751]"
+            className="flex items-center text-primary hover:text-[#A08751]"
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
             Volver
           </Button>
           
           <div className="flex items-center bg-white/80 backdrop-blur-sm rounded-full px-4 py-2 shadow-sm">
-            <Timer className="h-4 w-4 text-[#C5A46C] mr-2" />
-            <span className="text-sm font-medium text-[#1A1A1A]">
+            <Timer className="h-4 w-4 text-primary mr-2" />
+            <span className="text-sm font-medium text-foreground">
               {getElapsedTime()}s
             </span>
           </div>
@@ -178,9 +178,9 @@ export default function CheckinRapido() {
               <Heart className="h-8 w-8 text-white" />
             </div>
           </div>
-          <h1 className="text-3xl font-bold text-[#1A1A1A] mb-2">Check-in Rápido</h1>
-          <p className="text-[#575757] text-lg">¿Cómo te sientes en este momento?</p>
-          <div className="text-sm text-[#C5A46C] mt-2 font-medium">⚡ Solo 30 segundos</div>
+          <h1 className="text-3xl font-bold text-foreground mb-2">Check-in Rápido</h1>
+          <p className="text-muted-foreground text-lg">¿Cómo te sientes en este momento?</p>
+          <div className="text-sm text-primary mt-2 font-medium">⚡ Solo 30 segundos</div>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-8">
@@ -398,15 +398,15 @@ export default function CheckinRapido() {
           {/* Contexto opcional (rápido) */}
           <Card className="bg-white/90 backdrop-blur-sm border-[#C5A46C]/20 shadow-lg">
             <CardHeader className="pb-4">
-              <CardTitle className="flex items-center text-[#1A1A1A]">
-                <Brain className="mr-2 h-5 w-5 text-[#C5A46C]" />
+              <CardTitle className="flex items-center text-foreground">
+                <Brain className="mr-2 h-5 w-5 text-primary" />
                 Contexto del Momento (Opcional)
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="activity" className="text-sm font-medium text-[#1A1A1A]">
+                  <Label htmlFor="activity" className="text-sm font-medium text-foreground">
                     ¿Qué estás haciendo?
                   </Label>
                   <Input
@@ -419,7 +419,7 @@ export default function CheckinRapido() {
                 </div>
                 
                 <div>
-                  <Label htmlFor="location" className="text-sm font-medium text-[#1A1A1A]">
+                  <Label htmlFor="location" className="text-sm font-medium text-foreground">
                     ¿Dónde estás?
                   </Label>
                   <Input
@@ -433,7 +433,7 @@ export default function CheckinRapido() {
               </div>
               
               <div>
-                <Label htmlFor="note" className="text-sm font-medium text-[#1A1A1A]">
+                <Label htmlFor="note" className="text-sm font-medium text-foreground">
                   Reflexión rápida
                 </Label>
                 <Textarea
@@ -445,7 +445,7 @@ export default function CheckinRapido() {
                   maxLength={100}
                   className="mt-1 bg-white border-[#C5A46C]/20 resize-none"
                 />
-                <div className="text-xs text-[#575757] mt-1 text-right">
+                <div className="text-xs text-muted-foreground mt-1 text-right">
                   {quickNote.length}/100
                 </div>
               </div>
@@ -476,8 +476,8 @@ export default function CheckinRapido() {
           {/* Mensaje motivacional */}
           <div className="text-center">
             <div className="inline-flex items-center bg-gradient-to-r from-[#C5A46C]/10 to-[#A08751]/10 rounded-full px-4 py-2">
-              <TrendingUp className="h-4 w-4 text-[#C5A46C] mr-2" />
-              <span className="text-sm text-[#1A1A1A] font-medium">
+              <TrendingUp className="h-4 w-4 text-primary mr-2" />
+              <span className="text-sm text-foreground font-medium">
                 ¡Cada check-in te ayuda a conocerte mejor!
               </span>
             </div>

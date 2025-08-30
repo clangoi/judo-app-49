@@ -426,7 +426,7 @@ export default function TecnicasRespiracion() {
   // Renderizado por fase
   if (currentPhase === 'assessment') {
     return (
-      <div className="min-h-screen bg-[#1A1A1A]">
+      <div className="min-h-screen bg-background">
         <NavHeader 
           title="💨 Técnicas de Respiración" 
           subtitle="Ejercicios guiados para relajación y enfoque"
@@ -435,11 +435,11 @@ export default function TecnicasRespiracion() {
         <div className="max-w-2xl mx-auto p-4 space-y-6">
           <Card className="bg-gradient-to-br from-blue-50 to-purple-50 border-2 border-blue-200">
             <CardHeader>
-              <CardTitle className="text-[#1A1A1A] flex items-center gap-2">
+              <CardTitle className="text-foreground flex items-center gap-2">
                 <Wind className="h-6 w-6 text-blue-600" />
                 ¿Cómo te sientes ahora?
               </CardTitle>
-              <p className="text-[#575757]">
+              <p className="text-muted-foreground">
                 Evalúa tu estado actual antes de comenzar con los ejercicios de respiración.
               </p>
             </CardHeader>
@@ -531,7 +531,7 @@ export default function TecnicasRespiracion() {
   // Selección de técnica
   if (currentPhase === 'technique-selection') {
     return (
-      <div className="min-h-screen bg-[#1A1A1A]">
+      <div className="min-h-screen bg-background">
         <NavHeader 
           title="💨 Selecciona tu Técnica" 
           subtitle="Elige el ejercicio que más te convenga"
@@ -540,8 +540,8 @@ export default function TecnicasRespiracion() {
         <div className="max-w-4xl mx-auto p-4 space-y-6">
           <Card className="bg-white border-[#C5A46C]">
             <CardHeader>
-              <CardTitle className="text-[#1A1A1A]">Técnicas de Respiración Disponibles</CardTitle>
-              <p className="text-[#575757]">Cada técnica tiene beneficios específicos. Elige la que mejor se adapte a tu momento actual.</p>
+              <CardTitle className="text-foreground">Técnicas de Respiración Disponibles</CardTitle>
+              <p className="text-muted-foreground">Cada técnica tiene beneficios específicos. Elige la que mejor se adapte a tu momento actual.</p>
             </CardHeader>
             <CardContent>
               <div className="grid gap-4 md:grid-cols-2">
@@ -563,10 +563,10 @@ export default function TecnicasRespiracion() {
                             <Icon className="h-8 w-8 text-white" />
                           </div>
                           <div className="flex-1">
-                            <h3 className="font-bold text-[#1A1A1A] text-lg mb-2">
+                            <h3 className="font-bold text-foreground text-lg mb-2">
                               {technique.name}
                             </h3>
-                            <p className="text-sm text-[#575757] mb-4 leading-relaxed">
+                            <p className="text-sm text-muted-foreground mb-4 leading-relaxed">
                               {technique.description}
                             </p>
                             
@@ -620,7 +620,7 @@ export default function TecnicasRespiracion() {
   // Práctica de la técnica
   if (currentPhase === 'practicing' && selectedTechnique) {
     return (
-      <div className="min-h-screen bg-[#1A1A1A]">
+      <div className="min-h-screen bg-background">
         <NavHeader 
           title={`💨 ${selectedTechnique.name}`} 
           subtitle="Sigue el ritmo y respira conscientemente"
@@ -639,7 +639,7 @@ export default function TecnicasRespiracion() {
 
   // Evaluación final
   return (
-    <div className="min-h-screen bg-[#1A1A1A]">
+    <div className="min-h-screen bg-background">
       <NavHeader 
         title="💨 ¿Cómo te sientes ahora?" 
         subtitle="Evalúa los beneficios de tu práctica"
@@ -648,11 +648,11 @@ export default function TecnicasRespiracion() {
       <div className="max-w-2xl mx-auto p-4 space-y-6">
         <Card className="bg-gradient-to-br from-green-50 to-blue-50 border-2 border-green-200">
           <CardHeader>
-            <CardTitle className="text-[#1A1A1A] flex items-center gap-2">
+            <CardTitle className="text-foreground flex items-center gap-2">
               <TrendingUp className="h-6 w-6 text-green-600" />
               Evaluación Post-Práctica
             </CardTitle>
-            <p className="text-[#575757]">
+            <p className="text-muted-foreground">
               Compara cómo te sientes después de la sesión de respiración.
             </p>
           </CardHeader>

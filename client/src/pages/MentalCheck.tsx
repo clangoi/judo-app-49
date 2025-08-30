@@ -18,7 +18,7 @@ const MentalCheck = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#1A1A1A]">
+    <div className="min-h-screen bg-background">
       <NavHeader 
         title="MentalCheck"
         subtitle="Evalúa y mejora tu bienestar mental"
@@ -45,7 +45,7 @@ const MentalCheck = () => {
                     <Zap className="h-8 w-8 text-white" />
                   </div>
                   <div>
-                    <CardTitle className="text-[#1A1A1A] text-xl flex items-center gap-2">
+                    <CardTitle className="text-foreground text-xl flex items-center gap-2">
                       Check-in Rápido
                       <div className="bg-orange-500 text-white text-xs px-2 py-1 rounded-full font-bold">
                         ⚡ 30s
@@ -56,7 +56,7 @@ const MentalCheck = () => {
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
-                <CardDescription className="text-[#575757] text-base leading-relaxed">
+                <CardDescription className="text-muted-foreground text-base leading-relaxed">
                   ¿No tienes mucho tiempo? Registra rápidamente cómo te sientes en este momento con solo 3 preguntas esenciales.
                 </CardDescription>
                 
@@ -96,7 +96,7 @@ const MentalCheck = () => {
                     <Brain className="h-8 w-8 text-white" />
                   </div>
                   <div>
-                    <CardTitle className="text-[#1A1A1A] text-xl flex items-center gap-2">
+                    <CardTitle className="text-foreground text-xl flex items-center gap-2">
                       Evaluación Profunda
                       <div className="bg-blue-500 text-white text-xs px-2 py-1 rounded-full font-bold">
                         📊 5-10 min
@@ -107,7 +107,7 @@ const MentalCheck = () => {
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
-                <CardDescription className="text-[#575757] text-base leading-relaxed">
+                <CardDescription className="text-muted-foreground text-base leading-relaxed">
                   {mentalHealthItem.description}
                 </CardDescription>
                 
@@ -160,7 +160,7 @@ const MentalCheck = () => {
                     <AlertTriangle className="h-8 w-8 text-white" />
                   </div>
                   <div>
-                    <CardTitle className="text-[#1A1A1A] text-xl flex items-center gap-2">
+                    <CardTitle className="text-foreground text-xl flex items-center gap-2">
                       Manejo de Crisis
                       <div className="bg-red-500 text-white text-xs px-2 py-1 rounded-full font-bold">
                         🚨 SOS
@@ -171,7 +171,7 @@ const MentalCheck = () => {
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
-                <CardDescription className="text-[#575757] text-base leading-relaxed">
+                <CardDescription className="text-muted-foreground text-base leading-relaxed">
                   Para momentos de alta ansiedad, pánico o estrés intenso. Técnicas de emergencia para recuperar el control.
                 </CardDescription>
                 
@@ -224,7 +224,7 @@ const MentalCheck = () => {
                     <Wind className="h-8 w-8 text-white" />
                   </div>
                   <div>
-                    <CardTitle className="text-[#1A1A1A] text-xl flex items-center gap-2">
+                    <CardTitle className="text-foreground text-xl flex items-center gap-2">
                       Técnicas de Respiración
                       <div className="bg-blue-500 text-white text-xs px-2 py-1 rounded-full font-bold">
                         💨 RESPIRA
@@ -235,7 +235,7 @@ const MentalCheck = () => {
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
-                <CardDescription className="text-[#575757] text-base leading-relaxed">
+                <CardDescription className="text-muted-foreground text-base leading-relaxed">
                   Ejercicios de respiración guiados para reducir estrés, ansiedad y mejorar tu enfoque mental.
                 </CardDescription>
                 
@@ -288,7 +288,7 @@ const MentalCheck = () => {
                     <Brain className="h-8 w-8 text-white" />
                   </div>
                   <div>
-                    <CardTitle className="text-[#1A1A1A] text-xl flex items-center gap-2">
+                    <CardTitle className="text-foreground text-xl flex items-center gap-2">
                       Mindfulness Express
                       <div className="bg-purple-500 text-white text-xs px-2 py-1 rounded-full font-bold">
                         🧘 ZEN
@@ -299,7 +299,7 @@ const MentalCheck = () => {
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
-                <CardDescription className="text-[#575757] text-base leading-relaxed">
+                <CardDescription className="text-muted-foreground text-base leading-relaxed">
                   Meditaciones cortas y guiadas perfectas para cualquier momento del día. Cultiva calma y presencia.
                 </CardDescription>
                 
@@ -354,13 +354,13 @@ const MentalCheck = () => {
                   <Brain className="h-10 w-10 text-white" />
                 </div>
                 <div>
-                  <CardTitle className="text-[#1A1A1A] text-2xl">{mentalHealthItem.title}</CardTitle>
+                  <CardTitle className="text-foreground text-2xl">{mentalHealthItem.title}</CardTitle>
                   <div className="text-sm text-gray-500 mt-1">Herramienta completa de evaluación mental</div>
                 </div>
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
-              <CardDescription className="text-[#575757] text-base leading-relaxed">
+              <CardDescription className="text-muted-foreground text-base leading-relaxed">
                 {mentalHealthItem.description}
               </CardDescription>
               

@@ -65,7 +65,7 @@ const Deporte = () => {
   );
 
   return (
-    <div className="min-h-screen bg-[#1A1A1A]">
+    <div className="min-h-screen bg-background">
       <NavHeader 
         title="Deporte"
         subtitle="Accede a todas las funciones deportivas"
@@ -76,17 +76,17 @@ const Deporte = () => {
           {availableItems.map((item) => {
             const IconComponent = item.icon;
             return (
-              <Card key={item.path} className="bg-white hover:shadow-lg transition-shadow cursor-pointer border-[#C5A46C]">
+              <Card key={item.path} className="bg-white hover:shadow-lg transition-shadow cursor-pointer border-primary">
                 <CardHeader className="pb-3">
                   <div className="flex items-center gap-3">
                     <div className="p-2 rounded-lg bg-[#283750]">
                       <IconComponent className="h-6 w-6 text-white" />
                     </div>
-                    <CardTitle className="text-[#1A1A1A]">{item.title}</CardTitle>
+                    <CardTitle className="text-foreground">{item.title}</CardTitle>
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <CardDescription className="text-[#575757] mb-4">
+                  <CardDescription className="text-muted-foreground mb-4">
                     {item.description}
                   </CardDescription>
                   <Button 

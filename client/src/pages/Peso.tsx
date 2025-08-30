@@ -167,14 +167,14 @@ const Peso = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#1A1A1A] flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-[#C5A46C]" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#1A1A1A]">
+    <div className="min-h-screen bg-background">
       <NavHeader 
         title="Peso Semanal" 
         subtitle="Seguimiento de peso corporal"
@@ -190,25 +190,25 @@ const Peso = () => {
         </Button>
 
         {mostrarFormulario && (
-          <Card className="mb-6 bg-white border-[#C5A46C]">
+          <Card className="mb-6 bg-white border-primary">
             <CardHeader>
-              <CardTitle className="text-[#1A1A1A]">
+              <CardTitle className="text-foreground">
                 {editandoRegistro ? "Editar Registro de Peso" : "Nuevo Registro de Peso"}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <Label htmlFor="date" className="text-[#1A1A1A]">Fecha</Label>
+                <Label htmlFor="date" className="text-foreground">Fecha</Label>
                 <Input
                   id="date"
                   type="date"
                   value={nuevoRegistro.date}
                   onChange={(e) => setNuevoRegistro({...nuevoRegistro, date: e.target.value})}
-                  className="border-[#C5A46C] focus:border-[#C5A46C]"
+                  className="border-primary focus:border-primary"
                 />
               </div>
               <div>
-                <Label htmlFor="weight" className="text-[#1A1A1A]">Peso (kg)</Label>
+                <Label htmlFor="weight" className="text-foreground">Peso (kg)</Label>
                 <Input
                   id="weight"
                   type="number"
@@ -216,7 +216,7 @@ const Peso = () => {
                   placeholder="Ej: 70.5"
                   value={nuevoRegistro.weight}
                   onChange={(e) => setNuevoRegistro({...nuevoRegistro, weight: e.target.value})}
-                  className="border-[#C5A46C] focus:border-[#C5A46C]"
+                  className="border-primary focus:border-primary"
                 />
               </div>
               <div className="flex gap-2">
@@ -237,7 +237,7 @@ const Peso = () => {
                 <Button 
                   variant="outline" 
                   onClick={resetForm}
-                  className="border-[#C5A46C] text-[#C5A46C] hover:bg-[#C5A46C] hover:text-white"
+                  className="border-primary text-[#C5A46C] hover:bg-[#C5A46C] hover:text-white"
                 >
                   Cancelar
                 </Button>
@@ -248,25 +248,25 @@ const Peso = () => {
 
         <div className="space-y-4">
           {registros.length === 0 ? (
-            <Card className="bg-white border-[#C5A46C]">
+            <Card className="bg-white border-primary">
               <CardContent className="p-8 text-center">
-                <Weight className="h-12 w-12 mx-auto text-[#575757] mb-4" />
-                <p className="text-[#575757]">No hay registros de peso aún</p>
-                <p className="text-sm text-[#575757]">Agrega tu primer registro de peso</p>
+                <Weight className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                <p className="text-muted-foreground">No hay registros de peso aún</p>
+                <p className="text-sm text-muted-foreground">Agrega tu primer registro de peso</p>
               </CardContent>
             </Card>
           ) : (
             registros.map((registro, index) => {
               const tendencia = calcularTendencia(index);
               return (
-                <Card key={registro.id} className="bg-white border-[#C5A46C]">
+                <Card key={registro.id} className="bg-white border-primary">
                   <CardHeader>
                     <div className="flex justify-between items-start">
                       <div>
-                        <CardTitle className="text-2xl font-bold text-[#1A1A1A]">
+                        <CardTitle className="text-2xl font-bold text-foreground">
                           {registro.weight} kg
                         </CardTitle>
-                        <p className="text-sm text-[#575757]">{registro.date}</p>
+                        <p className="text-sm text-muted-foreground">{registro.date}</p>
                       </div>
                       <div className="flex items-center gap-2">
                         {tendencia !== null && (
@@ -298,7 +298,7 @@ const Peso = () => {
                             onClick={() => iniciarEdicion(registro)}
                             variant="outline"
                             size="sm"
-                            className="border-[#C5A46C] text-[#C5A46C] hover:bg-[#C5A46C] hover:text-white"
+                            className="border-primary text-[#C5A46C] hover:bg-[#C5A46C] hover:text-white"
                           >
                             <Edit className="h-4 w-4 mr-2" />
                           </Button>
@@ -324,7 +324,7 @@ const Peso = () => {
       <Dialog open={!!registroDetalle} onOpenChange={() => setRegistroDetalle(null)}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-xl font-bold text-[#1A1A1A]">
+            <DialogTitle className="text-xl font-bold text-foreground">
               Detalles del Registro
             </DialogTitle>
           </DialogHeader>
@@ -333,10 +333,10 @@ const Peso = () => {
               <Card>
                 <CardContent className="p-4">
                   <div className="text-center">
-                    <h3 className="text-3xl font-bold text-[#1A1A1A] mb-2">
+                    <h3 className="text-3xl font-bold text-foreground mb-2">
                       {registroDetalle.weight} kg
                     </h3>
-                    <p className="text-[#575757]">{registroDetalle.date}</p>
+                    <p className="text-muted-foreground">{registroDetalle.date}</p>
                   </div>
                 </CardContent>
               </Card>
