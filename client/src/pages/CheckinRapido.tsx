@@ -7,8 +7,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Timer, Brain, Heart, Zap, TrendingUp, Moon, Users, Utensils, Droplets, Activity, Sun, Monitor, Sparkles, Wind, Shield } from "lucide-react";
+import { ArrowLeft, Timer, Brain, Heart, Zap, TrendingUp, Moon, Users, Utensils, Droplets, Activity, Sun, Monitor, Sparkles, Wind, Shield, Palette } from "lucide-react";
 import { api } from "@/lib/api";
+import { useMoodTheme } from "@/hooks/useMoodTheme";
+import MoodThemeSelector from "@/components/MoodThemeSelector";
 
 // Componente para rating con emojis
 interface EmojiRatingProps {
@@ -62,6 +64,7 @@ export default function CheckinRapido() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { suggestAndApplyTheme } = useMoodTheme();
 
   const [currentMood, setCurrentMood] = useState<number>(3);
   const [energyLevel, setEnergyLevel] = useState<number>(3);
@@ -82,6 +85,7 @@ export default function CheckinRapido() {
   const [deepBreathingMinutes, setDeepBreathingMinutes] = useState<number>(5);
   
   const [startTime] = useState<number>(Date.now());
+  const [showThemeSelector, setShowThemeSelector] = useState<boolean>(false);
 
   const checkInMutation = useMutation({
     mutationFn: async (data: any) => {
@@ -93,13 +97,14 @@ export default function CheckinRapido() {
       
       queryClient.invalidateQueries({ queryKey: ['/api/quick-checkin-entries'] });
       
+      // Mostrar selector de temas después del check-in exitoso
+      setShowThemeSelector(true);
+      
       toast({
         title: "¡Check-in completado! ⚡",
         description: `Tiempo: ${elapsedTime}s. Tu bienestar ha sido registrado.`,
         duration: 3000,
       });
-      
-      navigate('/mentalcheck');
     },
     onError: () => {
       toast({
@@ -147,6 +152,93 @@ export default function CheckinRapido() {
 
   const stressEmojis = ['😌', '🙂', '😐', '😟', '😵‍💫'];
   const stressLabels = ['Muy relajado', 'Relajado', 'Normal', 'Estresado', 'Muy estresado'];
+
+  // Función para manejar la selección de tema y continuar
+  const handleThemeSelection = () => {
+    // Sugerir tema basado en el estado de ánimo actual
+    const suggestedTheme = suggestAndApplyTheme(currentMood, energyLevel, stressLevel, true);
+    
+    toast({
+      title: "🎨 Tema personalizado aplicado",
+      description: `Se aplicó el tema "${suggestedTheme.name}" basado en tu estado de ánimo.`,
+      duration: 3000,
+    });
+    
+    setTimeout(() => {
+      navigate('/mentalcheck');
+    }, 1000);
+  };
+
+  const handleSkipTheme = () => {
+    navigate('/mentalcheck');
+  };
+
+  // Si se debe mostrar el selector de temas
+  if (showThemeSelector) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-[#F5F5F0] to-[#E8E3D3] p-4">
+        <div className="max-w-4xl mx-auto">
+          
+          {/* Header */}
+          <div className="flex items-center justify-between mb-6">
+            <Button
+              variant="ghost"
+              onClick={() => navigate('/mentalcheck')}
+              className="flex items-center text-primary hover:text-[#A08751]"
+            >
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Volver
+            </Button>
+          </div>
+
+          {/* Título principal */}
+          <div className="text-center mb-8">
+            <div className="flex justify-center mb-4">
+              <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full flex items-center justify-center shadow-lg">
+                <Heart className="h-8 w-8 text-white" />
+              </div>
+            </div>
+            <h1 className="text-3xl font-bold text-foreground mb-2">¡Check-in completado!</h1>
+            <p className="text-muted-foreground text-lg">Personaliza tu experiencia con un tema de color</p>
+          </div>
+
+          {/* Mensaje de éxito del check-in */}
+          <Card className="bg-gradient-to-r from-green-50 to-emerald-50 border-green-200 mb-6">
+            <CardContent className="p-6 text-center">
+              <p className="text-green-700">
+                Tu estado de ánimo ha sido registrado. Ahora elige un tema de color que refleje cómo te sientes y te haga sentir bien.
+              </p>
+            </CardContent>
+          </Card>
+
+          {/* Selector de temas */}
+          <MoodThemeSelector 
+            currentMood={currentMood}
+            onThemeSelect={handleThemeSelection}
+            showTitle={false}
+          />
+
+          {/* Botones de acción */}
+          <div className="flex gap-3 justify-center mt-6">
+            <Button
+              onClick={handleThemeSelection}
+              className="bg-primary hover:bg-primary/90"
+            >
+              <Palette className="mr-2 h-4 w-4" />
+              Aplicar tema recomendado
+            </Button>
+            
+            <Button
+              variant="outline"
+              onClick={handleSkipTheme}
+            >
+              Saltar por ahora
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#F5F5F0] to-[#E8E3D3] p-4">
