@@ -169,7 +169,6 @@ const BreathingExercise: React.FC<BreathingExerciseProps> = ({ technique, onComp
         <div className="text-sm text-gray-600">Ciclo {currentCycle} de {technique.cycles}</div>
         <Progress value={progress} className="w-full max-w-md mx-auto" />
       </div>
-
       <div className="space-y-6">
         <div className={`text-4xl font-bold ${phaseColor[phase]} transition-colors duration-500`}>
           {phaseIcon[phase]} {phaseText[phase]}
@@ -242,13 +241,7 @@ const BreathingExercise: React.FC<BreathingExerciseProps> = ({ technique, onComp
                   }`}></div>
 
                   {/* Indicador de mano tapando fosa - DENTRO del emoji de la nariz */}
-                  <div className={`absolute transition-all duration-500 text-lg ${
-                    phase === 'hold' 
-                      ? 'top-12 left-1/2 transform -translate-x-1/2 text-blue-600'
-                      : (currentCycle % 2 === 1 && phase === 'inhale') || (currentCycle % 2 === 0 && phase === 'exhale')
-                        ? 'top-14 right-1 text-red-600' 
-                        : 'top-14 left-1 text-red-600'
-                  }`}>
+                  <div className="absolute transition-all duration-500 top-14 right-1 text-red-600 text-[45px]">
                     👆
                   </div>
                 </div>
@@ -293,7 +286,6 @@ const BreathingExercise: React.FC<BreathingExerciseProps> = ({ technique, onComp
           )}
         </div>
       </div>
-      
       <div className="flex gap-4 justify-center">
         <Button
           onClick={() => setIsActive(!isActive)}
