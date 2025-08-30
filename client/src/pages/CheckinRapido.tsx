@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, Timer, Brain, Heart, Zap, TrendingUp, Moon, Users, Utensils, Droplets, Activity, Sun, Monitor, Sparkles, Wind, Shield } from "lucide-react";
+import { api } from "@/lib/api";
 
 // Componente para rating con emojis
 interface EmojiRatingProps {
@@ -84,19 +85,8 @@ export default function CheckinRapido() {
 
   const checkInMutation = useMutation({
     mutationFn: async (data: any) => {
-      const response = await fetch('/api/quick-checkin-entries', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(data)
-      });
-      
-      if (!response.ok) {
-        throw new Error('Failed to create check-in');
-      }
-      
-      return response.json();
+      const response = await api.post('/api/quick-checkin-entries', data);
+      return response.data;
     },
     onSuccess: () => {
       const elapsedTime = Math.round((Date.now() - startTime) / 1000);
