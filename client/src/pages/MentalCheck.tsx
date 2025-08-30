@@ -399,25 +399,7 @@ const MentalCheck = () => {
           </Card>
         </div>
 
-        <div className="mt-8">
-          <Card className="bg-white border-[#C5A46C]">
-            <CardHeader>
-              <CardTitle className="text-[#1A1A1A] flex items-center gap-2">
-                <Brain className="h-5 w-5" />
-                Consejos para tu Bienestar Mental
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ul className="space-y-2 text-[#575757]">
-                <li>• Mantén una rutina diaria equilibrada entre entrenamiento y descanso</li>
-                <li>• Practica técnicas de respiración y meditación</li>
-                <li>• Establece objetivos realistas y celebra tus logros</li>
-                <li>• Mantén conexiones sociales saludables</li>
-                <li>• No dudes en buscar ayuda profesional cuando lo necesites</li>
-              </ul>
-            </CardContent>
-          </Card>
-        </div>
+        
       </div>
     </div>
   );
