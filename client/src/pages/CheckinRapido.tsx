@@ -174,7 +174,7 @@ export default function CheckinRapido() {
         {/* Título principal */}
         <div className="text-center mb-8">
           <div className="flex justify-center mb-4">
-            <div className="w-16 h-16 bg-gradient-to-br from-[#C5A46C] to-[#A08751] rounded-full flex items-center justify-center shadow-lg">
+            <div className="w-16 h-16 bg-gradient-to-br from-primary to-primary/80 rounded-full flex items-center justify-center shadow-lg">
               <Heart className="h-8 w-8 text-white" />
             </div>
           </div>
@@ -186,7 +186,7 @@ export default function CheckinRapido() {
         <form onSubmit={handleSubmit} className="space-y-8">
           
           {/* Estado de ánimo */}
-          <Card className="bg-white/90 backdrop-blur-sm border-[#C5A46C]/20 shadow-lg">
+          <Card className="bg-white/90 backdrop-blur-sm border-primary/20 shadow-lg">
             <CardContent className="p-6">
               <EmojiRating
                 value={currentMood}
@@ -200,7 +200,7 @@ export default function CheckinRapido() {
           </Card>
 
           {/* Nivel de energía */}
-          <Card className="bg-white/90 backdrop-blur-sm border-[#C5A46C]/20 shadow-lg">
+          <Card className="bg-white/90 backdrop-blur-sm border-primary/20 shadow-lg">
             <CardContent className="p-6">
               <EmojiRating
                 value={energyLevel}
@@ -214,7 +214,7 @@ export default function CheckinRapido() {
           </Card>
 
           {/* Nivel de estrés */}
-          <Card className="bg-white/90 backdrop-blur-sm border-[#C5A46C]/20 shadow-lg">
+          <Card className="bg-white/90 backdrop-blur-sm border-primary/20 shadow-lg">
             <CardContent className="p-6">
               <EmojiRating
                 value={stressLevel}
@@ -396,7 +396,7 @@ export default function CheckinRapido() {
           </Card>
 
           {/* Contexto opcional (rápido) */}
-          <Card className="bg-white/90 backdrop-blur-sm border-[#C5A46C]/20 shadow-lg">
+          <Card className="bg-white/90 backdrop-blur-sm border-primary/20 shadow-lg">
             <CardHeader className="pb-4">
               <CardTitle className="flex items-center text-foreground">
                 <Brain className="mr-2 h-5 w-5 text-primary" />
@@ -414,7 +414,7 @@ export default function CheckinRapido() {
                     value={currentActivity}
                     onChange={(e) => setCurrentActivity(e.target.value)}
                     placeholder="ej: trabajando, entrenando, descansando"
-                    className="mt-1 bg-white border-[#C5A46C]/20"
+                    className="mt-1 bg-white border-primary/20"
                   />
                 </div>
                 
@@ -427,7 +427,7 @@ export default function CheckinRapido() {
                     value={userLocation}
                     onChange={(e) => setUserLocation(e.target.value)}
                     placeholder="ej: casa, gimnasio, oficina"
-                    className="mt-1 bg-white border-[#C5A46C]/20"
+                    className="mt-1 bg-white border-primary/20"
                   />
                 </div>
               </div>
@@ -443,7 +443,7 @@ export default function CheckinRapido() {
                   placeholder="Una reflexión breve sobre este momento..."
                   rows={2}
                   maxLength={100}
-                  className="mt-1 bg-white border-[#C5A46C]/20 resize-none"
+                  className="mt-1 bg-white border-primary/20 resize-none"
                 />
                 <div className="text-xs text-muted-foreground mt-1 text-right">
                   {quickNote.length}/100
@@ -457,7 +457,7 @@ export default function CheckinRapido() {
             <Button
               type="submit"
               disabled={checkInMutation.isPending}
-              className="bg-gradient-to-r from-[#C5A46C] to-[#A08751] hover:from-[#A08751] hover:to-[#8B7355] text-white font-semibold py-3 px-8 rounded-full shadow-lg transform transition-all hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed text-lg"
+              className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/80 hover:to-primary/60 text-white font-semibold py-3 px-8 rounded-full shadow-lg transform transition-all hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed text-lg"
             >
               {checkInMutation.isPending ? (
                 <>
@@ -475,7 +475,7 @@ export default function CheckinRapido() {
           
           {/* Mensaje motivacional */}
           <div className="text-center">
-            <div className="inline-flex items-center bg-gradient-to-r from-[#C5A46C]/10 to-[#A08751]/10 rounded-full px-4 py-2">
+            <div className="inline-flex items-center bg-gradient-to-r from-primary/10 to-primary/10 rounded-full px-4 py-2">
               <TrendingUp className="h-4 w-4 text-primary mr-2" />
               <span className="text-sm text-foreground font-medium">
                 ¡Cada check-in te ayuda a conocerte mejor!

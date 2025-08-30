@@ -168,7 +168,7 @@ const Peso = () => {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-[#C5A46C]" />
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
@@ -183,7 +183,7 @@ const Peso = () => {
       <div className="max-w-4xl mx-auto p-4">
         <Button 
           onClick={() => setMostrarFormulario(!mostrarFormulario)}
-          className="mb-6 bg-[#C5A46C] hover:bg-[#B8956A] text-white"
+          className="mb-6 bg-primary hover:bg-primary/90 text-white"
         >
           <Plus className="h-4 w-4 mr-2" />
           Registrar Peso
@@ -223,7 +223,7 @@ const Peso = () => {
                 <Button 
                   onClick={guardarRegistro}
                   disabled={createMutation.isPending || updateMutation.isPending}
-                  className="bg-[#C5A46C] hover:bg-[#B8956A] text-white"
+                  className="bg-primary hover:bg-primary/90 text-white"
                 >
                   {createMutation.isPending || updateMutation.isPending ? (
                     <>
@@ -237,7 +237,7 @@ const Peso = () => {
                 <Button 
                   variant="outline" 
                   onClick={resetForm}
-                  className="border-primary text-[#C5A46C] hover:bg-[#C5A46C] hover:text-white"
+                  className="border-primary text-primary hover:bg-primary hover:text-white"
                 >
                   Cancelar
                 </Button>
@@ -298,7 +298,7 @@ const Peso = () => {
                             onClick={() => iniciarEdicion(registro)}
                             variant="outline"
                             size="sm"
-                            className="border-primary text-[#C5A46C] hover:bg-[#C5A46C] hover:text-white"
+                            className="border-primary text-primary hover:bg-primary hover:text-white"
                           >
                             <Edit className="h-4 w-4 mr-2" />
                           </Button>

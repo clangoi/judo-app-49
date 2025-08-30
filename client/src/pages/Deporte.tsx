@@ -91,7 +91,7 @@ const Deporte = () => {
                   </CardDescription>
                   <Button 
                     onClick={() => navigate(item.path)}
-                    className="w-full bg-[#C5A46C] hover:bg-[#A08B5A] text-white"
+                    className="w-full bg-primary hover:bg-primary/90 text-white"
                   >
                     Acceder
                   </Button>
