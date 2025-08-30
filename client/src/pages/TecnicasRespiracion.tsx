@@ -240,17 +240,17 @@ const BreathingExercise: React.FC<BreathingExerciseProps> = ({ technique, onComp
                       ? 'bg-red-500 scale-150 shadow-lg animate-pulse' 
                       : 'bg-gray-300 scale-75'
                   }`}></div>
-                </div>
 
-                {/* Indicador de mano tapando fosa - se posiciona tocando las esquinas de la nariz */}
-                <div className={`absolute transition-all duration-500 text-2xl ${
-                  phase === 'hold' 
-                    ? 'top-16 left-1/2 transform -translate-x-1/2 text-blue-600'
-                    : (currentCycle % 2 === 1 && phase === 'inhale') || (currentCycle % 2 === 0 && phase === 'exhale')
-                      ? 'right-0 top-10 text-red-600' 
-                      : 'left-0 top-10 text-red-600'
-                }`}>
-                  👆
+                  {/* Indicador de mano tapando fosa - DENTRO del emoji de la nariz */}
+                  <div className={`absolute transition-all duration-500 text-lg ${
+                    phase === 'hold' 
+                      ? 'top-6 left-1/2 transform -translate-x-1/2 text-blue-600'
+                      : (currentCycle % 2 === 1 && phase === 'inhale') || (currentCycle % 2 === 0 && phase === 'exhale')
+                        ? 'top-8 right-1 text-red-600' 
+                        : 'top-8 left-1 text-red-600'
+                  }`}>
+                    👆
+                  </div>
                 </div>
               </div>
               
