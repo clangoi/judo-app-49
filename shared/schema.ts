@@ -315,6 +315,17 @@ export const quickCheckInEntries = pgTable("quick_checkin_entries", {
   energyLevel: integer("energy_level").notNull(), // 1-5 scale (🔋 Low to High)
   stressLevel: integer("stress_level").notNull(), // 1-5 scale (😌 to 😵‍💫)
   
+  // Factores protectores de salud mental
+  sleepHours: numeric("sleep_hours", { precision: 3, scale: 1 }), // Horas de sueño (ej: 7.5)
+  socialConnections: integer("social_connections"), // Cantidad de personas vistas hoy
+  mealsCount: integer("meals_count"), // Cantidad de comidas del día
+  waterIntake: integer("water_intake"), // Vasos de agua tomados
+  physicalActivity: integer("physical_activity"), // Minutos de actividad física
+  sunlightExposure: integer("sunlight_exposure"), // Minutos al aire libre/sol
+  screenTimeHours: numeric("screen_time_hours", { precision: 3, scale: 1 }), // Horas de pantalla
+  gratitudeMoments: integer("gratitude_moments"), // Momentos de gratitud del día
+  deepBreathingMinutes: integer("deep_breathing_minutes"), // Minutos de respiración consciente
+  
   // Contexto del momento (opcional pero rápido)
   currentActivity: text("current_activity"), // ¿Qué estás haciendo?
   location: text("location"), // ¿Dónde estás?

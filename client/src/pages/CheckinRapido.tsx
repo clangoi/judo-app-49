@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Timer, Brain, Heart, Zap, TrendingUp } from "lucide-react";
+import { ArrowLeft, Timer, Brain, Heart, Zap, TrendingUp, Moon, Users, Utensils, Droplets, Activity, Sun, Monitor, Sparkles, Wind, Shield } from "lucide-react";
 
 // Componente para rating con emojis
 interface EmojiRatingProps {
@@ -67,6 +67,18 @@ export default function CheckinRapido() {
   const [currentActivity, setCurrentActivity] = useState<string>('');
   const [userLocation, setUserLocation] = useState<string>('');
   const [quickNote, setQuickNote] = useState<string>('');
+  
+  // Factores protectores
+  const [sleepHours, setSleepHours] = useState<number>(7);
+  const [socialConnections, setSocialConnections] = useState<number>(0);
+  const [mealsCount, setMealsCount] = useState<number>(3);
+  const [waterIntake, setWaterIntake] = useState<number>(8);
+  const [physicalActivity, setPhysicalActivity] = useState<number>(30);
+  const [sunlightExposure, setSunlightExposure] = useState<number>(15);
+  const [screenTimeHours, setScreenTimeHours] = useState<number>(6);
+  const [gratitudeMoments, setGratitudeMoments] = useState<number>(1);
+  const [deepBreathingMinutes, setDeepBreathingMinutes] = useState<number>(5);
+  
   const [startTime] = useState<number>(Date.now());
 
   const checkInMutation = useMutation({
@@ -116,7 +128,17 @@ export default function CheckinRapido() {
       stressLevel,
       currentActivity: currentActivity.trim() || null,
       location: userLocation.trim() || null,
-      quickNote: quickNote.trim() || null
+      quickNote: quickNote.trim() || null,
+      // Factores protectores
+      sleepHours: sleepHours.toString(),
+      socialConnections,
+      mealsCount,
+      waterIntake,
+      physicalActivity,
+      sunlightExposure,
+      screenTimeHours: screenTimeHours.toString(),
+      gratitudeMoments,
+      deepBreathingMinutes
     };
     
     checkInMutation.mutate(data);
@@ -211,6 +233,174 @@ export default function CheckinRapido() {
                 title="Nivel de Estrés"
                 description="¿Qué tan tenso o relajado estás?"
               />
+            </CardContent>
+          </Card>
+
+          {/* Factores Protectores */}
+          <Card className="bg-gradient-to-br from-green-50 to-emerald-50 border-emerald-200 shadow-lg">
+            <CardHeader className="pb-4">
+              <CardTitle className="flex items-center text-emerald-800">
+                <Shield className="mr-2 h-5 w-5 text-emerald-600" />
+                Factores Protectores de Hoy
+              </CardTitle>
+              <p className="text-sm text-emerald-600">
+                Estos hábitos saludables fortalecen tu bienestar mental
+              </p>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                {/* Horas de sueño */}
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-emerald-800 flex items-center gap-1">
+                    <Moon className="h-4 w-4" />
+                    Sueño: {sleepHours}h
+                  </Label>
+                  <input
+                    type="range"
+                    min="4"
+                    max="12"
+                    step="0.5"
+                    value={sleepHours}
+                    onChange={(e) => setSleepHours(Number(e.target.value))}
+                    className="w-full h-2 bg-emerald-200 rounded-lg appearance-none cursor-pointer"
+                  />
+                </div>
+
+                {/* Personas vistas */}
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-emerald-800 flex items-center gap-1">
+                    <Users className="h-4 w-4" />
+                    Personas: {socialConnections}
+                  </Label>
+                  <input
+                    type="range"
+                    min="0"
+                    max="15"
+                    value={socialConnections}
+                    onChange={(e) => setSocialConnections(Number(e.target.value))}
+                    className="w-full h-2 bg-emerald-200 rounded-lg appearance-none cursor-pointer"
+                  />
+                </div>
+
+                {/* Comidas */}
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-emerald-800 flex items-center gap-1">
+                    <Utensils className="h-4 w-4" />
+                    Comidas: {mealsCount}
+                  </Label>
+                  <input
+                    type="range"
+                    min="0"
+                    max="6"
+                    value={mealsCount}
+                    onChange={(e) => setMealsCount(Number(e.target.value))}
+                    className="w-full h-2 bg-emerald-200 rounded-lg appearance-none cursor-pointer"
+                  />
+                </div>
+
+                {/* Agua */}
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-emerald-800 flex items-center gap-1">
+                    <Droplets className="h-4 w-4" />
+                    Agua: {waterIntake} vasos
+                  </Label>
+                  <input
+                    type="range"
+                    min="0"
+                    max="15"
+                    value={waterIntake}
+                    onChange={(e) => setWaterIntake(Number(e.target.value))}
+                    className="w-full h-2 bg-emerald-200 rounded-lg appearance-none cursor-pointer"
+                  />
+                </div>
+
+                {/* Actividad física */}
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-emerald-800 flex items-center gap-1">
+                    <Activity className="h-4 w-4" />
+                    Ejercicio: {physicalActivity}min
+                  </Label>
+                  <input
+                    type="range"
+                    min="0"
+                    max="120"
+                    value={physicalActivity}
+                    onChange={(e) => setPhysicalActivity(Number(e.target.value))}
+                    className="w-full h-2 bg-emerald-200 rounded-lg appearance-none cursor-pointer"
+                  />
+                </div>
+
+                {/* Sol/aire libre */}
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-emerald-800 flex items-center gap-1">
+                    <Sun className="h-4 w-4" />
+                    Sol: {sunlightExposure}min
+                  </Label>
+                  <input
+                    type="range"
+                    min="0"
+                    max="180"
+                    value={sunlightExposure}
+                    onChange={(e) => setSunlightExposure(Number(e.target.value))}
+                    className="w-full h-2 bg-emerald-200 rounded-lg appearance-none cursor-pointer"
+                  />
+                </div>
+
+                {/* Tiempo de pantalla */}
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-emerald-800 flex items-center gap-1">
+                    <Monitor className="h-4 w-4" />
+                    Pantalla: {screenTimeHours}h
+                  </Label>
+                  <input
+                    type="range"
+                    min="0"
+                    max="16"
+                    step="0.5"
+                    value={screenTimeHours}
+                    onChange={(e) => setScreenTimeHours(Number(e.target.value))}
+                    className="w-full h-2 bg-red-200 rounded-lg appearance-none cursor-pointer"
+                  />
+                </div>
+
+                {/* Momentos de gratitud */}
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-emerald-800 flex items-center gap-1">
+                    <Sparkles className="h-4 w-4" />
+                    Gratitud: {gratitudeMoments}
+                  </Label>
+                  <input
+                    type="range"
+                    min="0"
+                    max="10"
+                    value={gratitudeMoments}
+                    onChange={(e) => setGratitudeMoments(Number(e.target.value))}
+                    className="w-full h-2 bg-emerald-200 rounded-lg appearance-none cursor-pointer"
+                  />
+                </div>
+
+                {/* Respiración consciente */}
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-emerald-800 flex items-center gap-1">
+                    <Wind className="h-4 w-4" />
+                    Respiración: {deepBreathingMinutes}min
+                  </Label>
+                  <input
+                    type="range"
+                    min="0"
+                    max="30"
+                    value={deepBreathingMinutes}
+                    onChange={(e) => setDeepBreathingMinutes(Number(e.target.value))}
+                    className="w-full h-2 bg-emerald-200 rounded-lg appearance-none cursor-pointer"
+                  />
+                </div>
+              </div>
+              
+              <div className="bg-emerald-100 rounded-lg p-3 mt-4">
+                <p className="text-xs text-emerald-700 text-center">
+                  💡 <strong>Tip:</strong> Estos factores fortalecen tu resiliencia mental y mejoran tu estado de ánimo naturalmente.
+                </p>
+              </div>
             </CardContent>
           </Card>
 
