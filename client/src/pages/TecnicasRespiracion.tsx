@@ -244,10 +244,10 @@ const BreathingExercise: React.FC<BreathingExerciseProps> = ({ technique, onComp
                   {/* Indicador de mano tapando fosa - DENTRO del emoji de la nariz */}
                   <div className={`absolute transition-all duration-500 text-lg ${
                     phase === 'hold' 
-                      ? 'top-6 left-1/2 transform -translate-x-1/2 text-blue-600'
+                      ? 'top-8 left-1/2 transform -translate-x-1/2 text-blue-600'
                       : (currentCycle % 2 === 1 && phase === 'inhale') || (currentCycle % 2 === 0 && phase === 'exhale')
-                        ? 'top-8 right-1 text-red-600' 
-                        : 'top-8 left-1 text-red-600'
+                        ? 'top-10 right-1 text-red-600' 
+                        : 'top-10 left-1 text-red-600'
                   }`}>
                     👆
                   </div>
