@@ -35,7 +35,7 @@ const MINDFULNESS_SESSIONS = [
     duration: 3,
     guidance: 'guided',
     steps: [
-      'Siéntate cómodamente y cierra los ojos',
+      'Siéntate cómodamente y relaja tu respiración',
       'Comienza por tus pies, nota las sensaciones',
       'Sube lentamente por tus piernas, abdomen',
       'Continúa por tu pecho, brazos y manos',
