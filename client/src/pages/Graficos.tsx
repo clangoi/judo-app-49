@@ -94,36 +94,60 @@ const Graficos = () => {
   // Query para datos de estado de ánimo
   const { data: moodData = [], isLoading: isLoadingMood } = useQuery<any[]>({
     queryKey: ['/api/mood-entries'],
+    queryFn: async () => {
+      const response = await api.get('/api/mood-entries');
+      return response.data;
+    },
     enabled: !!user,
   });
 
   // Query para datos de estrés
   const { data: stressData = [], isLoading: isLoadingStress } = useQuery<any[]>({
     queryKey: ['/api/stress-entries'],
+    queryFn: async () => {
+      const response = await api.get('/api/stress-entries');
+      return response.data;
+    },
     enabled: !!user,
   });
 
   // Query para datos de concentración
   const { data: concentrationData = [], isLoading: isLoadingConcentration } = useQuery<any[]>({
     queryKey: ['/api/concentration-entries'],
+    queryFn: async () => {
+      const response = await api.get('/api/concentration-entries');
+      return response.data;
+    },
     enabled: !!user,
   });
 
   // Query para datos de bienestar mental
   const { data: mentalWellnessData = [], isLoading: isLoadingMentalWellness } = useQuery<any[]>({
     queryKey: ['/api/mental-wellness-entries'],
+    queryFn: async () => {
+      const response = await api.get('/api/mental-wellness-entries');
+      return response.data;
+    },
     enabled: !!user,
   });
 
   // Query para evaluaciones profundas
   const { data: deepAssessmentData = [], isLoading: isLoadingDeepAssessment } = useQuery<any[]>({
     queryKey: ['/api/deep-assessment-entries'],
+    queryFn: async () => {
+      const response = await api.get('/api/deep-assessment-entries');
+      return response.data;
+    },
     enabled: !!user,
   });
 
   // Query para check-ins rápidos
   const { data: quickCheckInData = [], isLoading: isLoadingQuickCheckIns } = useQuery<any[]>({
     queryKey: ['/api/quick-checkin-entries'],
+    queryFn: async () => {
+      const response = await api.get('/api/quick-checkin-entries');
+      return response.data;
+    },
     enabled: !!user,
   });
 
