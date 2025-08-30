@@ -18,8 +18,7 @@ const NavHeader = ({ title, subtitle }: NavHeaderProps) => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Simple logo for all users
-  const logoUrl = "/lovable-uploads/c6a3ed23-61eb-43e2-94de-c781c8d1107b.png";
+  
 
   const handleSignOut = () => {
     signOut();
@@ -49,16 +48,7 @@ const NavHeader = ({ title, subtitle }: NavHeaderProps) => {
       <div className="max-w-4xl mx-auto">
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-3">
-            {/* Logo */}
-            {logoUrl && (
-              <div className="flex-shrink-0">
-                <img 
-                  src={logoUrl} 
-                  alt="Logo"
-                  className="h-10 w-10 object-contain rounded bg-white/10 p-1"
-                />
-              </div>
-            )}
+            
             
             {!isHomePage && (
               <Button
