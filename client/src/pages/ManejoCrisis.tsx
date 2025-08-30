@@ -447,10 +447,14 @@ export default function ManejoCrisis() {
               <BreathingExercise 
                 onComplete={() => {
                   // Preguntar efectividad
-                  const effectiveness = window.prompt("¿Qué tan efectiva fue esta técnica? (1-5, donde 5 es muy efectiva)");
-                  if (effectiveness) {
-                    handleTechniqueComplete('breathing', parseInt(effectiveness));
-                  }
+                  let effectiveness;
+                  do {
+                    const input = window.prompt("¿Qué tan efectiva fue esta técnica? \nIngresa solo números del 1 al 5 (donde 5 es muy efectiva):");
+                    if (input === null) return; // Usuario canceló
+                    effectiveness = parseInt(input);
+                  } while (isNaN(effectiveness) || effectiveness < 1 || effectiveness > 5);
+                  
+                  handleTechniqueComplete('breathing', effectiveness);
                 }}
               />
             )}
@@ -458,10 +462,14 @@ export default function ManejoCrisis() {
             {activeTechnique === 'grounding' && (
               <GroundingExercise 
                 onComplete={() => {
-                  const effectiveness = window.prompt("¿Qué tan efectiva fue esta técnica? (1-5, donde 5 es muy efectiva)");
-                  if (effectiveness) {
-                    handleTechniqueComplete('grounding', parseInt(effectiveness));
-                  }
+                  let effectiveness;
+                  do {
+                    const input = window.prompt("¿Qué tan efectiva fue esta técnica? \nIngresa solo números del 1 al 5 (donde 5 es muy efectiva):");
+                    if (input === null) return; // Usuario canceló
+                    effectiveness = parseInt(input);
+                  } while (isNaN(effectiveness) || effectiveness < 1 || effectiveness > 5);
+                  
+                  handleTechniqueComplete('grounding', effectiveness);
                 }}
               />
             )}
@@ -481,10 +489,14 @@ export default function ManejoCrisis() {
                   
                   <Button 
                     onClick={() => {
-                      const effectiveness = window.prompt("¿Qué tan efectiva fue esta técnica? (1-5, donde 5 es muy efectiva)");
-                      if (effectiveness) {
-                        handleTechniqueComplete(activeTechnique, parseInt(effectiveness));
-                      }
+                      let effectiveness;
+                      do {
+                        const input = window.prompt("¿Qué tan efectiva fue esta técnica? \nIngresa solo números del 1 al 5 (donde 5 es muy efectiva):");
+                        if (input === null) return; // Usuario canceló
+                        effectiveness = parseInt(input);
+                      } while (isNaN(effectiveness) || effectiveness < 1 || effectiveness > 5);
+                      
+                      handleTechniqueComplete(activeTechnique, effectiveness);
                     }}
                     className="w-full bg-purple-600 hover:bg-purple-700 text-white"
                   >
