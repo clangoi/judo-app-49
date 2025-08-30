@@ -203,6 +203,63 @@ const EvaluacionProfunda = () => {
       />
       
       <div className="max-w-4xl mx-auto p-6 space-y-6">
+        {/* Welcome section */}
+        <div className="mb-6">
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">
+            Bienvenido a tu evaluación mental
+          </h2>
+          <p className="text-gray-600 mb-4">
+            Tu salud mental es tan importante como tu entrenamiento físico. Utiliza estas herramientas para monitorear y mejorar tu bienestar psicológico.
+          </p>
+          
+          {/* Explanation cards */}
+          <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4 mb-4">
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+              <div className="flex items-center gap-2 mb-1">
+                <Smile className="h-4 w-4 text-blue-600" />
+                <h3 className="text-sm font-medium text-blue-900">Estado de Ánimo</h3>
+              </div>
+              <p className="text-xs text-blue-700">
+                <strong>¿Cómo me siento en general hoy?</strong><br/>
+                Evalúa tu bienestar emocional completo del día
+              </p>
+            </div>
+            
+            <div className="bg-orange-50 border border-orange-200 rounded-lg p-3">
+              <div className="flex items-center gap-2 mb-1">
+                <Activity className="h-4 w-4 text-orange-600" />
+                <h3 className="text-sm font-medium text-orange-900">Niveles de Estrés</h3>
+              </div>
+              <p className="text-xs text-orange-700">
+                <strong>¿Qué me estresa y cómo lo manejo?</strong><br/>
+                Identifica causas del estrés y mejora tus estrategias
+              </p>
+            </div>
+            
+            <div className="bg-pink-50 border border-pink-200 rounded-lg p-3">
+              <div className="flex items-center gap-2 mb-1">
+                <Heart className="h-4 w-4 text-pink-600" />
+                <h3 className="text-sm font-medium text-pink-900">Evaluación del Día</h3>
+              </div>
+              <p className="text-xs text-pink-700">
+                <strong>¿Cómo está mi salud psicológica integral?</strong><br/>
+                Evalúa autoestima, propósito, conexiones y crecimiento
+              </p>
+            </div>
+            
+            <div className="bg-purple-50 border border-purple-200 rounded-lg p-3">
+              <div className="flex items-center gap-2 mb-1">
+                <Brain className="h-4 w-4 text-purple-600" />
+                <h3 className="text-sm font-medium text-purple-900">Concentración</h3>
+              </div>
+              <p className="text-xs text-purple-700">
+                <strong>¿Cómo está mi capacidad de enfoque?</strong><br/>
+                Evalúa concentración, claridad mental y técnicas
+              </p>
+            </div>
+          </div>
+        </div>
+
         <div className="text-center space-y-2">
           {todayEntry ? (
             <div className="bg-green-50 border border-green-200 rounded-lg p-4">
