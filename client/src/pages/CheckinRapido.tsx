@@ -39,6 +39,7 @@ const EmojiRating: React.FC<EmojiRatingProps> = ({
         return (
           <div key={index} className="text-center">
             <button
+              type="button"
               onClick={() => onChange(rating)}
               className={`text-4xl p-2 rounded-full transition-all transform hover:scale-110 ${
                 value === rating ? 'bg-[#C5A46C]/20 scale-110' : 'hover:bg-gray-100'
