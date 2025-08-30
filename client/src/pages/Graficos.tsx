@@ -5,8 +5,8 @@ import { api } from "@/lib/api";
 import { useAuth } from "@/hooks/useAuth";
 import NavHeader from "@/components/NavHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, BarChart, Bar } from 'recharts';
-import { Loader2, TrendingUp, Activity, Target, ChevronDown, ChevronUp, Brain, Heart, Smile, BarChart3 } from "lucide-react";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, BarChart, Bar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, ScatterChart, Scatter } from 'recharts';
+import { Loader2, TrendingUp, Activity, Target, ChevronDown, ChevronUp, Brain, Heart, Smile, BarChart3, Calendar, Clock, Shield, AlertTriangle } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Button } from "@/components/ui/button";
@@ -22,7 +22,13 @@ const Graficos = () => {
     exercise: false,
     nutrition: false,
     mentalTrends: false,
-    sportTrends: false
+    sportTrends: false,
+    protectiveFactors: false,
+    correlations: false,
+    weeklyPatterns: false,
+    dailyPatterns: false,
+    streaks: false,
+    crisis: false
   });
 
   // Estado para controlar qué sección está visible
@@ -249,6 +255,145 @@ const Graficos = () => {
     { name: 'Regular (5-6)', value: (deepAssessmentData as any[]).filter((entry: any) => entry.overallWellness >= 5 && entry.overallWellness < 7).length, color: '#eab308' },
     { name: 'Bajo (1-4)', value: (deepAssessmentData as any[]).filter((entry: any) => entry.overallWellness < 5).length, color: '#ef4444' }
   ].filter(item => item.value > 0);
+
+  // 1. Datos para gráfico de factores protectores (radar)
+  const protectiveFactorsData = React.useMemo(() => {
+    if ((quickCheckInData as any[]).length === 0) return [];
+    
+    const recentEntries = (quickCheckInData as any[]).slice(-7); // Últimas 7 entradas
+    const averages = {
+      'Sueño': recentEntries.reduce((sum, entry) => sum + (entry.sleepHours || 0), 0) / recentEntries.length,
+      'Conexiones Sociales': recentEntries.reduce((sum, entry) => sum + (entry.socialConnections || 0), 0) / recentEntries.length,
+      'Comidas': recentEntries.reduce((sum, entry) => sum + (entry.mealsCount || 0), 0) / recentEntries.length,
+      'Agua': recentEntries.reduce((sum, entry) => sum + (entry.waterIntake || 0), 0) / recentEntries.length,
+      'Ejercicio': recentEntries.reduce((sum, entry) => sum + (entry.physicalActivity || 0), 0) / recentEntries.length,
+      'Luz Solar': recentEntries.reduce((sum, entry) => sum + (entry.sunlightExposure || 0), 0) / recentEntries.length,
+      'Gratitud': recentEntries.reduce((sum, entry) => sum + (entry.gratitudeMoments || 0), 0) / recentEntries.length,
+      'Respiración': recentEntries.reduce((sum, entry) => sum + (entry.deepBreathingMinutes || 0), 0) / recentEntries.length
+    };
+
+    return Object.entries(averages).map(([factor, value]) => ({
+      factor,
+      value: Math.round(value * 10) / 10,
+      fullMark: factor === 'Agua' ? 12 : factor === 'Luz Solar' ? 60 : factor === 'Sueño' ? 10 : 5
+    }));
+  }, [quickCheckInData]);
+
+  // 2. Datos de correlación estado de ánimo vs factores
+  const correlationData = React.useMemo(() => {
+    if ((quickCheckInData as any[]).length === 0) return [];
+    
+    return (quickCheckInData as any[]).map((entry: any) => ({
+      mood: entry.currentMood,
+      sleep: entry.sleepHours || 0,
+      social: entry.socialConnections || 0,
+      exercise: entry.physicalActivity || 0,
+      water: entry.waterIntake || 0,
+      gratitude: entry.gratitudeMoments || 0
+    }));
+  }, [quickCheckInData]);
+
+  // 3. Patrones por día de la semana
+  const weeklyPatternsData = React.useMemo(() => {
+    if (mentalTrendsData.length === 0) return [];
+    
+    const dayGroups = {
+      'Lun': [], 'Mar': [], 'Mié': [], 'Jue': [], 'Vie': [], 'Sáb': [], 'Dom': []
+    } as any;
+    
+    mentalTrendsData.forEach((entry: any) => {
+      const date = new Date(entry.date);
+      const dayNames = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+      const dayName = dayNames[date.getDay()];
+      dayGroups[dayName].push(entry['Bienestar']);
+    });
+
+    return Object.entries(dayGroups).map(([day, values]: [string, any]) => ({
+      day,
+      bienestar: values.length > 0 ? (values.reduce((sum: number, val: number) => sum + val, 0) / values.length).toFixed(1) : 0,
+      count: values.length
+    })).filter(item => item.count > 0);
+  }, [mentalTrendsData]);
+
+  // 4. Patrones por hora del día
+  const dailyPatternsData = React.useMemo(() => {
+    if ((quickCheckInData as any[]).length === 0) return [];
+    
+    const timeGroups = { 'Mañana': [], 'Tarde': [], 'Noche': [] } as any;
+    
+    (quickCheckInData as any[]).forEach((entry: any) => {
+      const timeOfDay = entry.timeOfDay;
+      if (timeOfDay === 'morning') timeGroups['Mañana'].push(entry.currentMood);
+      else if (timeOfDay === 'afternoon') timeGroups['Tarde'].push(entry.currentMood);
+      else if (timeOfDay === 'night') timeGroups['Noche'].push(entry.currentMood);
+    });
+
+    return Object.entries(timeGroups).map(([time, moods]: [string, any]) => ({
+      time,
+      mood: moods.length > 0 ? (moods.reduce((sum: number, val: number) => sum + val, 0) / moods.length).toFixed(1) : 0,
+      count: moods.length
+    })).filter(item => item.count > 0);
+  }, [quickCheckInData]);
+
+  // 5. Datos para heatmap de streaks
+  const streaksData = React.useMemo(() => {
+    if (mentalTrendsData.length === 0) return [];
+    
+    const last30Days = [];
+    const today = new Date();
+    
+    for (let i = 29; i >= 0; i--) {
+      const date = new Date(today);
+      date.setDate(date.getDate() - i);
+      const dateStr = date.toISOString().split('T')[0];
+      
+      const dayData = mentalTrendsData.find(entry => entry.date === dateStr);
+      const wellness = dayData ? dayData['Bienestar'] : 0;
+      
+      last30Days.push({
+        date: dateStr,
+        day: date.getDate(),
+        wellness: wellness,
+        level: wellness >= 8 ? 'high' : wellness >= 6 ? 'medium' : wellness >= 4 ? 'low' : 'none'
+      });
+    }
+    
+    return last30Days;
+  }, [mentalTrendsData]);
+
+  // 6. Análisis de crisis (momentos de estrés alto)
+  const crisisData = React.useMemo(() => {
+    const crisisEvents = [];
+    
+    // Evaluar evaluaciones profundas
+    (deepAssessmentData as any[]).forEach((entry: any) => {
+      if (entry.stressLevel >= 8 || entry.overallWellness <= 3) {
+        crisisEvents.push({
+          date: entry.date,
+          type: 'Evaluación profunda',
+          level: entry.stressLevel >= 8 ? 'Alto estrés' : 'Bajo bienestar',
+          value: entry.stressLevel >= 8 ? entry.stressLevel : entry.overallWellness,
+          color: '#ef4444'
+        });
+      }
+    });
+    
+    // Evaluar check-ins rápidos
+    (quickCheckInData as any[]).forEach((entry: any) => {
+      if (entry.stressLevel >= 4 || entry.currentMood <= 2) {
+        const date = new Date(entry.timestamp).toISOString().split('T')[0];
+        crisisEvents.push({
+          date: date,
+          type: 'Check-in rápido',
+          level: entry.stressLevel >= 4 ? 'Alto estrés' : 'Bajo ánimo',
+          value: entry.stressLevel >= 4 ? entry.stressLevel : entry.currentMood,
+          color: '#f97316'
+        });
+      }
+    });
+    
+    return crisisEvents.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+  }, [deepAssessmentData, quickCheckInData]);
 
   console.log('Progress Summary:', progressSummary);
   console.log('Activity Distribution:', activityDistribution);
@@ -511,6 +656,274 @@ const Graficos = () => {
                   </ResponsiveContainer>
                 </CardContent>
               </Card>
+            )}
+
+            {/* 1. Gráfico de Factores Protectores (Radar) */}
+            {protectiveFactorsData.length > 0 && (
+              <Collapsible open={!collapsedCharts.protectiveFactors} onOpenChange={() => toggleChart('protectiveFactors')}>
+                <Card className="bg-white border-[#C5A46C]">
+                  <CardHeader>
+                    <CollapsibleTrigger asChild>
+                      <Button variant="ghost" className="w-full p-0 h-auto justify-between hover:bg-transparent">
+                        <CardTitle className="text-[#1A1A1A] flex items-center">
+                          <Shield className="mr-2 h-5 w-5 text-[#C5A46C]" />
+                          Factores Protectores Promedio (Últimas 7 entradas)
+                        </CardTitle>
+                        {collapsedCharts.protectiveFactors ? 
+                          <ChevronDown className="h-4 w-4 text-[#C5A46C]" /> : 
+                          <ChevronUp className="h-4 w-4 text-[#C5A46C]" />
+                        }
+                      </Button>
+                    </CollapsibleTrigger>
+                  </CardHeader>
+                  <CollapsibleContent>
+                    <CardContent>
+                      <ResponsiveContainer width="100%" height={400}>
+                        <RadarChart data={protectiveFactorsData}>
+                          <PolarGrid />
+                          <PolarAngleAxis dataKey="factor" />
+                          <PolarRadiusAxis domain={[0, 'dataMax']} />
+                          <Radar
+                            name="Promedio"
+                            dataKey="value"
+                            stroke="#10b981"
+                            fill="#10b981"
+                            fillOpacity={0.3}
+                            strokeWidth={2}
+                          />
+                          <Tooltip />
+                        </RadarChart>
+                      </ResponsiveContainer>
+                    </CardContent>
+                  </CollapsibleContent>
+                </Card>
+              </Collapsible>
+            )}
+
+            {/* 2. Correlación Estado de Ánimo vs Factores */}
+            {correlationData.length > 0 && (
+              <Collapsible open={!collapsedCharts.correlations} onOpenChange={() => toggleChart('correlations')}>
+                <Card className="bg-white border-[#C5A46C]">
+                  <CardHeader>
+                    <CollapsibleTrigger asChild>
+                      <Button variant="ghost" className="w-full p-0 h-auto justify-between hover:bg-transparent">
+                        <CardTitle className="text-[#1A1A1A] flex items-center">
+                          <BarChart3 className="mr-2 h-5 w-5 text-[#C5A46C]" />
+                          Correlación: Estado de Ánimo vs Factores Protectores
+                        </CardTitle>
+                        {collapsedCharts.correlations ? 
+                          <ChevronDown className="h-4 w-4 text-[#C5A46C]" /> : 
+                          <ChevronUp className="h-4 w-4 text-[#C5A46C]" />
+                        }
+                      </Button>
+                    </CollapsibleTrigger>
+                  </CardHeader>
+                  <CollapsibleContent>
+                    <CardContent>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <ResponsiveContainer width="100%" height={250}>
+                          <ScatterChart data={correlationData}>
+                            <CartesianGrid strokeDasharray="3 3" />
+                            <XAxis type="number" dataKey="sleep" name="Horas de Sueño" />
+                            <YAxis type="number" dataKey="mood" name="Estado de Ánimo" />
+                            <Tooltip cursor={{ strokeDasharray: '3 3' }} />
+                            <Scatter name="Sueño vs Ánimo" data={correlationData} fill="#3b82f6" />
+                          </ScatterChart>
+                        </ResponsiveContainer>
+                        <ResponsiveContainer width="100%" height={250}>
+                          <ScatterChart data={correlationData}>
+                            <CartesianGrid strokeDasharray="3 3" />
+                            <XAxis type="number" dataKey="exercise" name="Ejercicio (min)" />
+                            <YAxis type="number" dataKey="mood" name="Estado de Ánimo" />
+                            <Tooltip cursor={{ strokeDasharray: '3 3' }} />
+                            <Scatter name="Ejercicio vs Ánimo" data={correlationData} fill="#10b981" />
+                          </ScatterChart>
+                        </ResponsiveContainer>
+                      </div>
+                    </CardContent>
+                  </CollapsibleContent>
+                </Card>
+              </Collapsible>
+            )}
+
+            {/* 3. Patrones por Día de la Semana */}
+            {weeklyPatternsData.length > 0 && (
+              <Collapsible open={!collapsedCharts.weeklyPatterns} onOpenChange={() => toggleChart('weeklyPatterns')}>
+                <Card className="bg-white border-[#C5A46C]">
+                  <CardHeader>
+                    <CollapsibleTrigger asChild>
+                      <Button variant="ghost" className="w-full p-0 h-auto justify-between hover:bg-transparent">
+                        <CardTitle className="text-[#1A1A1A] flex items-center">
+                          <Calendar className="mr-2 h-5 w-5 text-[#C5A46C]" />
+                          Patrones de Bienestar por Día de la Semana
+                        </CardTitle>
+                        {collapsedCharts.weeklyPatterns ? 
+                          <ChevronDown className="h-4 w-4 text-[#C5A46C]" /> : 
+                          <ChevronUp className="h-4 w-4 text-[#C5A46C]" />
+                        }
+                      </Button>
+                    </CollapsibleTrigger>
+                  </CardHeader>
+                  <CollapsibleContent>
+                    <CardContent>
+                      <ResponsiveContainer width="100%" height={300}>
+                        <BarChart data={weeklyPatternsData}>
+                          <CartesianGrid strokeDasharray="3 3" />
+                          <XAxis dataKey="day" />
+                          <YAxis domain={[0, 10]} />
+                          <Tooltip />
+                          <Bar dataKey="bienestar" fill="#8b5cf6" name="Bienestar Promedio" />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </CardContent>
+                  </CollapsibleContent>
+                </Card>
+              </Collapsible>
+            )}
+
+            {/* 4. Patrones por Hora del Día */}
+            {dailyPatternsData.length > 0 && (
+              <Collapsible open={!collapsedCharts.dailyPatterns} onOpenChange={() => toggleChart('dailyPatterns')}>
+                <Card className="bg-white border-[#C5A46C]">
+                  <CardHeader>
+                    <CollapsibleTrigger asChild>
+                      <Button variant="ghost" className="w-full p-0 h-auto justify-between hover:bg-transparent">
+                        <CardTitle className="text-[#1A1A1A] flex items-center">
+                          <Clock className="mr-2 h-5 w-5 text-[#C5A46C]" />
+                          Patrones de Estado de Ánimo por Momento del Día
+                        </CardTitle>
+                        {collapsedCharts.dailyPatterns ? 
+                          <ChevronDown className="h-4 w-4 text-[#C5A46C]" /> : 
+                          <ChevronUp className="h-4 w-4 text-[#C5A46C]" />
+                        }
+                      </Button>
+                    </CollapsibleTrigger>
+                  </CardHeader>
+                  <CollapsibleContent>
+                    <CardContent>
+                      <ResponsiveContainer width="100%" height={300}>
+                        <BarChart data={dailyPatternsData}>
+                          <CartesianGrid strokeDasharray="3 3" />
+                          <XAxis dataKey="time" />
+                          <YAxis domain={[1, 5]} />
+                          <Tooltip />
+                          <Bar dataKey="mood" fill="#f59e0b" name="Estado de Ánimo Promedio" />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </CardContent>
+                  </CollapsibleContent>
+                </Card>
+              </Collapsible>
+            )}
+
+            {/* 5. Heatmap de Streaks/Rachas */}
+            {streaksData.length > 0 && (
+              <Collapsible open={!collapsedCharts.streaks} onOpenChange={() => toggleChart('streaks')}>
+                <Card className="bg-white border-[#C5A46C]">
+                  <CardHeader>
+                    <CollapsibleTrigger asChild>
+                      <Button variant="ghost" className="w-full p-0 h-auto justify-between hover:bg-transparent">
+                        <CardTitle className="text-[#1A1A1A] flex items-center">
+                          <Calendar className="mr-2 h-5 w-5 text-[#C5A46C]" />
+                          Calendario de Bienestar (Últimos 30 días)
+                        </CardTitle>
+                        {collapsedCharts.streaks ? 
+                          <ChevronDown className="h-4 w-4 text-[#C5A46C]" /> : 
+                          <ChevronUp className="h-4 w-4 text-[#C5A46C]" />
+                        }
+                      </Button>
+                    </CollapsibleTrigger>
+                  </CardHeader>
+                  <CollapsibleContent>
+                    <CardContent>
+                      <div className="grid grid-cols-10 gap-1 p-4">
+                        {streaksData.map((day, index) => (
+                          <div
+                            key={index}
+                            className={`w-8 h-8 rounded text-xs flex items-center justify-center text-white font-medium ${
+                              day.level === 'high' ? 'bg-green-500' :
+                              day.level === 'medium' ? 'bg-yellow-500' :
+                              day.level === 'low' ? 'bg-orange-500' :
+                              'bg-gray-300'
+                            }`}
+                            title={`${day.date}: Bienestar ${day.wellness}/10`}
+                          >
+                            {day.day}
+                          </div>
+                        ))}
+                      </div>
+                      <div className="flex justify-center gap-4 mt-4 text-sm text-gray-600">
+                        <div className="flex items-center gap-1">
+                          <div className="w-3 h-3 bg-green-500 rounded"></div>
+                          <span>Alto (8-10)</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <div className="w-3 h-3 bg-yellow-500 rounded"></div>
+                          <span>Medio (6-7)</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <div className="w-3 h-3 bg-orange-500 rounded"></div>
+                          <span>Bajo (4-5)</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <div className="w-3 h-3 bg-gray-300 rounded"></div>
+                          <span>Sin datos</span>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </CollapsibleContent>
+                </Card>
+              </Collapsible>
+            )}
+
+            {/* 6. Análisis de Crisis/Alertas */}
+            {crisisData.length > 0 && (
+              <Collapsible open={!collapsedCharts.crisis} onOpenChange={() => toggleChart('crisis')}>
+                <Card className="bg-white border-[#C5A46C]">
+                  <CardHeader>
+                    <CollapsibleTrigger asChild>
+                      <Button variant="ghost" className="w-full p-0 h-auto justify-between hover:bg-transparent">
+                        <CardTitle className="text-[#1A1A1A] flex items-center">
+                          <AlertTriangle className="mr-2 h-5 w-5 text-[#C5A46C]" />
+                          Análisis de Momentos Críticos
+                        </CardTitle>
+                        {collapsedCharts.crisis ? 
+                          <ChevronDown className="h-4 w-4 text-[#C5A46C]" /> : 
+                          <ChevronUp className="h-4 w-4 text-[#C5A46C]" />
+                        }
+                      </Button>
+                    </CollapsibleTrigger>
+                  </CardHeader>
+                  <CollapsibleContent>
+                    <CardContent>
+                      <div className="space-y-3">
+                        <div className="text-sm text-gray-600 mb-4">
+                          Se detectaron {crisisData.length} momentos que requieren atención:
+                        </div>
+                        {crisisData.map((crisis, index) => (
+                          <div
+                            key={index}
+                            className={`p-3 rounded-lg border-l-4 ${
+                              crisis.color === '#ef4444' ? 'border-red-500 bg-red-50' : 'border-orange-500 bg-orange-50'
+                            }`}
+                          >
+                            <div className="flex justify-between items-start">
+                              <div>
+                                <div className="font-medium text-gray-900">{crisis.level}</div>
+                                <div className="text-sm text-gray-600">{crisis.type}</div>
+                              </div>
+                              <div className="text-right">
+                                <div className="text-sm font-medium">{crisis.date}</div>
+                                <div className="text-sm text-gray-600">Valor: {crisis.value}</div>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </CollapsibleContent>
+                </Card>
+              </Collapsible>
             )}
           </>
         )}
