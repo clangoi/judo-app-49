@@ -25,7 +25,7 @@ const TrainerDashboard = () => {
     return (
       <div className="space-y-6">
         <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-bold">Dashboard del Entrenador</h1>
+          <h1 className="text-3xl font-bold text-secondary">Dashboard del Entrenador</h1>
           <div className="flex gap-2">
             {[...Array(3)].map((_, i) => (
               <div key={i} className="h-10 w-24 bg-gray-200 rounded animate-pulse" />
@@ -56,7 +56,7 @@ const TrainerDashboard = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Dashboard del Entrenador</h1>
+          <h1 className="text-3xl font-bold text-secondary">Dashboard del Entrenador</h1>
           <p className="text-muted-foreground">
             Personaliza tu vista para gestionar mejor a tus deportistas
           </p>

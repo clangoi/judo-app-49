@@ -178,7 +178,7 @@ export default function CheckinRapido() {
               <Heart className="h-8 w-8 text-white" />
             </div>
           </div>
-          <h1 className="text-3xl font-bold text-foreground mb-2">Check-in Rápido</h1>
+          <h1 className="text-3xl font-bold text-secondary mb-2">Check-in Rápido</h1>
           <p className="text-muted-foreground text-lg">¿Cómo te sientes en este momento?</p>
           <div className="text-sm text-primary mt-2 font-medium">⚡ Solo 30 segundos</div>
         </div>

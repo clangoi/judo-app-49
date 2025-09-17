@@ -205,7 +205,7 @@ const EvaluacionProfunda = () => {
       <div className="max-w-4xl mx-auto p-6 space-y-6">
         {/* Welcome section */}
         <div className="mb-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">
+          <h2 className="text-xl font-semibold text-secondary mb-2">
             Bienvenido a tu evaluación mental
           </h2>
           <p className="text-gray-600 mb-4">

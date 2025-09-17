@@ -29,7 +29,7 @@ const MentalCheck = () => {
         {/* Quick Action Buttons */}
         <div className="mb-8">
           <div className="text-center mb-4">
-            <h2 className="text-2xl font-bold text-white mb-2">¿Cómo quieres evaluar tu bienestar hoy?</h2>
+            <h2 className="text-2xl font-bold text-secondary mb-2">¿Cómo quieres evaluar tu bienestar hoy?</h2>
             <p className="text-gray-400">Elige la opción que mejor se adapte a tu tiempo disponible</p>
           </div>
           
@@ -345,7 +345,7 @@ const MentalCheck = () => {
 
         <div className="max-w-2xl mx-auto hidden">
           <Card 
-            className="bg-white hover:shadow-lg transition-all duration-300 cursor-pointer border-[#C5A46C]"
+            className="bg-white hover:shadow-lg transition-all duration-300 cursor-pointer border-primary"
             onClick={() => navigate(mentalHealthItem.path)}
           >
             <CardHeader className="pb-4">
@@ -387,7 +387,7 @@ const MentalCheck = () => {
               </div>
               
               <Button 
-                className="w-full bg-[#C5A46C] hover:bg-[#A08B5A] text-white text-lg py-6"
+                className="w-full bg-primary hover:bg-primary/90 text-white text-lg py-6"
                 onClick={(e) => {
                   e.stopPropagation();
                   navigate(mentalHealthItem.path);
