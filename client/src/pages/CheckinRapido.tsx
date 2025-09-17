@@ -157,7 +157,7 @@ export default function CheckinRapido() {
           <Button
             variant="ghost"
             onClick={() => navigate('/mentalcheck')}
-            className="flex items-center text-primary hover:text-[#A08751]"
+            className="flex items-center text-primary hover:text-primary/80"
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
             Volver

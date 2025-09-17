@@ -171,7 +171,7 @@ const Graficos = () => {
   // Datos para el gráfico de distribución de actividades deportivas
   const activityDistribution = [
     { name: 'Preparación Física', value: Number(progressSummary.physicalTraining) || 0, color: '#8884d8' },
-    { name: 'Deportivo', value: Number(progressSummary.deportivoTraining) || 0, color: '#C5A46C' },
+    { name: 'Deportivo', value: Number(progressSummary.deportivoTraining) || 0, color: 'hsl(180 30% 35%)' },
     { name: 'Técnicas', value: Number(progressSummary.techniques) || 0, color: '#82ca9d' },
     { name: 'Táctica', value: Number(progressSummary.tacticalNotes) || 0, color: '#ffc658' }
   ].filter(item => item.value > 0);
@@ -401,7 +401,7 @@ const Graficos = () => {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-[#C5A46C]" />
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
@@ -422,7 +422,7 @@ const Graficos = () => {
                 onClick={() => setActiveSection('sport')}
                 className={`px-6 py-3 rounded-md font-medium transition-all duration-200 flex items-center gap-2 ${
                   activeSection === 'sport'
-                    ? 'bg-[#C5A46C] text-white shadow-md'
+                    ? 'bg-primary text-white shadow-md'
                     : 'text-foreground hover:bg-gray-50'
                 }`}
               >
@@ -433,7 +433,7 @@ const Graficos = () => {
                 onClick={() => setActiveSection('mental')}
                 className={`px-6 py-3 rounded-md font-medium transition-all duration-200 flex items-center gap-2 ${
                   activeSection === 'mental'
-                    ? 'bg-[#C5A46C] text-white shadow-md'
+                    ? 'bg-primary text-white shadow-md'
                     : 'text-foreground hover:bg-gray-50'
                 }`}
               >
@@ -456,7 +456,7 @@ const Graficos = () => {
                       <p className="text-sm text-muted-foreground">Preparación Física</p>
                       <p className="text-2xl font-bold text-foreground">{progressSummary.physicalTraining || 0}</p>
                     </div>
-                    <Activity className="h-8 w-8 text-[#C5A46C]" />
+                    <Activity className="h-8 w-8 text-primary" />
                   </div>
                 </CardContent>
               </Card>
@@ -468,7 +468,7 @@ const Graficos = () => {
                       <p className="text-sm text-muted-foreground">Entrenamientos Deportivo</p>
                       <p className="text-2xl font-bold text-foreground">{progressSummary.deportivoTraining || 0}</p>
                     </div>
-                    <Target className="h-8 w-8 text-[#C5A46C]" />
+                    <Target className="h-8 w-8 text-primary" />
                   </div>
                 </CardContent>
               </Card>
@@ -480,7 +480,7 @@ const Graficos = () => {
                       <p className="text-sm text-muted-foreground">Técnicas</p>
                       <p className="text-2xl font-bold text-foreground">{progressSummary.techniques || 0}</p>
                     </div>
-                    <TrendingUp className="h-8 w-8 text-[#C5A46C]" />
+                    <TrendingUp className="h-8 w-8 text-primary" />
                   </div>
                 </CardContent>
               </Card>
@@ -492,7 +492,7 @@ const Graficos = () => {
                       <p className="text-sm text-muted-foreground">Notas Tácticas</p>
                       <p className="text-2xl font-bold text-foreground">{progressSummary.tacticalNotes || 0}</p>
                     </div>
-                    <Target className="h-8 w-8 text-[#C5A46C]" />
+                    <Target className="h-8 w-8 text-primary" />
                   </div>
                 </CardContent>
               </Card>
@@ -566,12 +566,12 @@ const Graficos = () => {
                   <CollapsibleTrigger asChild>
                     <Button variant="ghost" className="w-full p-0 h-auto justify-between hover:bg-transparent">
                       <CardTitle className="text-foreground flex items-center">
-                        <Brain className="mr-2 h-5 w-5 text-[#C5A46C]" />
+                        <Brain className="mr-2 h-5 w-5 text-primary" />
                         Tendencias de Bienestar Mental (Últimos 30 días)
                       </CardTitle>
                       {collapsedCharts.mentalTrends ? 
-                        <ChevronDown className="h-4 w-4 text-[#C5A46C]" /> : 
-                        <ChevronUp className="h-4 w-4 text-[#C5A46C]" />
+                        <ChevronDown className="h-4 w-4 text-primary" /> : 
+                        <ChevronUp className="h-4 w-4 text-primary" />
                       }
                     </Button>
                   </CollapsibleTrigger>
@@ -631,7 +631,7 @@ const Graficos = () => {
               <Card className="bg-white border-primary">
                 <CardHeader>
                   <CardTitle className="text-foreground flex items-center">
-                    <Heart className="mr-2 h-5 w-5 text-[#C5A46C]" />
+                    <Heart className="mr-2 h-5 w-5 text-primary" />
                     Distribución de Niveles de Bienestar
                   </CardTitle>
                 </CardHeader>
@@ -666,12 +666,12 @@ const Graficos = () => {
                     <CollapsibleTrigger asChild>
                       <Button variant="ghost" className="w-full p-0 h-auto justify-between hover:bg-transparent">
                         <CardTitle className="text-foreground flex items-center">
-                          <Shield className="mr-2 h-5 w-5 text-[#C5A46C]" />
+                          <Shield className="mr-2 h-5 w-5 text-primary" />
                           Factores Protectores Promedio (Últimas 7 entradas)
                         </CardTitle>
                         {collapsedCharts.protectiveFactors ? 
-                          <ChevronDown className="h-4 w-4 text-[#C5A46C]" /> : 
-                          <ChevronUp className="h-4 w-4 text-[#C5A46C]" />
+                          <ChevronDown className="h-4 w-4 text-primary" /> : 
+                          <ChevronUp className="h-4 w-4 text-primary" />
                         }
                       </Button>
                     </CollapsibleTrigger>
@@ -708,12 +708,12 @@ const Graficos = () => {
                     <CollapsibleTrigger asChild>
                       <Button variant="ghost" className="w-full p-0 h-auto justify-between hover:bg-transparent">
                         <CardTitle className="text-foreground flex items-center">
-                          <BarChart3 className="mr-2 h-5 w-5 text-[#C5A46C]" />
+                          <BarChart3 className="mr-2 h-5 w-5 text-primary" />
                           Correlación: Estado de Ánimo vs Factores Protectores
                         </CardTitle>
                         {collapsedCharts.correlations ? 
-                          <ChevronDown className="h-4 w-4 text-[#C5A46C]" /> : 
-                          <ChevronUp className="h-4 w-4 text-[#C5A46C]" />
+                          <ChevronDown className="h-4 w-4 text-primary" /> : 
+                          <ChevronUp className="h-4 w-4 text-primary" />
                         }
                       </Button>
                     </CollapsibleTrigger>
@@ -754,12 +754,12 @@ const Graficos = () => {
                     <CollapsibleTrigger asChild>
                       <Button variant="ghost" className="w-full p-0 h-auto justify-between hover:bg-transparent">
                         <CardTitle className="text-foreground flex items-center">
-                          <Calendar className="mr-2 h-5 w-5 text-[#C5A46C]" />
+                          <Calendar className="mr-2 h-5 w-5 text-primary" />
                           Patrones de Bienestar por Día de la Semana
                         </CardTitle>
                         {collapsedCharts.weeklyPatterns ? 
-                          <ChevronDown className="h-4 w-4 text-[#C5A46C]" /> : 
-                          <ChevronUp className="h-4 w-4 text-[#C5A46C]" />
+                          <ChevronDown className="h-4 w-4 text-primary" /> : 
+                          <ChevronUp className="h-4 w-4 text-primary" />
                         }
                       </Button>
                     </CollapsibleTrigger>
@@ -789,12 +789,12 @@ const Graficos = () => {
                     <CollapsibleTrigger asChild>
                       <Button variant="ghost" className="w-full p-0 h-auto justify-between hover:bg-transparent">
                         <CardTitle className="text-foreground flex items-center">
-                          <Clock className="mr-2 h-5 w-5 text-[#C5A46C]" />
+                          <Clock className="mr-2 h-5 w-5 text-primary" />
                           Patrones de Estado de Ánimo por Momento del Día
                         </CardTitle>
                         {collapsedCharts.dailyPatterns ? 
-                          <ChevronDown className="h-4 w-4 text-[#C5A46C]" /> : 
-                          <ChevronUp className="h-4 w-4 text-[#C5A46C]" />
+                          <ChevronDown className="h-4 w-4 text-primary" /> : 
+                          <ChevronUp className="h-4 w-4 text-primary" />
                         }
                       </Button>
                     </CollapsibleTrigger>
@@ -824,12 +824,12 @@ const Graficos = () => {
                     <CollapsibleTrigger asChild>
                       <Button variant="ghost" className="w-full p-0 h-auto justify-between hover:bg-transparent">
                         <CardTitle className="text-foreground flex items-center">
-                          <Calendar className="mr-2 h-5 w-5 text-[#C5A46C]" />
+                          <Calendar className="mr-2 h-5 w-5 text-primary" />
                           Calendario de Bienestar (Últimos 30 días)
                         </CardTitle>
                         {collapsedCharts.streaks ? 
-                          <ChevronDown className="h-4 w-4 text-[#C5A46C]" /> : 
-                          <ChevronUp className="h-4 w-4 text-[#C5A46C]" />
+                          <ChevronDown className="h-4 w-4 text-primary" /> : 
+                          <ChevronUp className="h-4 w-4 text-primary" />
                         }
                       </Button>
                     </CollapsibleTrigger>
@@ -884,12 +884,12 @@ const Graficos = () => {
                     <CollapsibleTrigger asChild>
                       <Button variant="ghost" className="w-full p-0 h-auto justify-between hover:bg-transparent">
                         <CardTitle className="text-foreground flex items-center">
-                          <AlertTriangle className="mr-2 h-5 w-5 text-[#C5A46C]" />
+                          <AlertTriangle className="mr-2 h-5 w-5 text-primary" />
                           Análisis de Momentos Críticos
                         </CardTitle>
                         {collapsedCharts.crisis ? 
-                          <ChevronDown className="h-4 w-4 text-[#C5A46C]" /> : 
-                          <ChevronUp className="h-4 w-4 text-[#C5A46C]" />
+                          <ChevronDown className="h-4 w-4 text-primary" /> : 
+                          <ChevronUp className="h-4 w-4 text-primary" />
                         }
                       </Button>
                     </CollapsibleTrigger>
@@ -939,12 +939,12 @@ const Graficos = () => {
               <CollapsibleTrigger asChild>
                 <Button variant="ghost" className="w-full p-0 h-auto justify-between hover:bg-transparent">
                   <CardTitle className="text-foreground flex items-center">
-                    <TrendingUp className="mr-2 h-5 w-5 text-[#C5A46C]" />
+                    <TrendingUp className="mr-2 h-5 w-5 text-primary" />
                     Evolución del Peso
                   </CardTitle>
                   {collapsedCharts.weight ? 
-                    <ChevronDown className="h-4 w-4 text-[#C5A46C]" /> : 
-                    <ChevronUp className="h-4 w-4 text-[#C5A46C]" />
+                    <ChevronDown className="h-4 w-4 text-primary" /> : 
+                    <ChevronUp className="h-4 w-4 text-primary" />
                   }
                 </Button>
               </CollapsibleTrigger>
@@ -985,12 +985,12 @@ const Graficos = () => {
               <CollapsibleTrigger asChild>
                 <Button variant="ghost" className="w-full p-0 h-auto justify-between hover:bg-transparent">
                   <CardTitle className="text-foreground flex items-center">
-                    <Activity className="mr-2 h-5 w-5 text-[#C5A46C]" />
+                    <Activity className="mr-2 h-5 w-5 text-primary" />
                     Progresión de Ejercicios
                   </CardTitle>
                   {collapsedCharts.exercise ? 
-                    <ChevronDown className="h-4 w-4 text-[#C5A46C]" /> : 
-                    <ChevronUp className="h-4 w-4 text-[#C5A46C]" />
+                    <ChevronDown className="h-4 w-4 text-primary" /> : 
+                    <ChevronUp className="h-4 w-4 text-primary" />
                   }
                 </Button>
               </CollapsibleTrigger>
@@ -1013,7 +1013,7 @@ const Graficos = () => {
                 </div>
                 {isLoadingProgression ? (
                   <div className="flex justify-center py-8">
-                    <Loader2 className="h-6 w-6 animate-spin text-[#C5A46C]" />
+                    <Loader2 className="h-6 w-6 animate-spin text-primary" />
                   </div>
                 ) : exerciseProgression.length > 0 ? (
                   <ResponsiveContainer width="100%" height={300}>
@@ -1059,12 +1059,12 @@ const Graficos = () => {
               <CollapsibleTrigger asChild>
                 <Button variant="ghost" className="w-full p-0 h-auto justify-between hover:bg-transparent">
                   <CardTitle className="text-foreground flex items-center">
-                    <Target className="mr-2 h-5 w-5 text-[#C5A46C]" />
+                    <Target className="mr-2 h-5 w-5 text-primary" />
                     Evolución Nutricional
                   </CardTitle>
                   {collapsedCharts.nutrition ? 
-                    <ChevronDown className="h-4 w-4 text-[#C5A46C]" /> : 
-                    <ChevronUp className="h-4 w-4 text-[#C5A46C]" />
+                    <ChevronDown className="h-4 w-4 text-primary" /> : 
+                    <ChevronUp className="h-4 w-4 text-primary" />
                   }
                 </Button>
               </CollapsibleTrigger>
@@ -1102,12 +1102,12 @@ const Graficos = () => {
               <CollapsibleTrigger asChild>
                 <Button variant="ghost" className="w-full p-0 h-auto justify-between hover:bg-transparent">
                   <CardTitle className="text-foreground flex items-center">
-                    <Activity className="mr-2 h-5 w-5 text-[#C5A46C]" />
+                    <Activity className="mr-2 h-5 w-5 text-primary" />
                     Distribución de Actividades
                   </CardTitle>
                   {collapsedCharts.activity ? 
-                    <ChevronDown className="h-4 w-4 text-[#C5A46C]" /> : 
-                    <ChevronUp className="h-4 w-4 text-[#C5A46C]" />
+                    <ChevronDown className="h-4 w-4 text-primary" /> : 
+                    <ChevronUp className="h-4 w-4 text-primary" />
                   }
                 </Button>
               </CollapsibleTrigger>
