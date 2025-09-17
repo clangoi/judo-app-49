@@ -191,7 +191,7 @@ const EstadoAnimo = () => {
         {/* Today's entry or form */}
         <div className="mb-6">
           {todaysEntry ? (
-            <Card className="bg-white border-[#C5A46C]">
+            <Card className="bg-white border-primary">
               <CardHeader>
                 <CardTitle className="text-[#1A1A1A] flex items-center gap-2">
                   <Calendar className="h-5 w-5" />
@@ -250,7 +250,7 @@ const EstadoAnimo = () => {
               </CardContent>
             </Card>
           ) : (
-            <Card className="bg-white border-[#C5A46C]">
+            <Card className="bg-white border-primary">
               <CardHeader>
                 <CardTitle className="text-[#1A1A1A] flex items-center gap-2">
                   <Smile className="h-5 w-5" />
@@ -264,7 +264,7 @@ const EstadoAnimo = () => {
                 {!showForm ? (
                   <Button 
                     onClick={() => setShowForm(true)}
-                    className="w-full bg-[#C5A46C] hover:bg-[#A08B5A] text-white"
+                    className="w-full bg-primary hover:bg-primary/90 text-white"
                   >
                     <Plus className="h-4 w-4 mr-2" />
                     Registrar Estado de Ánimo
@@ -282,7 +282,7 @@ const EstadoAnimo = () => {
                             onClick={() => setFormData({ ...formData, moodLevel: level })}
                             className={`p-3 rounded text-2xl transition-colors ${
                               formData.moodLevel === level 
-                                ? 'bg-[#C5A46C] shadow-lg' 
+                                ? 'bg-primary shadow-lg' 
                                 : 'bg-gray-100 hover:bg-gray-200'
                             }`}
                           >
@@ -303,7 +303,7 @@ const EstadoAnimo = () => {
                             onClick={() => setFormData({ ...formData, energyLevel: level })}
                             className={`p-2 rounded transition-colors flex items-center justify-center ${
                               formData.energyLevel === level 
-                                ? 'bg-[#C5A46C] text-white' 
+                                ? 'bg-primary text-white' 
                                 : 'bg-gray-100 hover:bg-gray-200'
                             }`}
                           >
@@ -325,7 +325,7 @@ const EstadoAnimo = () => {
                             onClick={() => setFormData({ ...formData, stressLevel: level })}
                             className={`p-2 rounded transition-colors flex items-center justify-center ${
                               formData.stressLevel === level 
-                                ? 'bg-[#C5A46C] text-white' 
+                                ? 'bg-primary text-white' 
                                 : 'bg-gray-100 hover:bg-gray-200'
                             }`}
                           >
@@ -347,7 +347,7 @@ const EstadoAnimo = () => {
                             onClick={() => setFormData({ ...formData, sleepQuality: level })}
                             className={`p-2 rounded transition-colors flex items-center justify-center ${
                               formData.sleepQuality === level 
-                                ? 'bg-[#C5A46C] text-white' 
+                                ? 'bg-primary text-white' 
                                 : 'bg-gray-100 hover:bg-gray-200'
                             }`}
                           >
@@ -369,7 +369,7 @@ const EstadoAnimo = () => {
                             onClick={() => setFormData({ ...formData, motivation: level })}
                             className={`p-2 rounded transition-colors flex items-center justify-center ${
                               formData.motivation === level 
-                                ? 'bg-[#C5A46C] text-white' 
+                                ? 'bg-primary text-white' 
                                 : 'bg-gray-100 hover:bg-gray-200'
                             }`}
                           >
@@ -391,7 +391,7 @@ const EstadoAnimo = () => {
                             onClick={() => toggleFactor(factor)}
                             className={`px-3 py-1 rounded-full text-sm transition-colors ${
                               selectedFactors.includes(factor)
-                                ? 'bg-[#C5A46C] text-white'
+                                ? 'bg-primary text-white'
                                 : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
                             }`}
                           >
@@ -416,7 +416,7 @@ const EstadoAnimo = () => {
                       <Button 
                         type="submit" 
                         disabled={createMoodEntryMutation.isPending}
-                        className="flex-1 bg-[#C5A46C] hover:bg-[#A08B5A] text-white"
+                        className="flex-1 bg-primary hover:bg-primary/90 text-white"
                       >
                         {createMoodEntryMutation.isPending ? 'Guardando...' : 'Guardar Registro'}
                       </Button>
@@ -441,7 +441,7 @@ const EstadoAnimo = () => {
 
         {/* Recent entries */}
         {moodEntries.length > 0 && (
-          <Card className="bg-white border-[#C5A46C]">
+          <Card className="bg-white border-primary">
             <CardHeader>
               <CardTitle className="text-[#1A1A1A] flex items-center gap-2">
                 <TrendingUp className="h-5 w-5" />

@@ -61,10 +61,10 @@ const Auth = () => {
     <div className="min-h-screen bg-[#1A1A1A] flex items-center justify-center p-4">
       <Card className="w-full max-w-md bg-white border-[#C5A46C]">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold text-[#1A1A1A]">
+          <CardTitle className="text-2xl font-bold text-foreground">
             {isLogin ? 'Iniciar Sesión' : 'Crear Cuenta'}
           </CardTitle>
-          <CardDescription className="text-[#575757]">
+          <CardDescription className="text-muted-foreground">
             {isLogin 
               ? 'Ingresa a tu cuenta de entrenamiento de deportivo' 
               : 'Crea tu cuenta para comenzar a entrenar'
@@ -89,25 +89,25 @@ const Auth = () => {
             {!isLogin && (
               <>
                 <div className="space-y-2">
-                  <Label htmlFor="fullName" className="text-[#1A1A1A]">Nombre</Label>
+                  <Label htmlFor="fullName" className="text-foreground">Nombre</Label>
                   <div className="relative">
-                    <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#575757] h-4 w-4" />
+                    <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
                     <Input
                       id="fullName"
                       type="text"
                       placeholder="Tu nombre"
                       value={fullName}
                       onChange={(e) => setFullName(e.target.value)}
-                      className="pl-10 border-[#C5A46C] focus:border-[#C5A46C]"
+                      className="pl-10 border-primary focus:border-primary"
                       required
                     />
                   </div>
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="genderPreference" className="text-[#1A1A1A]">Preferencia de Tratamiento</Label>
+                  <Label htmlFor="genderPreference" className="text-foreground">Preferencia de Tratamiento</Label>
                   <Select value={genderPreference} onValueChange={setGenderPreference} required>
-                    <SelectTrigger className="border-[#C5A46C] focus:border-[#C5A46C]">
+                    <SelectTrigger className="border-primary focus:border-primary">
                       <SelectValue placeholder="Selecciona el tratamiento" />
                     </SelectTrigger>
                     <SelectContent>
@@ -121,32 +121,32 @@ const Auth = () => {
             )}
             
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-[#1A1A1A]">Email</Label>
+              <Label htmlFor="email" className="text-foreground">Email</Label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#575757] h-4 w-4" />
+                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
                 <Input
                   id="email"
                   type="email"
                   placeholder="tu@email.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="pl-10 border-[#C5A46C] focus:border-[#C5A46C]"
+                  className="pl-10 border-primary focus:border-primary"
                   required
                 />
               </div>
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="password" className="text-[#1A1A1A]">Contraseña</Label>
+              <Label htmlFor="password" className="text-foreground">Contraseña</Label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#575757] h-4 w-4" />
+                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
                 <Input
                   id="password"
                   type="password"
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="pl-10 border-[#C5A46C] focus:border-[#C5A46C]"
+                  className="pl-10 border-primary focus:border-primary"
                   required
                   minLength={6}
                 />
@@ -155,7 +155,7 @@ const Auth = () => {
             
             <Button 
               type="submit" 
-              className="w-full bg-[#C5A46C] hover:bg-[#B8956A] text-white" 
+              className="w-full bg-primary hover:bg-primary/90 text-white" 
               disabled={loading}
             >
               {loading ? (
@@ -172,7 +172,7 @@ const Auth = () => {
           <div className="text-center">
             <button
               type="button"
-              className="text-sm text-[#C5A46C] hover:underline"
+              className="text-sm text-primary hover:underline"
               onClick={() => setIsLogin(!isLogin)}
             >
               {isLogin 

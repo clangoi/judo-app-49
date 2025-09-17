@@ -229,7 +229,7 @@ const NivelesEstres = () => {
         {/* Today's entry or form */}
         <div className="mb-6">
           {todaysEntry ? (
-            <Card className="bg-white border-[#C5A46C]">
+            <Card className="bg-white border-primary">
               <CardHeader>
                 <CardTitle className="text-[#1A1A1A] flex items-center gap-2">
                   <Calendar className="h-5 w-5" />
@@ -299,7 +299,7 @@ const NivelesEstres = () => {
               </CardContent>
             </Card>
           ) : (
-            <Card className="bg-white border-[#C5A46C]">
+            <Card className="bg-white border-primary">
               <CardHeader>
                 <CardTitle className="text-[#1A1A1A] flex items-center gap-2">
                   <Brain className="h-5 w-5" />
@@ -313,7 +313,7 @@ const NivelesEstres = () => {
                 {!showForm ? (
                   <Button 
                     onClick={() => setShowForm(true)}
-                    className="w-full bg-[#C5A46C] hover:bg-[#A08B5A] text-white"
+                    className="w-full bg-primary hover:bg-primary/90 text-white"
                   >
                     <Plus className="h-4 w-4 mr-2" />
                     Registrar Nivel de Estrés
@@ -331,7 +331,7 @@ const NivelesEstres = () => {
                             onClick={() => setFormData({ ...formData, stressLevel: level })}
                             className={`p-3 rounded text-2xl transition-colors flex-1 flex flex-col items-center ${
                               formData.stressLevel === level 
-                                ? 'bg-[#C5A46C] shadow-lg text-white' 
+                                ? 'bg-primary shadow-lg text-white' 
                                 : 'bg-gray-100 hover:bg-gray-200'
                             }`}
                           >
@@ -425,7 +425,7 @@ const NivelesEstres = () => {
                               onClick={() => setFormData({ ...formData, effectiveness: level })}
                               className={`p-2 rounded transition-colors flex items-center justify-center flex-1 ${
                                 formData.effectiveness === level 
-                                  ? 'bg-[#C5A46C] text-white' 
+                                  ? 'bg-primary text-white' 
                                   : 'bg-gray-100 hover:bg-gray-200'
                               }`}
                             >
@@ -452,7 +452,7 @@ const NivelesEstres = () => {
                       <Button 
                         type="submit" 
                         disabled={createStressEntryMutation.isPending}
-                        className="flex-1 bg-[#C5A46C] hover:bg-[#A08B5A] text-white"
+                        className="flex-1 bg-primary hover:bg-primary/90 text-white"
                       >
                         {createStressEntryMutation.isPending ? 'Guardando...' : 'Guardar Registro'}
                       </Button>
@@ -477,7 +477,7 @@ const NivelesEstres = () => {
 
         {/* Recent entries */}
         {stressEntries.length > 0 && (
-          <Card className="bg-white border-[#C5A46C]">
+          <Card className="bg-white border-primary">
             <CardHeader>
               <CardTitle className="text-[#1A1A1A] flex items-center gap-2">
                 <TrendingUp className="h-5 w-5" />

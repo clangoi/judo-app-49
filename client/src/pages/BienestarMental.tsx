@@ -236,7 +236,7 @@ const BienestarMental = () => {
         {/* Today's entry or form */}
         <div className="mb-6">
           {todaysEntry ? (
-            <Card className="bg-white border-[#C5A46C]">
+            <Card className="bg-white border-primary">
               <CardHeader>
                 <CardTitle className="text-[#1A1A1A] flex items-center gap-2">
                   <Calendar className="h-5 w-5" />
@@ -329,7 +329,7 @@ const BienestarMental = () => {
               </CardContent>
             </Card>
           ) : (
-            <Card className="bg-white border-[#C5A46C]">
+            <Card className="bg-white border-primary">
               <CardHeader>
                 <CardTitle className="text-[#1A1A1A] flex items-center gap-2">
                   <Heart className="h-5 w-5" />
@@ -343,7 +343,7 @@ const BienestarMental = () => {
                 {!showForm ? (
                   <Button 
                     onClick={() => setShowForm(true)}
-                    className="w-full bg-[#C5A46C] hover:bg-[#A08B5A] text-white"
+                    className="w-full bg-primary hover:bg-primary/90 text-white"
                   >
                     <Plus className="h-4 w-4 mr-2" />
                     Realizar Evaluación del Día
@@ -370,7 +370,7 @@ const BienestarMental = () => {
                                 })}
                                 className={`px-2 py-1 rounded text-sm transition-colors flex-1 ${
                                   formData[aspect.key as keyof WellnessFormData] === level 
-                                    ? 'bg-[#C5A46C] text-white' 
+                                    ? 'bg-primary text-white' 
                                     : 'bg-gray-100 hover:bg-gray-200'
                                 }`}
                               >
@@ -393,7 +393,7 @@ const BienestarMental = () => {
                             onClick={() => setFormData({ ...formData, anxietyLevel: level })}
                             className={`px-2 py-1 rounded text-sm transition-colors flex-1 ${
                               formData.anxietyLevel === level 
-                                ? 'bg-[#C5A46C] text-white' 
+                                ? 'bg-primary text-white' 
                                 : 'bg-gray-100 hover:bg-gray-200'
                             }`}
                           >
@@ -505,7 +505,7 @@ const BienestarMental = () => {
                       <Button 
                         type="submit" 
                         disabled={createWellnessEntryMutation.isPending}
-                        className="flex-1 bg-[#C5A46C] hover:bg-[#A08B5A] text-white"
+                        className="flex-1 bg-primary hover:bg-primary/90 text-white"
                       >
                         {createWellnessEntryMutation.isPending ? 'Guardando...' : 'Guardar Evaluación'}
                       </Button>
@@ -530,7 +530,7 @@ const BienestarMental = () => {
 
         {/* Recent entries */}
         {wellnessEntries.length > 0 && (
-          <Card className="bg-white border-[#C5A46C]">
+          <Card className="bg-white border-primary">
             <CardHeader>
               <CardTitle className="text-[#1A1A1A] flex items-center gap-2">
                 <TrendingUp className="h-5 w-5" />

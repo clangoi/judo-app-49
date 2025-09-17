@@ -36,7 +36,7 @@ const CreateExerciseModal = () => {
       <DialogTrigger asChild>
         <Button 
           variant="outline" 
-          className="border-[#C5A46C] text-[#C5A46C] hover:bg-[#C5A46C] hover:text-white"
+          className="border-primary text-primary hover:bg-primary hover:text-white"
         >
           <Plus className="h-4 w-4 mr-2" />
           Ejercicio
@@ -44,11 +44,11 @@ const CreateExerciseModal = () => {
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="text-[#1A1A1A]">Crear Nuevo Ejercicio</DialogTitle>
+          <DialogTitle className="text-foreground">Crear Nuevo Ejercicio</DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
           <div>
-            <Label htmlFor="exercise-name" className="text-[#1A1A1A]">
+            <Label htmlFor="exercise-name" className="text-foreground">
               Nombre del Ejercicio
             </Label>
             <Input
@@ -56,7 +56,7 @@ const CreateExerciseModal = () => {
               placeholder="Ej: Press de banca, Sentadillas..."
               value={exerciseName}
               onChange={(e) => setExerciseName(e.target.value)}
-              className="border-[#C5A46C] focus:border-[#C5A46C]"
+              className="border-primary focus:border-primary"
               onKeyPress={(e) => e.key === 'Enter' && handleSubmit()}
             />
           </div>
@@ -64,7 +64,7 @@ const CreateExerciseModal = () => {
             <Button
               onClick={handleSubmit}
               disabled={!exerciseName.trim() || createExerciseMutation.isPending}
-              className="flex-1 bg-[#C5A46C] hover:bg-[#B8956A] text-white"
+              className="flex-1 bg-primary hover:bg-primary/90 text-white"
             >
               {createExerciseMutation.isPending ? (
                 <>
@@ -81,7 +81,7 @@ const CreateExerciseModal = () => {
                 setIsOpen(false);
                 setExerciseName("");
               }}
-              className="border-[#C5A46C] text-[#C5A46C] hover:bg-[#C5A46C] hover:text-white"
+              className="border-primary text-primary hover:bg-primary hover:text-white"
             >
               Cancelar
             </Button>

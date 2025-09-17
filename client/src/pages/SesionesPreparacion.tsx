@@ -198,14 +198,14 @@ const SesionesPreparacion = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#1A1A1A] flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-[#C5A46C]" />
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#1A1A1A]">
+    <div className="min-h-screen bg-background">
       <NavHeader 
         title="Preparación Física" 
         subtitle="Sesiones de acondicionamiento físico"
@@ -228,7 +228,7 @@ const SesionesPreparacion = () => {
             <div className="flex gap-2 mb-6">
               <Button 
                 onClick={handleNuevaSesion}
-                className="bg-[#C5A46C] hover:bg-[#B8956A] text-white"
+                className="bg-primary hover:bg-primary/90 text-white"
               >
                 <Plus className="h-4 w-4 mr-2" />
                 Sesión
@@ -257,7 +257,7 @@ const SesionesPreparacion = () => {
 
             <div className="space-y-4">
               {sesiones.length === 0 ? (
-                <Card className="bg-white border-[#C5A46C]">
+                <Card className="bg-white border-primary">
                   <CardContent className="p-8 text-center">
                     <Activity className="h-12 w-12 mx-auto text-[#575757] mb-4" />
                     <p className="text-[#575757]">No hay sesiones registradas aún</p>
