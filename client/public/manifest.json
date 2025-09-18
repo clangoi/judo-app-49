@@ -1,0 +1,80 @@
+{
+  "name": "MentalCheck - Bienestar Mental",
+  "short_name": "MentalCheck",
+  "description": "Aplicación integral de bienestar mental para deportistas con evaluaciones, técnicas de respiración, manejo de crisis y mindfulness.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#F5F5F0",
+  "theme_color": "#4A7C69",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "lang": "es",
+  "categories": ["health", "lifestyle", "productivity", "sports"],
+  "icons": [
+    {
+      "src": "/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/icon-512x512.png", 
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Check-in Rápido",
+      "short_name": "Check-in",
+      "description": "Evaluación mental de 30 segundos",
+      "url": "/checkin-rapido",
+      "icons": [
+        {
+          "src": "/icon-192x192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Manejo de Crisis",
+      "short_name": "Crisis",
+      "description": "Herramientas para situaciones de emergencia mental",
+      "url": "/manejo-crisis",
+      "icons": [
+        {
+          "src": "/icon-192x192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Técnicas de Respiración",
+      "short_name": "Respiración",
+      "description": "Ejercicios guiados de respiración y relajación",
+      "url": "/tecnicas-respiracion",
+      "icons": [
+        {
+          "src": "/icon-192x192.png",
+          "sizes": "192x192"
+        }
+      ]
+    }
+  ],
+  "share_target": {
+    "action": "/",
+    "method": "GET",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url"
+    }
+  },
+  "prefer_related_applications": false
+}
