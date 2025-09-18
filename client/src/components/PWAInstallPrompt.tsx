@@ -120,7 +120,7 @@ const PWAInstallPrompt = () => {
           
           <div className="flex-1 min-w-0">
             <h3 className="font-semibold text-sm mb-1">
-              ¡Instala MentalCheck!
+              ¡Instálame!
             </h3>
             <p className="text-xs text-primary-foreground/90 mb-3 leading-relaxed">
               Accede a tu bienestar mental desde cualquier lugar. Instala la app para una experiencia completa.
