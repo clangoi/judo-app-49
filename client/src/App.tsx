@@ -31,6 +31,7 @@ import Configuracion from "./pages/Configuracion";
 
 
 import NotFound from "./pages/NotFound";
+import PWAInstallPrompt from "./components/PWAInstallPrompt";
 
 const queryClient = new QueryClient();
 
@@ -149,6 +150,7 @@ const App = () => (
               <Route path="*" element={<Navigate to="/404" replace />} />
             </Routes>
         </AuthProvider>
+        <PWAInstallPrompt />
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
