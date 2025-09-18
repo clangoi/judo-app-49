@@ -20,9 +20,19 @@ const PWAInstallPrompt = () => {
       return;
     }
 
+    // Para desarrollo: mostrar prompt después de 5 segundos sin esperar beforeinstallprompt
+    const showDemoPrompt = () => {
+      // Solo mostrar en desarrollo si no hay deferredPrompt real
+      if (!deferredPrompt && !isInstalled) {
+        console.log('MentalCheck PWA: Mostrando prompt de demostración (desarrollo)');
+        setShowInstallPrompt(true);
+      }
+    };
+
     // Escuchar el evento beforeinstallprompt
     const handleBeforeInstallPrompt = (e: Event) => {
       e.preventDefault();
+      console.log('MentalCheck PWA: beforeinstallprompt event triggered');
       const event = e as BeforeInstallPromptEvent;
       setDeferredPrompt(event);
       
@@ -43,30 +53,45 @@ const PWAInstallPrompt = () => {
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
     window.addEventListener('appinstalled', handleAppInstalled);
 
+    // Mostrar prompt de demo en desarrollo después de 5 segundos
+    const demoTimer = setTimeout(showDemoPrompt, 5000);
+
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
       window.removeEventListener('appinstalled', handleAppInstalled);
+      clearTimeout(demoTimer);
     };
   }, []);
 
   const handleInstallClick = async () => {
-    if (!deferredPrompt) return;
+    if (deferredPrompt) {
+      // Si tenemos el prompt nativo, usarlo
+      deferredPrompt.prompt();
 
-    // Mostrar el prompt de instalación
-    deferredPrompt.prompt();
+      // Esperar la respuesta del usuario
+      const { outcome } = await deferredPrompt.userChoice;
+      
+      if (outcome === 'accepted') {
+        console.log('MentalCheck PWA: Usuario aceptó instalar la app');
+      } else {
+        console.log('MentalCheck PWA: Usuario rechazó instalar la app');
+      }
 
-    // Esperar la respuesta del usuario
-    const { outcome } = await deferredPrompt.userChoice;
-    
-    if (outcome === 'accepted') {
-      console.log('MentalCheck PWA: Usuario aceptó instalar la app');
+      // Limpiar el prompt
+      setDeferredPrompt(null);
+      setShowInstallPrompt(false);
     } else {
-      console.log('MentalCheck PWA: Usuario rechazó instalar la app');
+      // Modo demostración: mostrar instrucciones para instalación manual
+      console.log('MentalCheck PWA: Modo demostración - explicar instalación manual');
+      alert(
+        'Para instalar MentalCheck como PWA:\n\n' +
+        '📱 Móvil Chrome/Edge: Menú → "Agregar a pantalla de inicio"\n' +
+        '💻 Desktop Chrome: Dirección URL → ícono de instalación\n' +
+        '🍎 Safari iOS: Compartir → "Agregar a pantalla de inicio"\n\n' +
+        'La app aparecerá como una aplicación nativa en tu dispositivo.'
+      );
+      setShowInstallPrompt(false);
     }
-
-    // Limpiar el prompt
-    setDeferredPrompt(null);
-    setShowInstallPrompt(false);
   };
 
   const handleDismiss = () => {
