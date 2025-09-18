@@ -1,12 +1,68 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no" />
+    
+    <!-- PWA Meta Tags -->
+    <title>MentalCheck - Bienestar Mental para Deportistas</title>
+    <meta name="description" content="Aplicación integral de bienestar mental para deportistas con evaluaciones, técnicas de respiración, manejo de crisis y mindfulness." />
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json" />
+    
+    <!-- Theme Colors -->
+    <meta name="theme-color" content="#4A7C69" />
+    <meta name="msapplication-TileColor" content="#4A7C69" />
+    <meta name="msapplication-navbutton-color" content="#4A7C69" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    
+    <!-- PWA App Settings -->
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="MentalCheck" />
+    <meta name="application-name" content="MentalCheck" />
+    
+    <!-- Icons -->
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#4A7C69" />
+    
+    <!-- Open Graph / Social Media -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="MentalCheck - Bienestar Mental" />
+    <meta property="og:description" content="Aplicación integral de bienestar mental para deportistas" />
+    <meta property="og:url" content="/" />
+    <meta property="og:site_name" content="MentalCheck" />
+    
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="MentalCheck - Bienestar Mental" />
+    <meta name="twitter:description" content="Aplicación integral de bienestar mental para deportistas" />
+    
+    <!-- No Index for dev environment -->
+    <meta name="robots" content="noindex, nofollow" />
   </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+    
+    <!-- PWA Service Worker Registration -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js')
+            .then((registration) => {
+              console.log('MentalCheck PWA: Service Worker registrado exitosamente:', registration.scope);
+            })
+            .catch((error) => {
+              console.log('MentalCheck PWA: Error registrando Service Worker:', error);
+            });
+        });
+      }
+    </script>
+    
     <!-- This is a replit script which adds a banner on the top of the page when opened in development mode outside the replit environment -->
     <script type="text/javascript" src="https://replit.com/public/js/replit-dev-banner.js"></script>
   </body>
