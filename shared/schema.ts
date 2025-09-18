@@ -582,7 +582,31 @@ export type InsertNotificationAlarm = z.infer<typeof insertNotificationAlarmsSch
 export type NotificationSettings = typeof notificationSettings.$inferSelect;
 export type InsertNotificationSettings = z.infer<typeof insertNotificationSettingsSchema>;
 
+// Device Sync tables for synchronization between devices
+export const deviceSync = pgTable("device_sync", {
+  id: text("id").primaryKey(), // Sync code like "SPORT-A8F2-B1C3"
+  deviceData: jsonb("device_data").notNull(), // All device data (timer, mental health, etc.)
+  lastSync: timestamp("last_sync").defaultNow(),
+  createdAt: timestamp("created_at").defaultNow(),
+  expiresAt: timestamp("expires_at").notNull() // 30 days from creation
+});
 
+export const deviceLinks = pgTable("device_links", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  syncId: text("sync_id").notNull().references(() => deviceSync.id, { onDelete: 'cascade' }),
+  deviceFingerprint: text("device_fingerprint").notNull(), // Unique browser/device ID
+  linkedAt: timestamp("linked_at").defaultNow()
+});
+
+// Zod schemas for device sync
+export const insertDeviceSyncSchema = createInsertSchema(deviceSync);
+export const insertDeviceLinksSchema = createInsertSchema(deviceLinks);
+
+// Types for device sync
+export type DeviceSync = typeof deviceSync.$inferSelect;
+export type InsertDeviceSync = z.infer<typeof insertDeviceSyncSchema>;
+export type DeviceLinks = typeof deviceLinks.$inferSelect;
+export type InsertDeviceLinks = z.infer<typeof insertDeviceLinksSchema>;
 
 // Legacy exports for compatibility
 export const users = profiles;

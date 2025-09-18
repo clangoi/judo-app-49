@@ -1,5 +1,6 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
+import * as crypto from "crypto";
 import { db } from "./db";
 import * as fs from "fs";
 import * as path from "path";
@@ -11,9 +12,11 @@ import {
   insertJudoTrainingSessionSchema, insertSportsTrainingSessionSchema, insertExerciseSchema, insertExerciseRecordSchema, 
   insertWeightEntrySchema, insertNutritionEntrySchema, insertTechniqueSchema, 
   insertTacticalNoteSchema, insertRandoriSessionSchema, insertAchievementBadgeSchema, 
-  insertUserAchievementSchema, insertMoodEntrySchema, stressEntries, insertStressEntrySchema, mentalWellnessEntries, insertMentalWellnessEntrySchema, concentrationEntries, insertConcentrationEntrySchema, deepAssessmentEntries, insertDeepAssessmentEntrySchema, quickCheckInEntries, insertQuickCheckInEntrySchema, crisisManagementSessions, insertCrisisManagementSessionSchema
+  insertUserAchievementSchema, insertMoodEntrySchema, stressEntries, insertStressEntrySchema, mentalWellnessEntries, insertMentalWellnessEntrySchema, concentrationEntries, insertConcentrationEntrySchema, deepAssessmentEntries, insertDeepAssessmentEntrySchema, quickCheckInEntries, insertQuickCheckInEntrySchema, crisisManagementSessions, insertCrisisManagementSessionSchema,
+  deviceSync, deviceLinks, insertDeviceSyncSchema, insertDeviceLinksSchema
 } from "@shared/schema";
 import { eq, and, desc, sql, isNull, gte, lte } from "drizzle-orm";
+import { z } from "zod";
 
 // Import notification tables
 import { notifications, notificationSettings, notificationAlarms, insertNotificationAlarmsSchema } from "@shared/schema";
@@ -1309,6 +1312,288 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error deleting crisis management session:", error);
       res.status(500).json({ error: "Failed to delete crisis management session" });
+    }
+  });
+
+  // Device Sync Validation Schemas
+  const generateSyncSchema = z.object({
+    deviceData: z.any(), // JSON object with all device data
+    deviceFingerprint: z.string().optional()
+  });
+
+  const linkDeviceSchema = z.object({
+    syncCode: z.string().min(1),
+    deviceFingerprint: z.string().min(1)
+  });
+
+  const updateSyncSchema = z.object({
+    syncCode: z.string().min(1),
+    deviceFingerprint: z.string().min(1),
+    deviceData: z.any() // JSON object with updated device data
+  });
+
+  // Device Sync Helper Functions
+  function generateSyncCode(): string {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    const part1 = Array.from({length: 4}, () => chars[Math.floor(Math.random() * chars.length)]).join('');
+    const part2 = Array.from({length: 4}, () => chars[Math.floor(Math.random() * chars.length)]).join('');
+    const part3 = Array.from({length: 4}, () => chars[Math.floor(Math.random() * chars.length)]).join('');
+    return `SPORT-${part1}-${part2}`;
+  }
+
+  function generateDeviceFingerprint(): string {
+    return crypto.randomUUID();
+  }
+
+  function getExpirationDate(): Date {
+    const now = new Date();
+    now.setDate(now.getDate() + 30); // 30 days from now
+    return now;
+  }
+
+  // Device Sync API Endpoints
+
+  // POST /api/sync/generate - Generate sync code and upload initial data
+  app.post("/api/sync/generate", async (req, res) => {
+    try {
+      const validated = generateSyncSchema.parse(req.body);
+      const { deviceData, deviceFingerprint } = validated;
+
+      let syncCode: string = "";
+      let isUnique = false;
+      let attempts = 0;
+
+      // Generate unique sync code (max 5 attempts)
+      while (!isUnique && attempts < 5) {
+        syncCode = generateSyncCode();
+        const existing = await db.select().from(deviceSync).where(eq(deviceSync.id, syncCode)).limit(1);
+        isUnique = existing.length === 0;
+        attempts++;
+      }
+
+      if (!isUnique || !syncCode) {
+        return res.status(500).json({ error: "Failed to generate unique sync code" });
+      }
+
+      const expiresAt = getExpirationDate();
+
+      // Create sync record
+      const syncResult = await db.insert(deviceSync).values({
+        id: syncCode,
+        deviceData: deviceData,
+        expiresAt: expiresAt
+      }).returning();
+
+      // Link the generating device
+      const fingerprint = deviceFingerprint || generateDeviceFingerprint();
+      await db.insert(deviceLinks).values({
+        syncId: syncCode,
+        deviceFingerprint: fingerprint
+      });
+
+      res.json({
+        syncCode: syncCode,
+        deviceFingerprint: fingerprint,
+        expiresAt: expiresAt,
+        message: "Sync code generated successfully"
+      });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: "Invalid request data", details: error.errors });
+      }
+      console.error("Error generating sync code:", error);
+      res.status(500).json({ error: "Failed to generate sync code" });
+    }
+  });
+
+  // POST /api/sync/link - Link device with existing sync code
+  app.post("/api/sync/link", async (req, res) => {
+    try {
+      const validated = linkDeviceSchema.parse(req.body);
+      const { syncCode, deviceFingerprint } = validated;
+
+      // Check if sync code exists and is not expired
+      const syncRecord = await db.select().from(deviceSync)
+        .where(and(
+          eq(deviceSync.id, syncCode),
+          gte(deviceSync.expiresAt, new Date())
+        )).limit(1);
+
+      if (syncRecord.length === 0) {
+        return res.status(404).json({ error: "Sync code not found or expired" });
+      }
+
+      // Check if device is already linked
+      const existingLink = await db.select().from(deviceLinks)
+        .where(and(
+          eq(deviceLinks.syncId, syncCode),
+          eq(deviceLinks.deviceFingerprint, deviceFingerprint)
+        )).limit(1);
+
+      if (existingLink.length > 0) {
+        return res.status(409).json({ error: "Device already linked to this sync code" });
+      }
+
+      // Link the device
+      await db.insert(deviceLinks).values({
+        syncId: syncCode,
+        deviceFingerprint: deviceFingerprint
+      });
+
+      res.json({
+        message: "Device linked successfully",
+        deviceData: syncRecord[0].deviceData,
+        syncCode: syncCode
+      });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: "Invalid request data", details: error.errors });
+      }
+      console.error("Error linking device:", error);
+      res.status(500).json({ error: "Failed to link device" });
+    }
+  });
+
+  // GET /api/sync/data/:code - Download synchronized data (REQUIRES device fingerprint verification)
+  app.get("/api/sync/data/:code", async (req, res) => {
+    try {
+      const { code } = req.params;
+      const { deviceFingerprint } = req.query;
+
+      if (!deviceFingerprint) {
+        return res.status(400).json({ error: "Device fingerprint is required" });
+      }
+
+      // SECURITY: First verify that the device is linked to this sync code
+      const linkRecord = await db.select().from(deviceLinks)
+        .where(and(
+          eq(deviceLinks.syncId, code),
+          eq(deviceLinks.deviceFingerprint, deviceFingerprint as string)
+        )).limit(1);
+
+      if (linkRecord.length === 0) {
+        return res.status(403).json({ error: "Device not authorized for this sync code" });
+      }
+
+      // Then check if sync code exists and is not expired
+      const syncRecord = await db.select().from(deviceSync)
+        .where(and(
+          eq(deviceSync.id, code),
+          gte(deviceSync.expiresAt, new Date())
+        )).limit(1);
+
+      if (syncRecord.length === 0) {
+        return res.status(404).json({ error: "Sync code not found or expired" });
+      }
+
+      res.json({
+        syncCode: code,
+        deviceData: syncRecord[0].deviceData,
+        lastSync: syncRecord[0].lastSync,
+        expiresAt: syncRecord[0].expiresAt
+      });
+    } catch (error) {
+      console.error("Error fetching sync data:", error);
+      res.status(500).json({ error: "Failed to fetch sync data" });
+    }
+  });
+
+  // POST /api/sync/update - Update data for linked devices
+  app.post("/api/sync/update", async (req, res) => {
+    try {
+      const validated = updateSyncSchema.parse(req.body);
+      const { syncCode, deviceFingerprint, deviceData } = validated;
+
+      // Verify device is linked to this sync code
+      const linkRecord = await db.select().from(deviceLinks)
+        .where(and(
+          eq(deviceLinks.syncId, syncCode),
+          eq(deviceLinks.deviceFingerprint, deviceFingerprint)
+        )).limit(1);
+
+      if (linkRecord.length === 0) {
+        return res.status(403).json({ error: "Device not linked to this sync code" });
+      }
+
+      // Check if sync code exists and is not expired
+      const syncRecord = await db.select().from(deviceSync)
+        .where(and(
+          eq(deviceSync.id, syncCode),
+          gte(deviceSync.expiresAt, new Date())
+        )).limit(1);
+
+      if (syncRecord.length === 0) {
+        return res.status(404).json({ error: "Sync code not found or expired" });
+      }
+
+      // Update sync data
+      const result = await db.update(deviceSync)
+        .set({
+          deviceData: deviceData,
+          lastSync: new Date()
+        })
+        .where(eq(deviceSync.id, syncCode))
+        .returning();
+
+      res.json({
+        message: "Data updated successfully",
+        lastSync: result[0].lastSync
+      });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: "Invalid request data", details: error.errors });
+      }
+      console.error("Error updating sync data:", error);
+      res.status(500).json({ error: "Failed to update sync data" });
+    }
+  });
+
+  // GET /api/sync/status - Check sync status for a device
+  app.get("/api/sync/status", async (req, res) => {
+    try {
+      const { syncCode, deviceFingerprint } = req.query;
+
+      if (!syncCode || !deviceFingerprint) {
+        return res.status(400).json({ error: "Sync code and device fingerprint are required" });
+      }
+
+      // Check if device is linked
+      const linkRecord = await db.select().from(deviceLinks)
+        .where(and(
+          eq(deviceLinks.syncId, syncCode as string),
+          eq(deviceLinks.deviceFingerprint, deviceFingerprint as string)
+        )).limit(1);
+
+      if (linkRecord.length === 0) {
+        return res.json({
+          isLinked: false,
+          message: "Device not linked"
+        });
+      }
+
+      // Get sync record
+      const syncRecord = await db.select().from(deviceSync)
+        .where(eq(deviceSync.id, syncCode as string)).limit(1);
+
+      if (syncRecord.length === 0) {
+        return res.json({
+          isLinked: false,
+          message: "Sync code not found"
+        });
+      }
+
+      const isExpired = new Date() > syncRecord[0].expiresAt;
+
+      res.json({
+        isLinked: true,
+        isExpired: isExpired,
+        lastSync: syncRecord[0].lastSync,
+        expiresAt: syncRecord[0].expiresAt,
+        linkedAt: linkRecord[0].linkedAt
+      });
+    } catch (error) {
+      console.error("Error checking sync status:", error);
+      res.status(500).json({ error: "Failed to check sync status" });
     }
   });
 
