@@ -104,7 +104,7 @@ const PWAInstallPrompt = () => {
   const lastDismissed = localStorage.getItem('pwa-install-dismissed');
   const dismissedRecently = lastDismissed && (Date.now() - parseInt(lastDismissed)) < 24 * 60 * 60 * 1000; // 24 horas
 
-  if (isInstalled || !showInstallPrompt || !deferredPrompt || dismissedRecently) {
+  if (isInstalled || !showInstallPrompt || dismissedRecently) {
     return null;
   }
 

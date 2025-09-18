@@ -2,15 +2,10 @@
 const CACHE_NAME = 'mentalcheck-v1';
 const urlsToCache = [
   '/',
-  '/static/js/bundle.js',
-  '/static/css/main.css',
   '/manifest.json',
-  '/mentalcheck',
-  '/checkin-rapido',
-  '/manejo-crisis',
-  '/tecnicas-respiracion',
-  '/mindfulness-express',
-  '/evaluacion-profunda'
+  '/icon-192x192.png',
+  '/icon-512x512.png',
+  '/apple-touch-icon.png'
 ];
 
 // Instalar Service Worker
