@@ -14,14 +14,29 @@ interface NavHeaderProps {
 }
 
 const NavHeader = ({ title, subtitle }: NavHeaderProps) => {
-  const { signOut, user } = useAuth();
+  // Autenticación opcional - maneja caso sin autenticación
+  let signOut = null;
+  let user = null;
+  try {
+    const auth = useAuth();
+    signOut = auth.signOut;
+    user = auth.user;
+  } catch (error) {
+    // Sin autenticación - no hay función signOut
+    console.log('NavHeader funcionando sin autenticación');
+  }
   const navigate = useNavigate();
   const location = useLocation();
 
   
 
   const handleSignOut = () => {
-    signOut();
+    if (signOut) {
+      signOut();
+    } else {
+      // Sin autenticación - simplemente redirigir a página principal
+      navigate('/');
+    }
   };
 
   const handleBack = () => {

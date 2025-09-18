@@ -21,7 +21,15 @@ interface NotificationButtonProps {
 }
 
 export const NotificationButton: React.FC<NotificationButtonProps> = ({ className }) => {
-  const { user } = useAuth();
+  // Autenticación opcional - funciona sin autenticación
+  let user = null;
+  try {
+    const auth = useAuth();
+    user = auth.user;
+  } catch (error) {
+    // Sin autenticación - no hay notificaciones
+    console.log('NotificationButton funcionando sin autenticación');
+  }
   const { 
     notifications, 
     unreadCount, 
@@ -163,7 +171,7 @@ export const NotificationButton: React.FC<NotificationButtonProps> = ({ classNam
                     </p>
                     
                     <p className="text-xs text-muted-foreground mt-2">
-                      {formatTimeAgo(notification.createdAt)}
+                      {formatTimeAgo(notification.createdAt.toString())}
                     </p>
                   </div>
                 </div>

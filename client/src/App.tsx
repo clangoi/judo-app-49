@@ -47,107 +47,27 @@ const App = () => (
           <TimerProvider>
             <Routes>
               <Route path="/auth" element={<Auth />} />
-              <Route path="/" element={
-                <AuthGuard>
-                  <Index />
-                </AuthGuard>
-              } />
-              <Route path="/deporte" element={
-                <AuthGuard>
-                  <Deporte />
-                </AuthGuard>
-              } />
-              <Route path="/mentalcheck" element={
-                <AuthGuard>
-                  <MentalCheck />
-                </AuthGuard>
-              } />
-              <Route path="/estado-animo" element={
-                <AuthGuard>
-                  <EstadoAnimo />
-                </AuthGuard>
-              } />
-              <Route path="/niveles-estres" element={
-                <AuthGuard>
-                  <NivelesEstres />
-                </AuthGuard>
-              } />
-              <Route path="/bienestar-mental" element={
-                <AuthGuard>
-                  <BienestarMental />
-                </AuthGuard>
-              } />
-              <Route path="/concentracion" element={
-                <AuthGuard>
-                  <Concentracion />
-                </AuthGuard>
-              } />
-              <Route path="/evaluacion-profunda" element={
-                <AuthGuard>
-                  <EvaluacionProfunda />
-                </AuthGuard>
-              } />
-              <Route path="/checkin-rapido" element={
-                <AuthGuard>
-                  <CheckinRapido />
-                </AuthGuard>
-              } />
-              <Route path="/manejo-crisis" element={
-                <AuthGuard>
-                  <ManejoCrisis />
-                </AuthGuard>
-              } />
-              <Route path="/tecnicas-respiracion" element={
-                <AuthGuard>
-                  <TecnicasRespiracion />
-                </AuthGuard>
-              } />
-              <Route path="/mindfulness-express" element={
-                <AuthGuard>
-                  <MindfulnessExpress />
-                </AuthGuard>
-              } />
-              <Route path="/sesiones-preparacion" element={
-                <AuthGuard>
-                  <SesionesPreparacion />
-                </AuthGuard>
-              } />
-              <Route path="/entrenamientos-deportivo" element={
-                <AuthGuard>
-                  <EntrenamientosJudo />
-                </AuthGuard>
-              } />
-              <Route path="/tecnicas-deportivo" element={
-                <AuthGuard>
-                  <TecnicasJudo />
-                </AuthGuard>
-              } />
-              <Route path="/tactica-deportivo" element={
-                <AuthGuard>
-                  <TacticaJudo />
-                </AuthGuard>
-              } />
-              <Route path="/peso" element={
-                <AuthGuard>
-                  <Peso />
-                </AuthGuard>
-              } />
+              <Route path="/" element={<Index />} />
+              <Route path="/deporte" element={<Deporte />} />
+              <Route path="/mentalcheck" element={<MentalCheck />} />
+              <Route path="/estado-animo" element={<EstadoAnimo />} />
+              <Route path="/niveles-estres" element={<NivelesEstres />} />
+              <Route path="/bienestar-mental" element={<BienestarMental />} />
+              <Route path="/concentracion" element={<Concentracion />} />
+              <Route path="/evaluacion-profunda" element={<EvaluacionProfunda />} />
+              <Route path="/checkin-rapido" element={<CheckinRapido />} />
+              <Route path="/manejo-crisis" element={<ManejoCrisis />} />
+              <Route path="/tecnicas-respiracion" element={<TecnicasRespiracion />} />
+              <Route path="/mindfulness-express" element={<MindfulnessExpress />} />
+              <Route path="/sesiones-preparacion" element={<SesionesPreparacion />} />
+              <Route path="/entrenamientos-deportivo" element={<EntrenamientosJudo />} />
+              <Route path="/tecnicas-deportivo" element={<TecnicasJudo />} />
+              <Route path="/tactica-deportivo" element={<TacticaJudo />} />
+              <Route path="/peso" element={<Peso />} />
 
-              <Route path="/graficos" element={
-                <AuthGuard>
-                  <Graficos />
-                </AuthGuard>
-              } />
-              <Route path="/gestion" element={
-                <AuthGuard>
-                  <Gestion />
-                </AuthGuard>
-              } />
-              <Route path="/configuracion" element={
-                <AuthGuard>
-                  <Configuracion />
-                </AuthGuard>
-              } />
+              <Route path="/graficos" element={<Graficos />} />
+              <Route path="/gestion" element={<Gestion />} />
+              <Route path="/configuracion" element={<Configuracion />} />
 
               <Route path="/404" element={<NotFound />} />
               <Route path="*" element={<Navigate to="/404" replace />} />

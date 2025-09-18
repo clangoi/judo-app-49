@@ -69,7 +69,15 @@ export const NotificationAlarmsManager: React.FC<NotificationAlarmsManagerProps>
   isOpen,
   onClose,
 }) => {
-  const { user } = useAuth();
+  // Autenticación opcional - funciona sin autenticación
+  let user = null;
+  try {
+    const auth = useAuth();
+    user = auth.user;
+  } catch (error) {
+    // Sin autenticación - no hay alarmas de notificación
+    console.log('NotificationAlarmsManager funcionando sin autenticación');
+  }
   const [isAlarmModalOpen, setIsAlarmModalOpen] = useState(false);
   const [editingAlarm, setEditingAlarm] = useState<NotificationAlarm | null>(null);
 

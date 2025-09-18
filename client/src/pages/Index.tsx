@@ -13,9 +13,22 @@ import NavHeader from "@/components/NavHeader";
 
 
 const Index = () => {
-  const { user } = useAuth();
-  const { currentUserRole } = useUserRoles(user?.id);
+  // AuthProvider está disponible pero la autenticación es opcional
   const navigate = useNavigate();
+  
+  // Intentamos obtener el usuario si está autenticado, sino usamos valores por defecto
+  let user = null;
+  let currentUserRole = 'deportista'; // Rol por defecto
+  
+  try {
+    const auth = useAuth();
+    user = auth.user;
+    const { currentUserRole: role } = useUserRoles(user?.id);
+    if (role) currentUserRole = role;
+  } catch (error) {
+    // Si useAuth falla, continuamos sin autenticación
+    console.log('Funcionando sin autenticación');
+  }
 
   const getGreeting = () => {
     const hour = new Date().getHours();
@@ -51,14 +64,15 @@ const Index = () => {
     }
   ];
 
-  const availableItems = menuItems.filter(item => 
-    item.roles.includes(currentUserRole as string)
-  );
+  // Si no hay autenticación, mostramos todos los elementos por defecto
+  const availableItems = user 
+    ? menuItems.filter(item => item.roles.includes(currentUserRole as string))
+    : menuItems; // Sin autenticación = acceso completo
 
   return (
     <div className="min-h-screen bg-background">
       <NavHeader 
-        title={`${getGreeting()}, ${user?.email?.split('@')[0] || 'Usuario'}`}
+        title={`${getGreeting()}, ${user?.email?.split('@')[0] || 'Deportista'}`}
         subtitle="¿Qué quieres hacer hoy?"
       />
 
