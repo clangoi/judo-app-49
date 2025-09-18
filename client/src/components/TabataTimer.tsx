@@ -14,7 +14,13 @@ const TabataTimer = () => {
   
   // Estados locales para secuencias
   const [newTabataName, setNewTabataName] = useState('');
-  const [newTabataConfig, setNewTabataConfig] = useState({
+  const [newTabataConfig, setNewTabataConfig] = useState<{
+    workTime: number | string;
+    restTime: number | string;
+    cycles: number | string;
+    sets: number | string;
+    restBetweenSets: number | string;
+  }>({
     workTime: 20,
     restTime: 10,
     cycles: 8,
@@ -125,7 +131,11 @@ const TabataTimer = () => {
   // Funciones para manejar secuencias
   const handleAddTabataToSequence = () => {
     const tabataConfig = {
-      ...newTabataConfig,
+      workTime: typeof newTabataConfig.workTime === 'string' ? (parseInt(newTabataConfig.workTime) || 20) : newTabataConfig.workTime,
+      restTime: typeof newTabataConfig.restTime === 'string' ? (parseInt(newTabataConfig.restTime) || 10) : newTabataConfig.restTime,
+      cycles: typeof newTabataConfig.cycles === 'string' ? (parseInt(newTabataConfig.cycles) || 8) : newTabataConfig.cycles,
+      sets: typeof newTabataConfig.sets === 'string' ? (parseInt(newTabataConfig.sets) || 1) : newTabataConfig.sets,
+      restBetweenSets: typeof newTabataConfig.restBetweenSets === 'string' ? (parseInt(newTabataConfig.restBetweenSets) || 60) : newTabataConfig.restBetweenSets,
       name: newTabataName || `Tabata ${state.tabataSequence.length + 1}`
     };
     actions.addTabataToSequence(tabataConfig);
@@ -144,7 +154,11 @@ const TabataTimer = () => {
   const handleUpdateTabataInSequence = () => {
     if (editingIndex !== null) {
       const tabataConfig = {
-        ...newTabataConfig,
+        workTime: typeof newTabataConfig.workTime === 'string' ? (parseInt(newTabataConfig.workTime) || 20) : newTabataConfig.workTime,
+        restTime: typeof newTabataConfig.restTime === 'string' ? (parseInt(newTabataConfig.restTime) || 10) : newTabataConfig.restTime,
+        cycles: typeof newTabataConfig.cycles === 'string' ? (parseInt(newTabataConfig.cycles) || 8) : newTabataConfig.cycles,
+        sets: typeof newTabataConfig.sets === 'string' ? (parseInt(newTabataConfig.sets) || 1) : newTabataConfig.sets,
+        restBetweenSets: typeof newTabataConfig.restBetweenSets === 'string' ? (parseInt(newTabataConfig.restBetweenSets) || 60) : newTabataConfig.restBetweenSets,
         name: newTabataName || `Tabata ${editingIndex + 1}`
       };
       actions.updateTabataInSequence(editingIndex, tabataConfig);
@@ -439,7 +453,8 @@ const TabataTimer = () => {
                             id="new-work-time"
                             type="number"
                             value={newTabataConfig.workTime}
-                            onChange={(e) => setNewTabataConfig({...newTabataConfig, workTime: parseInt(e.target.value) || 20})}
+                            onChange={(e) => setNewTabataConfig({...newTabataConfig, workTime: e.target.value === '' ? '' : parseInt(e.target.value)})}
+                            onBlur={(e) => setNewTabataConfig({...newTabataConfig, workTime: parseInt(e.target.value) || 20})}
                             data-testid="input-new-work-time"
                           />
                         </div>
@@ -449,7 +464,8 @@ const TabataTimer = () => {
                             id="new-rest-time"
                             type="number"
                             value={newTabataConfig.restTime}
-                            onChange={(e) => setNewTabataConfig({...newTabataConfig, restTime: parseInt(e.target.value) || 10})}
+                            onChange={(e) => setNewTabataConfig({...newTabataConfig, restTime: e.target.value === '' ? '' : parseInt(e.target.value)})}
+                            onBlur={(e) => setNewTabataConfig({...newTabataConfig, restTime: parseInt(e.target.value) || 10})}
                             data-testid="input-new-rest-time"
                           />
                         </div>
@@ -462,7 +478,8 @@ const TabataTimer = () => {
                             id="new-cycles"
                             type="number"
                             value={newTabataConfig.cycles}
-                            onChange={(e) => setNewTabataConfig({...newTabataConfig, cycles: parseInt(e.target.value) || 8})}
+                            onChange={(e) => setNewTabataConfig({...newTabataConfig, cycles: e.target.value === '' ? '' : parseInt(e.target.value)})}
+                            onBlur={(e) => setNewTabataConfig({...newTabataConfig, cycles: parseInt(e.target.value) || 8})}
                             data-testid="input-new-cycles"
                           />
                         </div>
@@ -472,7 +489,8 @@ const TabataTimer = () => {
                             id="new-sets"
                             type="number"
                             value={newTabataConfig.sets}
-                            onChange={(e) => setNewTabataConfig({...newTabataConfig, sets: parseInt(e.target.value) || 1})}
+                            onChange={(e) => setNewTabataConfig({...newTabataConfig, sets: e.target.value === '' ? '' : parseInt(e.target.value)})}
+                            onBlur={(e) => setNewTabataConfig({...newTabataConfig, sets: parseInt(e.target.value) || 1})}
                             data-testid="input-new-sets"
                           />
                         </div>
@@ -484,7 +502,8 @@ const TabataTimer = () => {
                           id="new-rest-between-sets"
                           type="number"
                           value={newTabataConfig.restBetweenSets}
-                          onChange={(e) => setNewTabataConfig({...newTabataConfig, restBetweenSets: parseInt(e.target.value) || 60})}
+                          onChange={(e) => setNewTabataConfig({...newTabataConfig, restBetweenSets: e.target.value === '' ? '' : parseInt(e.target.value)})}
+                          onBlur={(e) => setNewTabataConfig({...newTabataConfig, restBetweenSets: parseInt(e.target.value) || 60})}
                           data-testid="input-new-rest-between-sets"
                         />
                       </div>
