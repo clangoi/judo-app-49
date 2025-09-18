@@ -1,5 +1,3 @@
-import { useAuth } from "@/hooks/useAuth";
-import { useUserRoles } from "@/hooks/useUserRoles";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
@@ -14,8 +12,6 @@ import NavHeader from "@/components/NavHeader";
 import TabataTimer from "@/components/TabataTimer";
 
 const Deporte = () => {
-  const { user } = useAuth();
-  const { currentUserRole } = useUserRoles(user?.id);
   const navigate = useNavigate();
 
   const sportsItems = [
@@ -61,9 +57,8 @@ const Deporte = () => {
     }
   ];
 
-  const availableItems = sportsItems.filter(item => 
-    item.roles.includes(currentUserRole as string)
-  );
+  // Sin autenticación obligatoria, mostrar todos los elementos
+  const availableItems = sportsItems;
 
   return (
     <div className="min-h-screen bg-background">
