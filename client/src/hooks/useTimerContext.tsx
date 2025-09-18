@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useRef, useEffect, ReactNode } from 'react';
+import { useSyncManager } from './useSyncManager';
 
 export type TimerMode = 'tabata' | 'timer' | 'stopwatch';
 
@@ -93,15 +94,102 @@ export const useTimerContext = () => {
   return context;
 };
 
+// Función para cargar estado inicial desde localStorage/sync
+const loadInitialState = (): TimerState => {
+  try {
+    // Intentar cargar desde localStorage primero
+    const savedMode = localStorage.getItem('timer-mode') as TimerMode | null;
+    const savedTabataConfig = localStorage.getItem('timer-tabata-config');
+    const savedTimerConfig = localStorage.getItem('timer-timer-config');
+    
+    return {
+      ...defaultState,
+      mode: savedMode || defaultState.mode,
+      tabataConfig: savedTabataConfig ? JSON.parse(savedTabataConfig) : defaultState.tabataConfig,
+      timerConfig: savedTimerConfig ? JSON.parse(savedTimerConfig) : defaultState.timerConfig,
+    };
+  } catch (error) {
+    console.warn('Error loading timer state from localStorage:', error);
+    return defaultState;
+  }
+};
+
 export const TimerProvider = ({ children }: { children: ReactNode }) => {
-  const [state, setState] = useState<TimerState>(defaultState);
+  const [state, setState] = useState<TimerState>(loadInitialState);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  
+  // Hook de sincronización para configuraciones de timer
+  const { status: syncStatus, updateRemoteData, syncData } = useSyncManager();
 
   // Initialize audio for notifications
   useEffect(() => {
     audioRef.current = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBTuG1/LFdSIHLIHN8+CWQQsVYK7j7qBQEAo+ltryxnkpBSl+zPDajzgIHmW7799iEQs7k+Tw0HIkBSJ1yO3akTELF2Cz5+OWQQsVX7Tl6qBREAp0qe3s4mseEQlPqOLuyFwbDTt7w/DZk2wPE3Km8u8yMRl2rtuzgK5yTjpPPh3TDq7EfGqOmGhOnofr1HkBQU5QJmwFWg8tLrGOT1xLmBJOW11IHgVFMrXsv6OxOgEzNxRqLT3EwCxNWFYXMR3ggotOsK5xJy6kCGYfG7Kw');
   }, []);
+
+  // Efecto de sincronización para cargar datos desde otros dispositivos
+  useEffect(() => {
+    if (syncStatus.isLinked) {
+      const syncTimerData = async () => {
+        try {
+          const success = await syncData();
+          if (success) {
+            // Recargar configuraciones desde localStorage después de sincronización
+            const savedMode = localStorage.getItem('timer-mode') as TimerMode | null;
+            const savedTabataConfig = localStorage.getItem('timer-tabata-config');
+            const savedTimerConfig = localStorage.getItem('timer-timer-config');
+            
+            setState(prevState => {
+              let newState = { ...prevState };
+              
+              // Actualizar modo si cambió
+              if (savedMode && savedMode !== prevState.mode) {
+                newState.mode = savedMode;
+              }
+              
+              // Actualizar configuración Tabata si cambió
+              if (savedTabataConfig) {
+                try {
+                  const tabataConfig = JSON.parse(savedTabataConfig);
+                  newState.tabataConfig = tabataConfig;
+                  if (newState.mode === 'tabata' && !newState.isRunning) {
+                    newState.timeLeft = tabataConfig.workTime;
+                  }
+                } catch (error) {
+                  console.warn('Error parsing saved tabata config:', error);
+                }
+              }
+              
+              // Actualizar configuración Timer si cambió
+              if (savedTimerConfig) {
+                try {
+                  const timerConfig = JSON.parse(savedTimerConfig);
+                  newState.timerConfig = timerConfig;
+                  if (newState.mode === 'timer' && !newState.isRunning) {
+                    newState.timeLeft = timerConfig.minutes * 60 + timerConfig.seconds;
+                  }
+                } catch (error) {
+                  console.warn('Error parsing saved timer config:', error);
+                }
+              }
+              
+              return newState;
+            });
+          }
+        } catch (error) {
+          console.error('Error syncing timer data:', error);
+        }
+      };
+      
+      // Sincronizar cada 30 segundos cuando está vinculado
+      const interval = setInterval(syncTimerData, 30000);
+      
+      // Sincronizar inmediatamente al vincular
+      syncTimerData();
+      
+      return () => clearInterval(interval);
+    }
+  }, [syncStatus.isLinked, syncData]);
 
   // Main timer effect
   useEffect(() => {
@@ -241,6 +329,12 @@ export const TimerProvider = ({ children }: { children: ReactNode }) => {
         newState.stopwatchTime = 0;
       }
 
+      // Guardar en localStorage y sincronizar si está vinculado
+      localStorage.setItem('timer-mode', mode);
+      if (syncStatus.isLinked) {
+        updateRemoteData({ timerMode: mode });
+      }
+
       return newState;
     });
   };
@@ -251,6 +345,12 @@ export const TimerProvider = ({ children }: { children: ReactNode }) => {
       tabataConfig: config,
       timeLeft: prevState.mode === 'tabata' ? config.workTime : prevState.timeLeft
     }));
+    
+    // Guardar en localStorage y sincronizar si está vinculado
+    localStorage.setItem('timer-tabata-config', JSON.stringify(config));
+    if (syncStatus.isLinked) {
+      updateRemoteData({ timerTabataConfig: config });
+    }
   };
 
   const updateTimerConfig = (config: TimerConfig) => {
@@ -259,6 +359,12 @@ export const TimerProvider = ({ children }: { children: ReactNode }) => {
       timerConfig: config,
       timeLeft: prevState.mode === 'timer' ? config.minutes * 60 + config.seconds : prevState.timeLeft
     }));
+    
+    // Guardar en localStorage y sincronizar si está vinculado
+    localStorage.setItem('timer-timer-config', JSON.stringify(config));
+    if (syncStatus.isLinked) {
+      updateRemoteData({ timerTimerConfig: config });
+    }
   };
 
   const startTimer = () => {

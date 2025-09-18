@@ -243,13 +243,25 @@ export function useSyncManager(): SyncManagerResult {
       
       const result = await response.json();
       
-      // Actualizar localStorage con datos sincronizados si es necesario
-      if (forceUpdate && result.deviceData) {
-        // Aquí se integraría con otros hooks/contexts para actualizar datos
+      // Actualizar localStorage con datos sincronizados
+      if (result.deviceData) {
         console.log('Sync data received:', result.deviceData);
         
-        // Invalidar caches de React Query para forzar actualización
-        queryClient.invalidateQueries({ queryKey: ['/api'] });
+        // Persistir datos de timer recibidos en localStorage
+        if (result.deviceData.timerMode) {
+          localStorage.setItem('timer-mode', result.deviceData.timerMode);
+        }
+        if (result.deviceData.timerTabataConfig) {
+          localStorage.setItem('timer-tabata-config', JSON.stringify(result.deviceData.timerTabataConfig));
+        }
+        if (result.deviceData.timerTimerConfig) {
+          localStorage.setItem('timer-timer-config', JSON.stringify(result.deviceData.timerTimerConfig));
+        }
+        
+        // Invalidar caches de React Query si forceUpdate está activo
+        if (forceUpdate) {
+          queryClient.invalidateQueries({ queryKey: ['/api'] });
+        }
       }
       
       // Actualizar estado
