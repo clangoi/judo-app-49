@@ -1,14 +1,28 @@
 import { useTimerContext } from '@/hooks/useTimerContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Play, Pause, RotateCcw, Settings, Timer, Clock, TimerReset } from 'lucide-react';
+import { Play, Pause, RotateCcw, Settings, Timer, Clock, TimerReset, Plus, Trash2, Edit, ListOrdered } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Switch } from '@/components/ui/switch';
+import { useState } from 'react';
 
 const TabataTimer = () => {
   const { state, actions } = useTimerContext();
+  
+  // Estados locales para secuencias
+  const [newTabataName, setNewTabataName] = useState('');
+  const [newTabataConfig, setNewTabataConfig] = useState({
+    workTime: 20,
+    restTime: 10,
+    cycles: 8,
+    sets: 1,
+    restBetweenSets: 60
+  });
+  const [editingIndex, setEditingIndex] = useState<number | null>(null);
+  const [isSequenceDialogOpen, setIsSequenceDialogOpen] = useState(false);
 
   // Helper functions for the UI
   const handleToggleTimer = () => {
@@ -97,11 +111,78 @@ const TabataTimer = () => {
 
   const getModeDescription = () => {
     switch (state.mode) {
-      case 'tabata': return 'Timer de entrenamiento por intervalos de alta intensidad';
+      case 'tabata': 
+        if (state.isSequenceMode && state.tabataSequence.length > 0) {
+          return `Secuencia Tabata - ${state.currentTabataIndex + 1}/${state.tabataSequence.length} - ${state.tabataSequence[state.currentTabataIndex]?.name || 'Sin nombre'}`;
+        }
+        return 'Timer de entrenamiento por intervalos de alta intensidad';
       case 'timer': return 'Temporizador cuenta regresiva personalizable';
       case 'stopwatch': return 'Cronómetro para medir tiempo transcurrido';
       default: return '';
     }
+  };
+
+  // Funciones para manejar secuencias
+  const handleAddTabataToSequence = () => {
+    const tabataConfig = {
+      ...newTabataConfig,
+      name: newTabataName || `Tabata ${state.tabataSequence.length + 1}`
+    };
+    actions.addTabataToSequence(tabataConfig);
+    
+    // Reset form
+    setNewTabataName('');
+    setNewTabataConfig({
+      workTime: 20,
+      restTime: 10,
+      cycles: 8,
+      sets: 1,
+      restBetweenSets: 60
+    });
+  };
+
+  const handleUpdateTabataInSequence = () => {
+    if (editingIndex !== null) {
+      const tabataConfig = {
+        ...newTabataConfig,
+        name: newTabataName || `Tabata ${editingIndex + 1}`
+      };
+      actions.updateTabataInSequence(editingIndex, tabataConfig);
+      setEditingIndex(null);
+      setNewTabataName('');
+      setNewTabataConfig({
+        workTime: 20,
+        restTime: 10,
+        cycles: 8,
+        sets: 1,
+        restBetweenSets: 60
+      });
+    }
+  };
+
+  const handleEditTabata = (index: number) => {
+    const tabata = state.tabataSequence[index];
+    setEditingIndex(index);
+    setNewTabataName(tabata.name || '');
+    setNewTabataConfig({
+      workTime: tabata.workTime,
+      restTime: tabata.restTime,
+      cycles: tabata.cycles,
+      sets: tabata.sets,
+      restBetweenSets: tabata.restBetweenSets
+    });
+  };
+
+  const handleCancelEdit = () => {
+    setEditingIndex(null);
+    setNewTabataName('');
+    setNewTabataConfig({
+      workTime: 20,
+      restTime: 10,
+      cycles: 8,
+      sets: 1,
+      restBetweenSets: 60
+    });
   };
 
   return (
@@ -130,10 +211,14 @@ const TabataTimer = () => {
               </DialogHeader>
               
               <Tabs value={state.mode} onValueChange={(value) => handleModeChange(value as 'tabata' | 'timer' | 'stopwatch')}>
-                <TabsList className="grid w-full grid-cols-3">
+                <TabsList className="grid w-full grid-cols-4">
                   <TabsTrigger value="tabata" data-testid="tab-tabata">Tabata</TabsTrigger>
                   <TabsTrigger value="timer" data-testid="tab-timer">Timer</TabsTrigger>
                   <TabsTrigger value="stopwatch" data-testid="tab-stopwatch">Cronómetro</TabsTrigger>
+                  <TabsTrigger value="sequences" data-testid="tab-sequences">
+                    <ListOrdered className="h-4 w-4 mr-1" />
+                    Secuencias
+                  </TabsTrigger>
                 </TabsList>
                 
                 <TabsContent value="tabata" className="space-y-4">
@@ -261,6 +346,179 @@ const TabataTimer = () => {
                   <div className="text-center text-muted-foreground">
                     <p>El cronómetro no requiere configuración.</p>
                     <p>Usa los botones de control para iniciar, pausar y resetear.</p>
+                  </div>
+                </TabsContent>
+                
+                <TabsContent value="sequences" className="space-y-4">
+                  <div className="space-y-4">
+                    {/* Switch para activar modo secuencia */}
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="sequence-mode" className="text-sm font-medium">Modo Secuencia</Label>
+                      <Switch
+                        id="sequence-mode"
+                        checked={state.isSequenceMode}
+                        onCheckedChange={actions.enableSequenceMode}
+                        data-testid="switch-sequence-mode"
+                      />
+                    </div>
+                    
+                    {/* Lista de Tabatas en la secuencia */}
+                    {state.tabataSequence.length > 0 && (
+                      <div className="space-y-2">
+                        <Label className="text-sm font-medium">Secuencia Actual ({state.tabataSequence.length} Tabatas)</Label>
+                        <div className="max-h-40 overflow-y-auto space-y-2">
+                          {state.tabataSequence.map((tabata, index) => (
+                            <div 
+                              key={index} 
+                              className={`p-3 border rounded-lg flex items-center justify-between ${
+                                state.isSequenceMode && state.currentTabataIndex === index ? 'bg-blue-50 border-blue-200' : 'bg-gray-50'
+                              }`}
+                              data-testid={`sequence-item-${index}`}
+                            >
+                              <div className="flex-1">
+                                <div className="font-medium text-sm">{tabata.name || `Tabata ${index + 1}`}</div>
+                                <div className="text-xs text-muted-foreground">
+                                  {tabata.workTime}s trabajo / {tabata.restTime}s descanso × {tabata.cycles} ciclos × {tabata.sets} sets
+                                </div>
+                              </div>
+                              <div className="flex gap-1">
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleEditTabata(index)}
+                                  data-testid={`button-edit-tabata-${index}`}
+                                >
+                                  <Edit className="h-3 w-3" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => actions.removeTabataFromSequence(index)}
+                                  data-testid={`button-remove-tabata-${index}`}
+                                >
+                                  <Trash2 className="h-3 w-3" />
+                                </Button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={actions.clearTabataSequence}
+                          className="w-full"
+                          data-testid="button-clear-sequence"
+                        >
+                          Limpiar Secuencia
+                        </Button>
+                      </div>
+                    )}
+                    
+                    {/* Formulario para agregar/editar Tabata */}
+                    <div className="border-t pt-4 space-y-3">
+                      <Label className="text-sm font-medium">
+                        {editingIndex !== null ? 'Editar Tabata' : 'Agregar Nuevo Tabata'}
+                      </Label>
+                      
+                      <div>
+                        <Label htmlFor="tabata-name">Nombre del Tabata</Label>
+                        <Input
+                          id="tabata-name"
+                          type="text"
+                          placeholder="Ej: Calentamiento, Principal, Enfriamiento"
+                          value={newTabataName}
+                          onChange={(e) => setNewTabataName(e.target.value)}
+                          data-testid="input-tabata-name"
+                        />
+                      </div>
+                      
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <Label htmlFor="new-work-time">Trabajo (seg)</Label>
+                          <Input
+                            id="new-work-time"
+                            type="number"
+                            value={newTabataConfig.workTime}
+                            onChange={(e) => setNewTabataConfig({...newTabataConfig, workTime: parseInt(e.target.value) || 20})}
+                            data-testid="input-new-work-time"
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="new-rest-time">Descanso (seg)</Label>
+                          <Input
+                            id="new-rest-time"
+                            type="number"
+                            value={newTabataConfig.restTime}
+                            onChange={(e) => setNewTabataConfig({...newTabataConfig, restTime: parseInt(e.target.value) || 10})}
+                            data-testid="input-new-rest-time"
+                          />
+                        </div>
+                      </div>
+                      
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <Label htmlFor="new-cycles">Ciclos</Label>
+                          <Input
+                            id="new-cycles"
+                            type="number"
+                            value={newTabataConfig.cycles}
+                            onChange={(e) => setNewTabataConfig({...newTabataConfig, cycles: parseInt(e.target.value) || 8})}
+                            data-testid="input-new-cycles"
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="new-sets">Sets</Label>
+                          <Input
+                            id="new-sets"
+                            type="number"
+                            value={newTabataConfig.sets}
+                            onChange={(e) => setNewTabataConfig({...newTabataConfig, sets: parseInt(e.target.value) || 1})}
+                            data-testid="input-new-sets"
+                          />
+                        </div>
+                      </div>
+                      
+                      <div>
+                        <Label htmlFor="new-rest-between-sets">Descanso entre sets (seg)</Label>
+                        <Input
+                          id="new-rest-between-sets"
+                          type="number"
+                          value={newTabataConfig.restBetweenSets}
+                          onChange={(e) => setNewTabataConfig({...newTabataConfig, restBetweenSets: parseInt(e.target.value) || 60})}
+                          data-testid="input-new-rest-between-sets"
+                        />
+                      </div>
+                      
+                      <div className="flex gap-2">
+                        {editingIndex !== null ? (
+                          <>
+                            <Button
+                              onClick={handleUpdateTabataInSequence}
+                              className="flex-1"
+                              data-testid="button-update-tabata"
+                            >
+                              Actualizar Tabata
+                            </Button>
+                            <Button
+                              variant="outline"
+                              onClick={handleCancelEdit}
+                              data-testid="button-cancel-edit"
+                            >
+                              Cancelar
+                            </Button>
+                          </>
+                        ) : (
+                          <Button
+                            onClick={handleAddTabataToSequence}
+                            className="w-full"
+                            data-testid="button-add-tabata"
+                          >
+                            <Plus className="h-4 w-4 mr-2" />
+                            Agregar a Secuencia
+                          </Button>
+                        )}
+                      </div>
+                    </div>
                   </div>
                 </TabsContent>
               </Tabs>

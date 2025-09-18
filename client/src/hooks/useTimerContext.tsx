@@ -9,6 +9,7 @@ export interface TabataConfig {
   cycles: number;
   sets: number;
   restBetweenSets: number;
+  name?: string; // Nombre opcional para identificar el Tabata
 }
 
 export interface TimerConfig {
@@ -21,6 +22,11 @@ export interface TimerState {
   mode: TimerMode;
   tabataConfig: TabataConfig;
   timerConfig: TimerConfig;
+  
+  // Secuencia de Tabatas
+  tabataSequence: TabataConfig[];
+  currentTabataIndex: number;
+  isSequenceMode: boolean;
   
   // Timer state
   isRunning: boolean;
@@ -51,6 +57,12 @@ export interface TimerContextType {
     resetTimer: () => void;
     setFloating: (floating: boolean) => void;
     setMinimized: (minimized: boolean) => void;
+    // Nuevas acciones para secuencia de Tabatas
+    addTabataToSequence: (config: TabataConfig) => void;
+    removeTabataFromSequence: (index: number) => void;
+    updateTabataInSequence: (index: number, config: TabataConfig) => void;
+    enableSequenceMode: (enabled: boolean) => void;
+    clearTabataSequence: () => void;
   };
 }
 
@@ -71,6 +83,10 @@ const defaultState: TimerState = {
   mode: 'tabata',
   tabataConfig: defaultTabataConfig,
   timerConfig: defaultTimerConfig,
+  // Nuevos campos para secuencia
+  tabataSequence: [],
+  currentTabataIndex: 0,
+  isSequenceMode: false,
   isRunning: false,
   isPaused: false,
   timeLeft: defaultTabataConfig.workTime,
@@ -101,12 +117,16 @@ const loadInitialState = (): TimerState => {
     const savedMode = localStorage.getItem('timer-mode') as TimerMode | null;
     const savedTabataConfig = localStorage.getItem('timer-tabata-config');
     const savedTimerConfig = localStorage.getItem('timer-timer-config');
+    const savedTabataSequence = localStorage.getItem('timer-tabata-sequence');
+    const savedSequenceMode = localStorage.getItem('timer-sequence-mode');
     
     return {
       ...defaultState,
       mode: savedMode || defaultState.mode,
       tabataConfig: savedTabataConfig ? JSON.parse(savedTabataConfig) : defaultState.tabataConfig,
       timerConfig: savedTimerConfig ? JSON.parse(savedTimerConfig) : defaultState.timerConfig,
+      tabataSequence: savedTabataSequence ? JSON.parse(savedTabataSequence) : defaultState.tabataSequence,
+      isSequenceMode: savedSequenceMode ? JSON.parse(savedSequenceMode) : defaultState.isSequenceMode,
     };
   } catch (error) {
     console.warn('Error loading timer state from localStorage:', error);
@@ -138,6 +158,8 @@ export const TimerProvider = ({ children }: { children: ReactNode }) => {
             const savedMode = localStorage.getItem('timer-mode') as TimerMode | null;
             const savedTabataConfig = localStorage.getItem('timer-tabata-config');
             const savedTimerConfig = localStorage.getItem('timer-timer-config');
+            const savedTabataSequence = localStorage.getItem('timer-tabata-sequence');
+            const savedSequenceMode = localStorage.getItem('timer-sequence-mode');
             
             setState(prevState => {
               let newState = { ...prevState };
@@ -170,6 +192,26 @@ export const TimerProvider = ({ children }: { children: ReactNode }) => {
                   }
                 } catch (error) {
                   console.warn('Error parsing saved timer config:', error);
+                }
+              }
+              
+              // Actualizar secuencia de Tabatas si cambió
+              if (savedTabataSequence) {
+                try {
+                  const tabataSequence = JSON.parse(savedTabataSequence);
+                  newState.tabataSequence = tabataSequence;
+                } catch (error) {
+                  console.warn('Error parsing saved tabata sequence:', error);
+                }
+              }
+              
+              // Actualizar modo de secuencia si cambió
+              if (savedSequenceMode) {
+                try {
+                  const sequenceMode = JSON.parse(savedSequenceMode);
+                  newState.isSequenceMode = sequenceMode;
+                } catch (error) {
+                  console.warn('Error parsing saved sequence mode:', error);
                 }
               }
               
@@ -254,12 +296,8 @@ export const TimerProvider = ({ children }: { children: ReactNode }) => {
           timeLeft: prevState.tabataConfig.workTime
         };
       } else {
-        // All sets completed
-        return {
-          ...prevState,
-          isRunning: false,
-          isCompleted: true
-        };
+        // All sets completed, check if we should advance to next Tabata in sequence
+        return handleTabataCompletion(prevState);
       }
     } else if (prevState.isWorkPhase) {
       // End of work phase, start rest
@@ -288,15 +326,43 @@ export const TimerProvider = ({ children }: { children: ReactNode }) => {
             timeLeft: prevState.tabataConfig.restBetweenSets
           };
         } else {
-          // All sets completed
-          return {
-            ...prevState,
-            isRunning: false,
-            isCompleted: true
-          };
+          // All sets completed, check if we should advance to next Tabata in sequence
+          return handleTabataCompletion(prevState);
         }
       }
     }
+  };
+
+  const handleTabataCompletion = (prevState: TimerState): TimerState => {
+    // Si está en modo secuencia y hay más Tabatas
+    if (prevState.isSequenceMode && prevState.tabataSequence.length > 0) {
+      const nextIndex = prevState.currentTabataIndex + 1;
+      
+      if (nextIndex < prevState.tabataSequence.length) {
+        // Avanzar al siguiente Tabata de la secuencia
+        const nextTabataConfig = prevState.tabataSequence[nextIndex];
+        return {
+          ...prevState,
+          currentTabataIndex: nextIndex,
+          tabataConfig: nextTabataConfig,
+          currentCycle: 1,
+          currentSet: 1,
+          isWorkPhase: true,
+          isSetRest: false,
+          timeLeft: nextTabataConfig.workTime,
+          // Mantener el timer corriendo
+          isRunning: true,
+          isCompleted: false
+        };
+      }
+    }
+    
+    // Si no hay más Tabatas en la secuencia o no está en modo secuencia
+    return {
+      ...prevState,
+      isRunning: false,
+      isCompleted: true
+    };
   };
 
   const playNotification = () => {
@@ -396,11 +462,20 @@ export const TimerProvider = ({ children }: { children: ReactNode }) => {
         isWorkPhase: true,
         isSetRest: false,
         isFloating: false,
-        isMinimized: false
+        isMinimized: false,
+        // Resetear índice de secuencia al inicio
+        currentTabataIndex: 0
       };
 
       if (prevState.mode === 'tabata') {
-        newState.timeLeft = prevState.tabataConfig.workTime;
+        // Si está en modo secuencia, usar el primer Tabata
+        if (prevState.isSequenceMode && prevState.tabataSequence.length > 0) {
+          const firstTabata = prevState.tabataSequence[0];
+          newState.tabataConfig = firstTabata;
+          newState.timeLeft = firstTabata.workTime;
+        } else {
+          newState.timeLeft = prevState.tabataConfig.workTime;
+        }
       } else if (prevState.mode === 'timer') {
         newState.timeLeft = prevState.timerConfig.minutes * 60 + prevState.timerConfig.seconds;
       } else if (prevState.mode === 'stopwatch') {
@@ -425,6 +500,86 @@ export const TimerProvider = ({ children }: { children: ReactNode }) => {
     }));
   };
 
+  // Funciones para manejar secuencia de Tabatas
+  const addTabataToSequence = (config: TabataConfig) => {
+    setState(prevState => ({
+      ...prevState,
+      tabataSequence: [...prevState.tabataSequence, config]
+    }));
+    
+    // Guardar secuencia en localStorage y sincronizar
+    const newSequence = [...state.tabataSequence, config];
+    localStorage.setItem('timer-tabata-sequence', JSON.stringify(newSequence));
+    if (syncStatus.isLinked) {
+      updateRemoteData({ timerTabataSequence: newSequence });
+    }
+  };
+
+  const removeTabataFromSequence = (index: number) => {
+    setState(prevState => ({
+      ...prevState,
+      tabataSequence: prevState.tabataSequence.filter((_, i) => i !== index),
+      // Ajustar índice actual si es necesario
+      currentTabataIndex: prevState.currentTabataIndex >= index && prevState.currentTabataIndex > 0 
+        ? prevState.currentTabataIndex - 1 
+        : prevState.currentTabataIndex
+    }));
+    
+    // Guardar secuencia en localStorage y sincronizar
+    const newSequence = state.tabataSequence.filter((_, i) => i !== index);
+    localStorage.setItem('timer-tabata-sequence', JSON.stringify(newSequence));
+    if (syncStatus.isLinked) {
+      updateRemoteData({ timerTabataSequence: newSequence });
+    }
+  };
+
+  const updateTabataInSequence = (index: number, config: TabataConfig) => {
+    setState(prevState => ({
+      ...prevState,
+      tabataSequence: prevState.tabataSequence.map((item, i) => i === index ? config : item)
+    }));
+    
+    // Guardar secuencia en localStorage y sincronizar
+    const newSequence = state.tabataSequence.map((item, i) => i === index ? config : item);
+    localStorage.setItem('timer-tabata-sequence', JSON.stringify(newSequence));
+    if (syncStatus.isLinked) {
+      updateRemoteData({ timerTabataSequence: newSequence });
+    }
+  };
+
+  const enableSequenceMode = (enabled: boolean) => {
+    setState(prevState => ({
+      ...prevState,
+      isSequenceMode: enabled,
+      currentTabataIndex: enabled ? 0 : prevState.currentTabataIndex
+    }));
+    
+    // Guardar en localStorage y sincronizar
+    localStorage.setItem('timer-sequence-mode', enabled.toString());
+    if (syncStatus.isLinked) {
+      updateRemoteData({ timerSequenceMode: enabled });
+    }
+  };
+
+  const clearTabataSequence = () => {
+    setState(prevState => ({
+      ...prevState,
+      tabataSequence: [],
+      currentTabataIndex: 0,
+      isSequenceMode: false
+    }));
+    
+    // Limpiar localStorage y sincronizar
+    localStorage.removeItem('timer-tabata-sequence');
+    localStorage.removeItem('timer-sequence-mode');
+    if (syncStatus.isLinked) {
+      updateRemoteData({ 
+        timerTabataSequence: [],
+        timerSequenceMode: false 
+      });
+    }
+  };
+
   const value: TimerContextType = {
     state,
     actions: {
@@ -435,7 +590,12 @@ export const TimerProvider = ({ children }: { children: ReactNode }) => {
       pauseTimer,
       resetTimer,
       setFloating,
-      setMinimized
+      setMinimized,
+      addTabataToSequence,
+      removeTabataFromSequence,
+      updateTabataInSequence,
+      enableSequenceMode,
+      clearTabataSequence
     }
   };
 
