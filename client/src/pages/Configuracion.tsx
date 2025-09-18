@@ -13,15 +13,27 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
 import NavHeader from "@/components/NavHeader";
 import UserProfileForm from "@/components/configuration/UserProfileForm";
-import { User, Settings, Edit, Save, X, Eye, Camera, Calendar } from "lucide-react";
+import { User, Settings, Edit, Save, X, Eye, Camera, Calendar, Smartphone, RefreshCw, Link, Copy, Trash2 } from "lucide-react";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
+import { useSyncManager } from "@/hooks/useSyncManager";
 
 const Configuracion = () => {
   const { user } = useAuth();
   const { currentUserRole } = useUserRoles(user?.id);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  
+  // Sync Manager para dispositivos
+  const {
+    status: syncStatus,
+    generateSyncCode,
+    linkDevice,
+    syncData,
+    updateRemoteData,
+    clearSyncData,
+    checkSyncStatus
+  } = useSyncManager();
 
   // Cargar el perfil actual del usuario
   const { data: userProfile, isLoading: isLoadingProfile } = useQuery({
@@ -42,6 +54,9 @@ const Configuracion = () => {
     birthDate: "",
     injuries: [] as string[],
   });
+  
+  // Estados para sincronización
+  const [linkCodeInput, setLinkCodeInput] = useState("");
 
   useEffect(() => {
     if (userProfile) {
@@ -167,6 +182,84 @@ const Configuracion = () => {
         variant: "destructive",
       });
     }
+  };
+
+  // Funciones de sincronización
+  const handleGenerateCode = async () => {
+    try {
+      // Recopilar datos del dispositivo actual
+      const deviceData = {
+        timer: localStorage.getItem('timer_data') || '{}',
+        mentalHealth: localStorage.getItem('mental_health_data') || '{}',
+        settings: localStorage.getItem('app_settings') || '{}',
+        userProfile: profileData
+      };
+      
+      const code = await generateSyncCode(deviceData);
+      if (code) {
+        toast({
+          title: "Código generado",
+          description: `Tu código de sincronización es: ${code}`,
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "No se pudo generar el código de sincronización",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleLinkDevice = async () => {
+    if (!linkCodeInput.trim()) {
+      toast({
+        title: "Error",
+        description: "Ingresa un código de sincronización válido",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const success = await linkDevice(linkCodeInput.trim());
+    if (success) {
+      setLinkCodeInput("");
+      toast({
+        title: "Dispositivo vinculado",
+        description: "Tu dispositivo se ha vinculado exitosamente",
+      });
+    }
+  };
+
+  const handleSyncData = async () => {
+    const success = await syncData(true);
+    if (success) {
+      // Invalidar caches relacionados después de sincronización
+      queryClient.invalidateQueries({ queryKey: ['user-profile'] });
+      queryClient.invalidateQueries({ queryKey: ['timer-data'] });
+      queryClient.invalidateQueries({ queryKey: ['mental-health'] });
+      
+      toast({
+        title: "Sincronización completada",
+        description: "Tus datos se han sincronizado correctamente",
+      });
+    }
+  };
+
+  const handleClearSync = () => {
+    clearSyncData();
+    toast({
+      title: "Datos limpiados",
+      description: "Se han eliminado todos los datos de sincronización",
+    });
+  };
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    toast({
+      title: "Copiado",
+      description: "Código copiado al portapapeles",
+    });
   };
 
   return (
@@ -452,6 +545,201 @@ const Configuracion = () => {
                     />
                   </div>
                 </>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Card de Sincronización de Dispositivos */}
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Smartphone className="h-5 w-5 text-primary" />
+                  <CardTitle>Sincronización de Dispositivos</CardTitle>
+                </div>
+                <div className="flex items-center gap-2">
+                  {syncStatus.isLinked ? (
+                    <Badge variant="default" className="flex items-center gap-1">
+                      <Link className="h-3 w-3" />
+                      Vinculado
+                    </Badge>
+                  ) : (
+                    <Badge variant="secondary" className="flex items-center gap-1">
+                      <X className="h-3 w-3" />
+                      No vinculado
+                    </Badge>
+                  )}
+                  {syncStatus.isExpired && (
+                    <Badge variant="destructive" className="text-xs">
+                      Expirado
+                    </Badge>
+                  )}
+                </div>
+              </div>
+              <CardDescription>
+                Sincroniza tus datos entre múltiples dispositivos usando códigos únicos
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Estado del dispositivo */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-muted rounded-lg">
+                <div className="space-y-1">
+                  <p className="text-sm font-medium text-muted-foreground">ID del Dispositivo</p>
+                  <p className="text-sm font-mono">{syncStatus.deviceFingerprint?.substring(0, 16)}...</p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-sm font-medium text-muted-foreground">Última Sincronización</p>
+                  <p className="text-sm">
+                    {syncStatus.lastSync 
+                      ? syncStatus.lastSync.toLocaleString() 
+                      : "Nunca"}
+                  </p>
+                </div>
+              </div>
+
+              {/* Generar código de sincronización */}
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h4 className="text-sm font-medium">Generar Código de Sincronización</h4>
+                    <p className="text-xs text-muted-foreground">
+                      Crea un código para vincular este dispositivo con otros
+                    </p>
+                  </div>
+                  <Button
+                    onClick={handleGenerateCode}
+                    disabled={syncStatus.isGenerating}
+                    variant="outline"
+                    size="sm"
+                    data-testid="button-generate-sync-code"
+                  >
+                    {syncStatus.isGenerating ? (
+                      <div className="flex items-center gap-2">
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current"></div>
+                        Generando...
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        <RefreshCw className="h-4 w-4" />
+                        Generar Código
+                      </div>
+                    )}
+                  </Button>
+                </div>
+
+                {syncStatus.syncCode && (
+                  <div className="p-3 bg-primary/10 border border-primary/20 rounded-lg">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium">Tu código de sincronización:</p>
+                        <p className="text-lg font-mono font-bold text-primary">{syncStatus.syncCode}</p>
+                        <p className="text-xs text-muted-foreground">
+                          Expira: {syncStatus.expiresAt?.toLocaleString()}
+                        </p>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => copyToClipboard(syncStatus.syncCode!)}
+                        data-testid="button-copy-sync-code"
+                      >
+                        <Copy className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Vincular dispositivo */}
+              <div className="space-y-4">
+                <div>
+                  <h4 className="text-sm font-medium">Vincular con Otro Dispositivo</h4>
+                  <p className="text-xs text-muted-foreground">
+                    Ingresa un código de sincronización de otro dispositivo
+                  </p>
+                </div>
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="SPORT-A8F2-B1C3"
+                    value={linkCodeInput}
+                    onChange={(e) => setLinkCodeInput(e.target.value.toUpperCase())}
+                    className="font-mono"
+                    data-testid="input-link-code"
+                  />
+                  <Button
+                    onClick={handleLinkDevice}
+                    disabled={syncStatus.isLinking || !linkCodeInput.trim()}
+                    data-testid="button-link-device"
+                  >
+                    {syncStatus.isLinking ? (
+                      <div className="flex items-center gap-2">
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                        Vinculando...
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        <Link className="h-4 w-4" />
+                        Vincular
+                      </div>
+                    )}
+                  </Button>
+                </div>
+              </div>
+
+              {/* Acciones de sincronización */}
+              {syncStatus.isLinked && (
+                <div className="flex flex-wrap gap-2 pt-4 border-t">
+                  <Button
+                    onClick={handleSyncData}
+                    disabled={syncStatus.isSyncing}
+                    variant="outline"
+                    size="sm"
+                    data-testid="button-sync-data"
+                  >
+                    {syncStatus.isSyncing ? (
+                      <div className="flex items-center gap-2">
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current"></div>
+                        Sincronizando...
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        <RefreshCw className="h-4 w-4" />
+                        Sincronizar Datos
+                      </div>
+                    )}
+                  </Button>
+                  <Button
+                    onClick={() => checkSyncStatus()}
+                    variant="ghost"
+                    size="sm"
+                    data-testid="button-check-status"
+                  >
+                    <div className="flex items-center gap-2">
+                      <Eye className="h-4 w-4" />
+                      Verificar Estado
+                    </div>
+                  </Button>
+                  <Button
+                    onClick={handleClearSync}
+                    variant="ghost"
+                    size="sm"
+                    className="text-destructive hover:text-destructive"
+                    data-testid="button-clear-sync"
+                  >
+                    <div className="flex items-center gap-2">
+                      <Trash2 className="h-4 w-4" />
+                      Limpiar Datos
+                    </div>
+                  </Button>
+                </div>
+              )}
+
+              {/* Error de sincronización */}
+              {syncStatus.error && (
+                <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-lg">
+                  <p className="text-sm font-medium text-destructive">Error de Sincronización</p>
+                  <p className="text-xs text-destructive/80">{syncStatus.error}</p>
+                </div>
               )}
             </CardContent>
           </Card>

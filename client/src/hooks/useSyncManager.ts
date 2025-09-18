@@ -203,7 +203,7 @@ export function useSyncManager(): SyncManagerResult {
         syncCode,
         deviceFingerprint,
         lastSync: new Date(),
-        expiresAt: result.deviceData?.expiresAt ? new Date(result.deviceData.expiresAt) : prev.expiresAt,
+        expiresAt: result.expiresAt ? new Date(result.expiresAt) : prev.expiresAt,
         isLinking: false,
         error: undefined
       }));
