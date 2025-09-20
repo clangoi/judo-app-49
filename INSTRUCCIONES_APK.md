@@ -2,7 +2,7 @@
 
 ## ✅ Estado de Migración Completo
 
-La aplicación web MentalCheck ha sido **completamente migrada** a React Native/Expo con toda la funcionalidad original:
+La aplicación web MentalCheck ha sido **completamente migrada** a **Expo SDK 53** (React Native 0.79) con toda la funcionalidad original:
 
 ### 🎯 Funcionalidades Migradas:
 - ✅ **Timer Tabata completo** con todas las configuraciones
@@ -18,13 +18,16 @@ La aplicación web MentalCheck ha sido **completamente migrada** a React Native/
 
 ### 1. Configuración Inicial
 ```bash
-# 1. Instalar Expo CLI globalmente (si no lo tienes)
-npm install -g @expo/cli eas-cli
+# 1. Instalar Expo CLI globalmente (mínimo versión 12.0.0)
+npm install -g @expo/cli@latest eas-cli@latest
 
-# 2. Instalar dependencias del proyecto
+# 2. Verificar que tienes Node.js 20+ (requerido para SDK 53)
+node --version  # Debe ser >= 20.0.0
+
+# 3. Instalar dependencias del proyecto
 npm install --save-package-lock-only # usando package-expo.json como referencia
 
-# 3. Inicializar EAS (Expo Application Services)
+# 4. Inicializar EAS (Expo Application Services)
 eas login
 eas build:configure
 ```
