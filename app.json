@@ -1,0 +1,45 @@
+{
+  "expo": {
+    "name": "MentalCheck - Entrenamiento",
+    "slug": "mentalcheck-deportes",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./expo-assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./expo-assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#283750"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.mentalcheck.deportes"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./expo-assets/adaptive-icon.png",
+        "backgroundColor": "#283750"
+      },
+      "package": "com.mentalcheck.deportes",
+      "permissions": [
+        "NOTIFICATIONS",
+        "WAKE_LOCK",
+        "VIBRATE"
+      ]
+    },
+    "web": {
+      "favicon": "./expo-assets/favicon.png"
+    },
+    "plugins": [
+      "expo-notifications"
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "mentalcheck-deportes-uuid"
+      }
+    }
+  }
+}
