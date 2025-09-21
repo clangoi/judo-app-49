@@ -19,6 +19,15 @@ const MentalCheckScreen: React.FC<MentalCheckScreenProps> = ({ navigation }) => 
       details: ["😊 ¿Cómo te sientes ahora?", "🔋 ¿Cuál es tu nivel de energía?", "😌 ¿Qué tan estresado estás?"]
     },
     {
+      title: "Evaluación Profunda",
+      description: "Análisis completo de tu estado mental, emocional y físico con 15 preguntas y recomendaciones personalizadas",
+      icon: "assignment",
+      screen: "EvaluacionProfunda",
+      color: "#7B1FA2",
+      badge: "📊 COMPLETA",
+      details: ["Estado emocional detallado", "Análisis de patrones", "Factores de estrés", "Nivel de satisfacción", "Recomendaciones personalizadas"]
+    },
+    {
       title: "Técnicas de Bienestar", 
       description: "Ejercicios de respiración y mindfulness para reducir estrés, mejorar enfoque y cultivar bienestar mental",
       icon: "psychology",
@@ -82,7 +91,8 @@ const MentalCheckScreen: React.FC<MentalCheckScreenProps> = ({ navigation }) => 
                 <View style={[styles.detailsContainer, { borderLeftColor: option.color }]}>
                   <Text style={[styles.detailsTitle, { color: option.color }]}>
                     {option.title === "Check-in Rápido" ? "Solo 3 preguntas:" : 
-                     option.title === "Técnicas de Respiración" ? "Técnicas incluidas:" : 
+                     option.title === "Evaluación Profunda" ? "Incluye:" :
+                     option.title === "Técnicas de Bienestar" ? "Técnicas incluidas:" : 
                      "Técnicas incluidas:"}
                   </Text>
                   {option.details.map((detail, idx) => (
@@ -98,7 +108,8 @@ const MentalCheckScreen: React.FC<MentalCheckScreenProps> = ({ navigation }) => 
                   data-testid={`button-access-${option.screen.toLowerCase()}`}
                 >
                   {option.title === "Check-in Rápido" ? "Iniciar Check-in (30s)" :
-                   option.title === "Técnicas de Respiración" ? "Iniciar Respiración" :
+                   option.title === "Evaluación Profunda" ? "Iniciar Evaluación (5-7 min)" :
+                   option.title === "Técnicas de Bienestar" ? "Iniciar Técnicas" :
                    "Iniciar Manejo de Crisis"}
                 </Button>
               </Card.Content>

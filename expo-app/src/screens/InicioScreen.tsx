@@ -47,11 +47,7 @@ const InicioScreen = ({ navigation }: InicioScreenProps) => {
         navigation.navigate("MentalCheck");
         break;
       case "Graficos":
-        Alert.alert(
-          "Gráficos y Análisis",
-          "Visualización de progreso con gráficos detallados.\n\n📊 Próximamente disponible en la app móvil.\n\nPor ahora, revisa tu configuración de sincronización para conectar dispositivos.",
-          [{ text: 'Ver Configuración', onPress: () => navigation.navigate("Configuracion", { screen: "ConfiguracionHome" }) }]
-        );
+        navigation.navigate("GraficosAnalisis");
         break;
       default:
         navigation.navigate("Deporte", { screen: "DeporteHome" });

@@ -16,6 +16,15 @@ import MentalCheckScreen from './src/screens/MentalCheckScreen';
 import CheckinRapidoScreen from './src/screens/CheckinRapidoScreen';
 import BienestarScreen from './src/screens/BienestarScreen';
 import ManejoCrisisScreen from './src/screens/ManejoCrisisScreen';
+import GraficosAnalisisScreen from './src/screens/GraficosAnalisisScreen';
+import EvaluacionProfundaScreen from './src/screens/EvaluacionProfundaScreen';
+import PreparacionFisicaScreen from './src/screens/PreparacionFisicaScreen';
+import EntrenamientoDeportivoScreen from './src/screens/EntrenamientoDeportivoScreen';
+import TecnicasDeportivasScreen from './src/screens/TecnicasDeportivasScreen';
+import TacticaDeportivaScreen from './src/screens/TacticaDeportivaScreen';
+import ControlPesoScreen from './src/screens/ControlPesoScreen';
+import HistorialEntrenamientosScreen from './src/screens/HistorialEntrenamientosScreen';
+import MetasObjetivosScreen from './src/screens/MetasObjetivosScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -57,6 +66,20 @@ function InicioStack() {
           headerShown: false,
         }}
       />
+      <Stack.Screen
+        name="GraficosAnalisis"
+        component={GraficosAnalisisScreen}
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="EvaluacionProfunda"
+        component={EvaluacionProfundaScreen}
+        options={{
+          headerShown: false,
+        }}
+      />
     </Stack.Navigator>
   );
 }
@@ -70,6 +93,76 @@ function DeporteStack() {
         component={DeporteScreen}
         options={{
           title: 'Entrenamiento',
+          headerStyle: { backgroundColor: '#283750' },
+          headerTintColor: '#fff',
+          headerTitleStyle: { fontWeight: 'bold' },
+        }}
+      />
+      <Stack.Screen
+        name="PreparacionFisica"
+        component={PreparacionFisicaScreen}
+        options={{
+          title: 'Preparación Física',
+          headerStyle: { backgroundColor: '#283750' },
+          headerTintColor: '#fff',
+          headerTitleStyle: { fontWeight: 'bold' },
+        }}
+      />
+      <Stack.Screen
+        name="EntrenamientoDeportivo"
+        component={EntrenamientoDeportivoScreen}
+        options={{
+          title: 'Entrenamiento Deportivo',
+          headerStyle: { backgroundColor: '#283750' },
+          headerTintColor: '#fff',
+          headerTitleStyle: { fontWeight: 'bold' },
+        }}
+      />
+      <Stack.Screen
+        name="TecnicasDeportivas"
+        component={TecnicasDeportivasScreen}
+        options={{
+          title: 'Técnicas Deportivas',
+          headerStyle: { backgroundColor: '#283750' },
+          headerTintColor: '#fff',
+          headerTitleStyle: { fontWeight: 'bold' },
+        }}
+      />
+      <Stack.Screen
+        name="TacticaDeportiva"
+        component={TacticaDeportivaScreen}
+        options={{
+          title: 'Táctica Deportiva',
+          headerStyle: { backgroundColor: '#283750' },
+          headerTintColor: '#fff',
+          headerTitleStyle: { fontWeight: 'bold' },
+        }}
+      />
+      <Stack.Screen
+        name="ControlPeso"
+        component={ControlPesoScreen}
+        options={{
+          title: 'Control de Peso',
+          headerStyle: { backgroundColor: '#283750' },
+          headerTintColor: '#fff',
+          headerTitleStyle: { fontWeight: 'bold' },
+        }}
+      />
+      <Stack.Screen
+        name="HistorialEntrenamientos"
+        component={HistorialEntrenamientosScreen}
+        options={{
+          title: 'Historial de Entrenamientos',
+          headerStyle: { backgroundColor: '#283750' },
+          headerTintColor: '#fff',
+          headerTitleStyle: { fontWeight: 'bold' },
+        }}
+      />
+      <Stack.Screen
+        name="MetasObjetivos"
+        component={MetasObjetivosScreen}
+        options={{
+          title: 'Metas y Objetivos',
           headerStyle: { backgroundColor: '#283750' },
           headerTintColor: '#fff',
           headerTitleStyle: { fontWeight: 'bold' },
