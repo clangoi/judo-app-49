@@ -148,12 +148,17 @@ const GraficosAnalisisScreen: React.FC<GraficosAnalisisScreenProps> = ({ navigat
   };
 
   const generateReport = (data: any) => {
-    const totalCheckins = data.checkins.length;
-    const totalSessions = data.bienestar.length + data.crisis.length;
-    const avgMood = data.checkins.reduce((sum: number, item: CheckinData) => sum + item.currentMood, 0) / totalCheckins || 0;
-    const avgEnergy = data.checkins.reduce((sum: number, item: CheckinData) => sum + item.energyLevel, 0) / totalCheckins || 0;
+  const totalCheckins = data.checkins.length;
+  const totalSessions = data.bienestar.length + data.crisis.length;
+  const avgMood = data.checkins.reduce((sum: number, item: CheckinData) => sum + item.currentMood, 0) / totalCheckins || 0;
+  const avgEnergy = data.checkins.reduce((sum: number, item: CheckinData) => sum + item.energyLevel, 0) / totalCheckins || 0;
 
-    return `📊 REPORTE DE BIENESTAR MENTAL
+  // Format techniques as string for report
+  const techniquesList = getMostUsedTechniques()
+    .map((t, i) => `${i + 1}. ${t.name}: ${t.count} sesiones`)
+    .join('\n');
+
+  return `📊 REPORTE DE BIENESTAR MENTAL
     
 🔍 Resumen General:
 • Total de check-ins: ${totalCheckins}
@@ -165,10 +170,10 @@ const GraficosAnalisisScreen: React.FC<GraficosAnalisisScreenProps> = ({ navigat
 ${getTrendSummary()}
     
 🧘 Técnicas más utilizadas:
-${getMostUsedTechniques()}
+${techniquesList}
     
 📅 Fecha del reporte: ${new Date().toLocaleDateString()}`;
-  };
+};
 
   const getTrendSummary = () => {
     if (checkinData.length < 2) return '• Datos insuficientes para analizar tendencias';
@@ -183,17 +188,21 @@ ${getMostUsedTechniques()}
     return `• Tu estado de ánimo ha ${trend} en la última semana`;
   };
 
-  const getMostUsedTechniques = () => {
-    const techniques = bienestarData.reduce((acc: any, session) => {
-      acc[session.techniqueName] = (acc[session.techniqueName] || 0) + 1;
-      return acc;
-    }, {});
-    
-    const sorted = Object.entries(techniques).sort(([,a], [,b]) => (b as number) - (a as number));
-    return sorted.slice(0, 3).map(([name, count], index) => 
-      `${index + 1}. ${name}: ${count} sesiones`
-    ).join('\n');
-  };
+  const getMostUsedTechniques = (): { name: string; count: number }[] => {
+  const techniques = bienestarData.reduce((acc: Record<string, number>, session) => {
+    acc[session.techniqueName] = (acc[session.techniqueName] || 0) + 1;
+    return acc;
+  }, {});
+
+  const sorted = Object.entries(techniques)
+    .sort(([, a], [, b]) => (b as number) - (a as number))
+    .slice(0, 3);
+
+  return sorted.map(([name, count]) => ({
+    name,
+    count: count as number,
+  }));
+};
 
   const filteredData = useMemo(() => {
     const now = new Date();
@@ -222,15 +231,7 @@ ${getMostUsedTechniques()}
     };
   };
 
-  const getMostUsedTechniques = () => {
-    const techniques = filteredData.bienestar.reduce((acc: any, session) => {
-      acc[session.techniqueName] = (acc[session.techniqueName] || 0) + 1;
-      return acc;
-    }, {});
-    
-    const sorted = Object.entries(techniques).sort(([,a], [,b]) => (b as number) - (a as number));
-    return sorted.slice(0, 5).map(([name, count]) => ({ name, count }));
-  };
+  
 
   // Función auxiliar movida aquí
 

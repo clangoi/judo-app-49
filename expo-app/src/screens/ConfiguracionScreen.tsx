@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, Alert } from 'react-native';
-import { Card, Button, TextInput, Switch, Dialog, Portal, Divider } from 'react-native-paper';
-import { MaterialIcons } from '@expo/vector-icons';
+import { Card, Button, TextInput, Dialog, Portal, Divider } from 'react-native-paper';
+import { Icon } from '../components/Icon'; 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useSyncManager } from '../hooks/useSyncManager';
 
@@ -24,7 +24,7 @@ const ConfiguracionScreen = () => {
   const [deviceName, setDeviceName] = useState('Mi Dispositivo');
   const [generatedCode, setGeneratedCode] = useState('');
 
-  // Profile states
+  // Solo estado persistente del perfil
   const [userProfile, setUserProfile] = useState<UserProfile>({
     name: '',
     age: '',
@@ -34,6 +34,7 @@ const ConfiguracionScreen = () => {
     goal: ''
   });
 
+  // Estado temporal solo para el diálogo (se inicializa al abrirlo)
   const [tempProfile, setTempProfile] = useState<UserProfile>(userProfile);
 
   useEffect(() => {
@@ -44,9 +45,8 @@ const ConfiguracionScreen = () => {
     try {
       const storedProfile = await AsyncStorage.getItem('user-profile');
       if (storedProfile) {
-        const profile = JSON.parse(storedProfile);
+        const profile = JSON.parse(storedProfile) as UserProfile;
         setUserProfile(profile);
-        setTempProfile(profile);
       }
     } catch (error) {
       console.error('Error loading user profile:', error);
@@ -56,8 +56,8 @@ const ConfiguracionScreen = () => {
   const saveUserProfile = async (profile: UserProfile) => {
     try {
       await AsyncStorage.setItem('user-profile', JSON.stringify(profile));
-      setUserProfile(profile);
-      setTempProfile(profile);
+      setUserProfile(profile); // Solo actualizamos el perfil persistente
+      Alert.alert('Éxito', 'Perfil actualizado correctamente');
     } catch (error) {
       console.error('Error saving user profile:', error);
     }
@@ -66,11 +66,10 @@ const ConfiguracionScreen = () => {
   const handleSaveProfile = () => {
     saveUserProfile(tempProfile);
     setProfileDialogVisible(false);
-    Alert.alert('Éxito', 'Perfil actualizado correctamente');
   };
 
   const openProfileDialog = () => {
-    setTempProfile(userProfile);
+    setTempProfile(userProfile); // Inicializamos tempProfile con los datos actuales
     setProfileDialogVisible(true);
   };
 
@@ -115,7 +114,7 @@ const ConfiguracionScreen = () => {
         <Card style={styles.card}>
           <Card.Content>
             <View style={styles.cardHeader}>
-              <MaterialIcons name="person" size={24} color="#283750" />
+              <Icon name="person" size={24} color="#283750" />
               <Text style={styles.cardTitle}>Perfil de Usuario</Text>
             </View>
             
@@ -124,7 +123,7 @@ const ConfiguracionScreen = () => {
                 <>
                   <View style={styles.profileRow}>
                     <Text style={styles.profileLabel}>Nombre:</Text>
-                    <Text style={styles.profileValue}>{userProfile.name || 'No configurado'}</Text>
+                    <Text style={styles.profileValue}>{userProfile.name}</Text>
                   </View>
                   <View style={styles.profileRow}>
                     <Text style={styles.profileLabel}>Edad:</Text>
@@ -162,7 +161,7 @@ const ConfiguracionScreen = () => {
               style={styles.profileButton}
               buttonColor="#283750"
               icon={({ size, color }) => (
-                <MaterialIcons name="edit" size={size} color={color} />
+                <Icon name="edit" size={size} color={color} />
               )}
             >
               {userProfile.name ? 'Editar Perfil' : 'Configurar Perfil'}
@@ -174,7 +173,7 @@ const ConfiguracionScreen = () => {
         <Card style={styles.card}>
           <Card.Content>
             <View style={styles.cardHeader}>
-              <MaterialIcons name="autorenew" size={24} color="#283750" />
+              <Icon name="autorenew" size={24} color="#283750" />
               <Text style={styles.cardTitle}>Sincronización</Text>
             </View>
             
@@ -219,7 +218,7 @@ const ConfiguracionScreen = () => {
                     style={styles.syncButton}
                     buttonColor="#283750"
                     icon={({ size, color }) => (
-                      <MaterialIcons name="add-link" size={size} color={color} />
+                      <Icon name="link-off" size={size} color={color} />
                     )}
                   >
                     Vincular Dispositivo
@@ -230,7 +229,7 @@ const ConfiguracionScreen = () => {
                     onPress={handleGenerateCode}
                     style={styles.syncButton}
                     icon={({ size, color }) => (
-                      <MaterialIcons name="qr-code" size={size} color={color} />
+                      <Icon name="qr-code" size={size} color={color} />
                     )}
                   >
                     Generar Código
@@ -243,7 +242,7 @@ const ConfiguracionScreen = () => {
                   style={styles.syncButton}
                   buttonColor="#EF4444"
                   icon={({ size, color }) => (
-                    <MaterialIcons name="link-off" size={size} color={color} />
+                    <Icon name="link-off" size={size} color={color} />
                   )}
                 >
                   Desvincular
@@ -261,7 +260,7 @@ const ConfiguracionScreen = () => {
         <Card style={styles.card}>
           <Card.Content>
             <View style={styles.cardHeader}>
-              <MaterialIcons name="access-time" size={24} color="#283750" />
+              <Icon name="access-time" size={24} color="#283750" />
               <Text style={styles.cardTitle}>Configuración de Timer</Text>
             </View>
             
@@ -275,7 +274,7 @@ const ConfiguracionScreen = () => {
         <Card style={styles.card}>
           <Card.Content>
             <View style={styles.cardHeader}>
-              <MaterialIcons name="info" size={24} color="#283750" />
+              <Icon name="info" size={24} color="#283750" />
               <Text style={styles.cardTitle}>Información</Text>
             </View>
             
@@ -366,7 +365,7 @@ const ConfiguracionScreen = () => {
                   mode="outlined"
                   label="Nombre completo"
                   value={tempProfile.name}
-                  onChangeText={(text) => setTempProfile({...tempProfile, name: text})}
+                  onChangeText={(text) => setTempProfile(prev => ({ ...prev, name: text }))}
                   style={styles.dialogInput}
                 />
                 
@@ -374,7 +373,7 @@ const ConfiguracionScreen = () => {
                   mode="outlined"
                   label="Edad"
                   value={tempProfile.age}
-                  onChangeText={(text) => setTempProfile({...tempProfile, age: text})}
+                  onChangeText={(text) => setTempProfile(prev => ({ ...prev, age: text }))}
                   keyboardType="numeric"
                   style={styles.dialogInput}
                 />
@@ -383,7 +382,7 @@ const ConfiguracionScreen = () => {
                   mode="outlined"
                   label="Peso (kg)"
                   value={tempProfile.weight}
-                  onChangeText={(text) => setTempProfile({...tempProfile, weight: text})}
+                  onChangeText={(text) => setTempProfile(prev => ({ ...prev, weight: text }))}
                   keyboardType="numeric"
                   style={styles.dialogInput}
                 />
@@ -392,7 +391,7 @@ const ConfiguracionScreen = () => {
                   mode="outlined"
                   label="Altura (cm)"
                   value={tempProfile.height}
-                  onChangeText={(text) => setTempProfile({...tempProfile, height: text})}
+                  onChangeText={(text) => setTempProfile(prev => ({ ...prev, height: text }))}
                   keyboardType="numeric"
                   style={styles.dialogInput}
                 />
@@ -401,7 +400,7 @@ const ConfiguracionScreen = () => {
                   mode="outlined"
                   label="Deporte principal"
                   value={tempProfile.primarySport}
-                  onChangeText={(text) => setTempProfile({...tempProfile, primarySport: text})}
+                  onChangeText={(text) => setTempProfile(prev => ({ ...prev, primarySport: text }))}
                   placeholder="Ej: Judo, Karate, Boxeo"
                   style={styles.dialogInput}
                 />
@@ -410,7 +409,7 @@ const ConfiguracionScreen = () => {
                   mode="outlined"
                   label="Objetivo principal"
                   value={tempProfile.goal}
-                  onChangeText={(text) => setTempProfile({...tempProfile, goal: text})}
+                  onChangeText={(text) => setTempProfile(prev => ({ ...prev, goal: text }))}
                   placeholder="Ej: Competir, Mantenerme en forma, Aprender"
                   multiline
                   numberOfLines={2}

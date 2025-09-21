@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useReducer, ReactNode, useRef, useEffect, useState } from 'react';
 import { Audio } from 'expo-av';
+import * as Haptics from 'expo-haptics'; // ✅ Importación estática y correcta
 import { useSyncManager } from './useSyncManager';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -110,11 +111,10 @@ const loadInitialState = async (): Promise<TimerState> => {
     const savedState = await AsyncStorage.getItem(TIMER_STORAGE_KEY);
     if (savedState) {
       const parsedState = JSON.parse(savedState);
-      // Asegurar que el estado tenga todos los campos necesarios
       return {
         ...defaultState,
         ...parsedState,
-        isRunning: false, // Siempre empezar pausado
+        isRunning: false,
         isPaused: true,
       };
     }
@@ -133,7 +133,6 @@ export const TimerProvider = ({ children }: { children: ReactNode }) => {
   // Configurar audio y cargar estado inicial
   useEffect(() => {
     const initializeApp = async () => {
-      // Configurar audio para sonidos multimedia
       await Audio.setAudioModeAsync({
         allowsRecordingIOS: false,
         interruptionModeIOS: 1,
@@ -143,7 +142,6 @@ export const TimerProvider = ({ children }: { children: ReactNode }) => {
         playThroughEarpieceAndroid: false,
       });
       
-      // Cargar estado inicial
       const initialState = await loadInitialState();
       setState(initialState);
     };
@@ -154,7 +152,6 @@ export const TimerProvider = ({ children }: { children: ReactNode }) => {
   // Función para reproducir beep con sonido real
   const playBeep = async () => {
     try {
-      // Crear un beep con un archivo de audio WAV válido (beep corto a 1000Hz)
       const { sound } = await Audio.Sound.createAsync(
         { 
           uri: 'data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBTuq4/i4aB4GJ2eypFP7yfLgXBo=' 
@@ -166,7 +163,6 @@ export const TimerProvider = ({ children }: { children: ReactNode }) => {
         }
       );
       
-      // Limpiar el sonido después de reproducirlo
       const cleanup = setTimeout(async () => {
         try {
           await sound.unloadAsync();
@@ -175,7 +171,6 @@ export const TimerProvider = ({ children }: { children: ReactNode }) => {
         }
       }, 1000) as any;
       
-      // Limpiar timeout si hay error
       sound.setOnPlaybackStatusUpdate((status) => {
         if (status.isLoaded && status.didJustFinish) {
           clearTimeout(cleanup);
@@ -186,7 +181,7 @@ export const TimerProvider = ({ children }: { children: ReactNode }) => {
       console.warn('Error reproduciendo beep:', error);
       // Fallback: usar vibración si está disponible
       try {
-        const { Haptics } = await import('expo-haptics');
+        // ✅ Usamos Haptics importado estáticamente
         await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
         console.log('🔊 BEEP (vibración) - Últimos 3 segundos');
       } catch (hapticError) {
@@ -204,7 +199,7 @@ export const TimerProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [state.timeLeft, state.isRunning, state.mode]);
 
-  // Efecto de sincronización para cargar datos desde otros dispositivos
+  // Efecto de sincronización
   useEffect(() => {
     if (syncStatus.isLinked) {
       const syncTimerData = async () => {
@@ -219,10 +214,7 @@ export const TimerProvider = ({ children }: { children: ReactNode }) => {
         }
       };
       
-      // Sincronizar cada 30 segundos cuando está vinculado
       const interval = setInterval(syncTimerData, 30000);
-      
-      // Sincronizar inmediatamente al vincular
       syncTimerData();
       
       return () => clearInterval(interval);
@@ -411,9 +403,7 @@ export const TimerProvider = ({ children }: { children: ReactNode }) => {
             : state.tabataConfig;
           
           if (state.timeLeft <= 1) {
-            // Cambiar de fase
             if (state.isSetRest) {
-              // Terminar descanso entre sets, siguiente tabata o terminar
               if (state.isSequenceMode && state.currentTabataIndex < state.tabataSequence.length - 1) {
                 const nextTabata = state.tabataSequence[state.currentTabataIndex + 1];
                 return {
@@ -429,14 +419,12 @@ export const TimerProvider = ({ children }: { children: ReactNode }) => {
                 return { ...state, isRunning: false, isCompleted: true };
               }
             } else if (state.isWorkPhase) {
-              // Cambiar a descanso
               return {
                 ...state,
                 timeLeft: currentConfig.restTime,
                 isWorkPhase: false,
               };
             } else {
-              // Terminar descanso, siguiente ciclo
               if (state.currentCycle < currentConfig.cycles) {
                 return {
                   ...state,
@@ -445,7 +433,6 @@ export const TimerProvider = ({ children }: { children: ReactNode }) => {
                   isWorkPhase: true,
                 };
               } else {
-                // Terminar set
                 if (state.currentSet < currentConfig.sets) {
                   return {
                     ...state,
@@ -456,7 +443,6 @@ export const TimerProvider = ({ children }: { children: ReactNode }) => {
                     isSetRest: true,
                   };
                 } else {
-                  // Terminar este tabata
                   if (state.isSequenceMode && state.currentTabataIndex < state.tabataSequence.length - 1) {
                     const nextTabata = state.tabataSequence[state.currentTabataIndex + 1];
                     return {
@@ -486,7 +472,7 @@ export const TimerProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  // Use reducer for state management
+  // ✅ Correctamente declarado con useReducer
   const [reducerState, dispatch] = useReducer(timerReducer, state);
 
   // Sync state between useState and useReducer
@@ -508,9 +494,8 @@ export const TimerProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     saveState(reducerState);
     
-    // Sincronizar con dispositivos vinculados
     if (syncStatus.isLinked) {
-      updateRemoteData('timerState', reducerState);
+      updateRemoteData({ timerState: reducerState });
     }
   }, [reducerState, syncStatus.isLinked, updateRemoteData]);
 
@@ -548,6 +533,7 @@ export const TimerProvider = ({ children }: { children: ReactNode }) => {
     enableSequenceMode: (enabled: boolean) => dispatch({ type: 'ENABLE_SEQUENCE_MODE', enabled }),
   };
 
+  // ✅ CORREGIDO: state: reducerState
   return (
     <TimerContext.Provider value={{ state: reducerState, actions }}>
       {children}
