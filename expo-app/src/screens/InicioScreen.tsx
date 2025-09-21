@@ -25,14 +25,14 @@ const InicioScreen = ({ navigation }: InicioScreenProps) => {
     {
       title: "MentalCheck",
       description: "Evalúa y mejora tu estado mental y bienestar psicológico",
-      icon: "psychology",
+      icon: "self-improvement",
       screen: "MentalCheck", // Por ahora navega a Configuración
       color: "#283750",
     },
     {
       title: "Gráficos y Análisis",
       description: "Visualiza tu progreso con gráficos detallados",
-      icon: "analytics",
+      icon: "insert-chart-outlined",
       screen: "Graficos", // Por ahora navega a Configuración
       color: "#283750",
     }
