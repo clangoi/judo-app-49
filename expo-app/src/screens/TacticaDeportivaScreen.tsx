@@ -2,11 +2,16 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, Alert, FlatList } from 'react-native';
 import { Card, Button, TextInput, Dialog, Portal, SegmentedButtons, Chip, IconButton, FAB } from 'react-native-paper';
 import { MaterialIcons } from '@expo/vector-icons';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useSyncManager } from '../hooks/useSyncManager';
+import { useCrudStorage } from '../hooks/useCrudStorage';
+import { transformLegacyTacticalPlan, transformLegacyOpponentAnalysis, transformLegacyTrainingDrill } from '../utils/legacyTransformations';
+import EntryList from '../components/EntryList';
+import EntryFormModal from '../components/EntryFormModal';
+import ConfirmDeleteDialog from '../components/ConfirmDeleteDialog';
 
 interface TacticalPlan {
   id: string;
+  createdAt: string;
+  updatedAt: string;
   name: string;
   sport: 'judo' | 'karate' | 'boxing' | 'mma' | 'general';
   type: 'offensive' | 'defensive' | 'counter' | 'conditioning';
@@ -14,7 +19,6 @@ interface TacticalPlan {
   objectives: string[];
   strategies: string[];
   keyPoints: string[];
-  dateCreated: string;
   lastUsed?: string;
   effectiveness: 1 | 2 | 3 | 4 | 5;
   isFavorite: boolean;
@@ -22,301 +26,348 @@ interface TacticalPlan {
 
 interface OpponentAnalysis {
   id: string;
+  createdAt: string;
+  updatedAt: string;
   name: string;
   sport: string;
-  dateAnalyzed: string;
+  height: string;
+  weight: string;
+  style: string;
   strengths: string[];
   weaknesses: string[];
-  preferredTechniques: string[];
-  tacticalNotes: string;
-  gameplan: string;
-  result?: 'win' | 'loss' | 'draw' | 'pending';
+  notes: string;
+  isFavorite: boolean;
 }
 
 interface TrainingDrill {
   id: string;
+  createdAt: string;
+  updatedAt: string;
   name: string;
   category: 'tactical' | 'technical' | 'conditioning' | 'mental';
   description: string;
   duration: number; // en minutos
   intensity: 1 | 2 | 3 | 4 | 5;
-  materials: string[];
+  equipment: string[];
   instructions: string[];
+  notes: string;
 }
 
 const TacticaDeportivaScreen = () => {
-  const [tacticalPlans, setTacticalPlans] = useState<TacticalPlan[]>([]);
-  const [opponentAnalyses, setOpponentAnalyses] = useState<OpponentAnalysis[]>([]);
-  const [trainingDrills, setTrainingDrills] = useState<TrainingDrill[]>([]);
+  const { items: tacticalPlans, isLoading: plansLoading, create: createPlan, update: updatePlan, remove: removePlan } = useCrudStorage<TacticalPlan>({
+    storageKey: 'expo:tactica:plans',
+    remotePayloadKey: 'tacticalPlans',
+    transformLegacyItem: transformLegacyTacticalPlan
+  });
+  
+  const { items: opponentAnalyses, isLoading: opponentsLoading, create: createOpponent, update: updateOpponent, remove: removeOpponent } = useCrudStorage<OpponentAnalysis>({
+    storageKey: 'expo:tactica:opponents',
+    remotePayloadKey: 'opponentAnalyses',
+    transformLegacyItem: transformLegacyOpponentAnalysis
+  });
+  
+  const { items: trainingDrills, isLoading: drillsLoading, create: createDrill, update: updateDrill, remove: removeDrill } = useCrudStorage<TrainingDrill>({
+    storageKey: 'expo:tactica:drills',
+    remotePayloadKey: 'tacticalDrills',
+    transformLegacyItem: transformLegacyTrainingDrill
+  });
+
   const [activeTab, setActiveTab] = useState('planes');
-  const [planDialogVisible, setPlanDialogVisible] = useState(false);
-  const [opponentDialogVisible, setOpponentDialogVisible] = useState(false);
   const [selectedItem, setSelectedItem] = useState<TacticalPlan | OpponentAnalysis | null>(null);
   const [detailDialogVisible, setDetailDialogVisible] = useState(false);
-  const { syncStatus, updateRemoteData } = useSyncManager();
+  
+  // CRUD states
+  const [formVisible, setFormVisible] = useState(false);
+  const [deleteDialogVisible, setDeleteDialogVisible] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState<{ id: string; type: 'plan' | 'opponent' | 'drill'; name: string } | null>(null);
+  const [editMode, setEditMode] = useState(false);
+  const [editingItem, setEditingItem] = useState<TacticalPlan | OpponentAnalysis | TrainingDrill | null>(null);
 
   // Form states
-  const [newPlan, setNewPlan] = useState<Partial<TacticalPlan>>({
+  const [formPlan, setFormPlan] = useState<Partial<TacticalPlan>>({
     name: '',
     sport: 'general',
     type: 'offensive',
     description: '',
-    objectives: [],
-    strategies: [],
-    keyPoints: [],
+    objectives: [''],
+    strategies: [''],
+    keyPoints: [''],
     effectiveness: 3,
     isFavorite: false
   });
 
-  const [newOpponent, setNewOpponent] = useState<Partial<OpponentAnalysis>>({
+  const [formOpponent, setFormOpponent] = useState<Partial<OpponentAnalysis>>({
     name: '',
     sport: '',
-    strengths: [],
-    weaknesses: [],
-    preferredTechniques: [],
-    tacticalNotes: '',
-    gameplan: ''
+    height: '',
+    weight: '',
+    style: '',
+    strengths: [''],
+    weaknesses: [''],
+    notes: '',
+    isFavorite: false
+  });
+  
+  const [formDrill, setFormDrill] = useState<Partial<TrainingDrill>>({
+    name: '',
+    category: 'tactical',
+    description: '',
+    duration: 15,
+    intensity: 3,
+    equipment: [''],
+    instructions: [''],
+    notes: ''
   });
 
-  // Sample tactical plans
-  const samplePlans: TacticalPlan[] = [
-    {
-      id: '1',
-      name: 'Ataque por Ashi-waza',
-      sport: 'judo',
-      type: 'offensive',
-      description: 'Estrategia ofensiva centrada en técnicas de pierna',
-      objectives: [
-        'Desequilibrar al oponente hacia adelante',
-        'Crear oportunidades para técnicas de pierna',
-        'Mantener presión constante'
-      ],
-      strategies: [
-        'Usar falsos ataques de mano para abrir la guardia',
-        'Cambiar constantemente el ritmo del combate',
-        'Buscar combinaciones de ashi-waza'
-      ],
-      keyPoints: [
-        'Timing perfecto en las entradas',
-        'Mantener el equilibrio propio',
-        'Aprovechar el movimiento del oponente'
-      ],
-      dateCreated: new Date().toISOString(),
-      effectiveness: 4,
-      isFavorite: true
-    },
-    {
-      id: '2',
-      name: 'Defensa y Contraataque',
-      sport: 'karate',
-      type: 'counter',
-      description: 'Plan defensivo con contraataques rápidos',
-      objectives: [
-        'Absorber la presión del oponente',
-        'Crear aberturas para contraatacar',
-        'Mantener la distancia óptima'
-      ],
-      strategies: [
-        'Usar desplazamientos laterales',
-        'Bloquear y contraatacar inmediatamente',
-        'Variar la distancia constantemente'
-      ],
-      keyPoints: [
-        'Lectura de las intenciones del oponente',
-        'Velocidad en los contraataques',
-        'Precisión en los golpes'
-      ],
-      dateCreated: new Date().toISOString(),
-      effectiveness: 3,
-      isFavorite: false
-    }
-  ];
+  // Initialize sample data
+  const initializeSampleData = async () => {
+    if (tacticalPlans.length === 0 && !plansLoading) {
+      const samplePlans: Omit<TacticalPlan, 'id' | 'createdAt' | 'updatedAt'>[] = [
+        {
+          name: 'Ataque por Ashi-waza',
+          sport: 'judo',
+          type: 'offensive',
+          description: 'Estrategia ofensiva centrada en técnicas de pierna',
+          objectives: [
+            'Desequilibrar al oponente hacia adelante',
+            'Crear oportunidades para técnicas de pierna',
+            'Mantener presión constante'
+          ],
+          strategies: [
+            'Usar falsos ataques de mano para abrir la guardia',
+            'Cambiar constantemente el ritmo del combate',
+            'Buscar combinaciones de ashi-waza'
+          ],
+          keyPoints: [
+            'Timing perfecto en las entradas',
+            'Mantener el equilibrio propio',
+            'Aprovechar el movimiento del oponente'
+          ],
+          effectiveness: 4,
+          isFavorite: true
+        }
+      ];
 
-  // Sample opponent analyses
-  const sampleOpponents: OpponentAnalysis[] = [
-    {
-      id: '1',
-      name: 'Competidor A',
-      sport: 'judo',
-      dateAnalyzed: new Date().toISOString(),
-      strengths: [
-        'Excelente técnica de mano',
-        'Muy fuerte físicamente',
-        'Buen ne-waza'
-      ],
-      weaknesses: [
-        'Lento en los contraataques',
-        'Problemas con ashi-waza',
-        'Se cansa en combates largos'
-      ],
-      preferredTechniques: [
-        'Seoi-nage',
-        'Osoto-gari',
-        'Osaekomi-waza'
-      ],
-      tacticalNotes: 'Tiende a atacar mucho al inicio. Evitar el agarre directo.',
-      gameplan: 'Mantener distancia, usar ashi-waza, prolongar el combate.',
-      result: 'win'
+      for (const plan of samplePlans) {
+        await createPlan(plan);
+      }
     }
-  ];
 
-  // Sample training drills
-  const sampleDrills: TrainingDrill[] = [
-    {
-      id: '1',
-      name: 'Drill de Cambio de Ritmo',
-      category: 'tactical',
-      description: 'Práctica de variación de ritmo en el combate',
-      duration: 15,
-      intensity: 3,
-      materials: ['Compañero de entrenamiento', 'Cronómetro'],
-      instructions: [
-        'Comenzar con ritmo lento por 30 segundos',
-        'Cambiar a ritmo explosivo por 10 segundos',
-        'Volver a ritmo lento por 20 segundos',
-        'Repetir la secuencia'
-      ]
-    },
-    {
-      id: '2',
-      name: 'Simulación de Contraataque',
-      category: 'tactical',
-      description: 'Entrenamiento específico de contraataques',
-      duration: 20,
-      intensity: 4,
-      materials: ['Pads', 'Compañero'],
-      instructions: [
-        'Compañero realiza ataque predefinido',
-        'Defender y contraatacar inmediatamente',
-        'Variar los tipos de ataque del compañero',
-        'Enfocarse en la velocidad de reacción'
-      ]
+    if (opponentAnalyses.length === 0 && !opponentsLoading) {
+      const sampleOpponents: Omit<OpponentAnalysis, 'id' | 'createdAt' | 'updatedAt'>[] = [
+        {
+          name: 'Competidor A',
+          sport: 'judo',
+          strengths: [
+            'Excelente técnica de mano',
+            'Muy fuerte físicamente',
+            'Buen ne-waza'
+          ],
+          weaknesses: [
+            'Lento en los contraataques',
+            'Problemas con ashi-waza',
+            'Se cansa en combates largos'
+          ],
+          preferredTechniques: [
+            'Seoi-nage',
+            'Osoto-gari',
+            'Osaekomi-waza'
+          ],
+          tacticalNotes: 'Tiende a atacar mucho al inicio. Evitar el agarre directo.',
+          gameplan: 'Mantener distancia, usar ashi-waza, prolongar el combate.',
+          result: 'win'
+        }
+      ];
+
+      for (const opponent of sampleOpponents) {
+        await createOpponent(opponent);
+      }
     }
-  ];
+
+    if (trainingDrills.length === 0 && !drillsLoading) {
+      const sampleDrills: Omit<TrainingDrill, 'id' | 'createdAt' | 'updatedAt'>[] = [
+        {
+          name: 'Drill de Cambio de Ritmo',
+          category: 'tactical',
+          description: 'Práctica de variación de ritmo en el combate',
+          duration: 15,
+          intensity: 3,
+          materials: ['Compañero de entrenamiento', 'Cronómetro'],
+          instructions: [
+            'Comenzar con ritmo lento por 30 segundos',
+            'Cambiar a ritmo explosivo por 10 segundos',
+            'Volver a ritmo lento por 20 segundos',
+            'Repetir la secuencia'
+          ]
+        }
+      ];
+
+      for (const drill of sampleDrills) {
+        await createDrill(drill);
+      }
+    }
+  };
 
   useEffect(() => {
-    loadData();
-  }, []);
+    initializeSampleData();
+  }, [tacticalPlans.length, opponentAnalyses.length, trainingDrills.length, plansLoading, opponentsLoading, drillsLoading]);
 
-  const loadData = async () => {
+  // CRUD Operations
+  const handleCreate = (type: 'plan' | 'opponent' | 'drill') => {
+    setEditMode(false);
+    setEditingItem(null);
+    
+    if (type === 'plan') {
+      setFormPlan({
+        name: '',
+        sport: 'general',
+        type: 'offensive',
+        description: '',
+        objectives: [''],
+        strategies: [''],
+        keyPoints: [''],
+        effectiveness: 3,
+        isFavorite: false
+      });
+    } else if (type === 'opponent') {
+      setFormOpponent({
+        name: '',
+        sport: '',
+        strengths: [''],
+        weaknesses: [''],
+        preferredTechniques: [''],
+        tacticalNotes: '',
+        gameplan: ''
+      });
+    } else {
+      setFormDrill({
+        name: '',
+        category: 'tactical',
+        description: '',
+        duration: 15,
+        intensity: 3,
+        materials: [''],
+        instructions: ['']
+      });
+    }
+    
+    setFormVisible(true);
+  };
+
+  const handleEdit = (item: TacticalPlan | OpponentAnalysis | TrainingDrill) => {
+    setEditMode(true);
+    setEditingItem(item);
+    
+    if ('objectives' in item) {
+      setFormPlan(item);
+    } else if ('strengths' in item) {
+      setFormOpponent(item);
+    } else {
+      setFormDrill(item);
+    }
+    
+    setFormVisible(true);
+  };
+
+  const handleDelete = (item: TacticalPlan | OpponentAnalysis | TrainingDrill) => {
+    const type = 'objectives' in item ? 'plan' : 'strengths' in item ? 'opponent' : 'drill';
+    setItemToDelete({ id: item.id, type, name: item.name });
+    setDeleteDialogVisible(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!itemToDelete) return;
+    
+    if (itemToDelete.type === 'plan') {
+      await removePlan(itemToDelete.id);
+    } else if (itemToDelete.type === 'opponent') {
+      await removeOpponent(itemToDelete.id);
+    } else {
+      await removeDrill(itemToDelete.id);
+    }
+    
+    setItemToDelete(null);
+  };
+
+  const handleSave = async () => {
     try {
-      const [plansData, opponentsData, drillsData] = await Promise.all([
-        AsyncStorage.getItem('tactical-plans'),
-        AsyncStorage.getItem('opponent-analyses'),
-        AsyncStorage.getItem('tactical-drills')
-      ]);
+      if (editingItem && 'objectives' in editingItem) {
+        // Tactical Plan
+        if (!formPlan.name || !formPlan.description) {
+          Alert.alert('Error', 'El nombre y descripción son obligatorios.');
+          return;
+        }
 
-      if (plansData) {
-        setTacticalPlans(JSON.parse(plansData));
+        const planData = {
+          ...formPlan,
+          objectives: formPlan.objectives?.filter(obj => obj.trim() !== '') || [],
+          strategies: formPlan.strategies?.filter(str => str.trim() !== '') || [],
+          keyPoints: formPlan.keyPoints?.filter(kp => kp.trim() !== '') || []
+        };
+
+        if (editMode && editingItem.id) {
+          await updatePlan(editingItem.id, planData);
+          Alert.alert('¡Plan Actualizado!', 'Los cambios han sido guardados exitosamente.');
+        } else {
+          await createPlan(planData);
+          Alert.alert('¡Plan Creado!', 'El nuevo plan táctico ha sido agregado.');
+        }
+      } else if (editingItem && 'strengths' in editingItem) {
+        // Opponent Analysis
+        if (!formOpponent.name || !formOpponent.sport) {
+          Alert.alert('Error', 'El nombre y deporte son obligatorios.');
+          return;
+        }
+
+        const opponentData = {
+          ...formOpponent,
+          strengths: formOpponent.strengths?.filter(str => str.trim() !== '') || [],
+          weaknesses: formOpponent.weaknesses?.filter(w => w.trim() !== '') || [],
+          preferredTechniques: formOpponent.preferredTechniques?.filter(pt => pt.trim() !== '') || []
+        };
+
+        if (editMode && editingItem.id) {
+          await updateOpponent(editingItem.id, opponentData);
+          Alert.alert('¡Análisis Actualizado!', 'Los cambios han sido guardados exitosamente.');
+        } else {
+          await createOpponent(opponentData);
+          Alert.alert('¡Análisis Creado!', 'El nuevo análisis de oponente ha sido agregado.');
+        }
       } else {
-        setTacticalPlans(samplePlans);
-        saveTacticalPlans(samplePlans);
+        // Training Drill
+        if (!formDrill.name || !formDrill.description) {
+          Alert.alert('Error', 'El nombre y descripción son obligatorios.');
+          return;
+        }
+
+        const drillData = {
+          ...formDrill,
+          materials: formDrill.materials?.filter(m => m.trim() !== '') || [],
+          instructions: formDrill.instructions?.filter(i => i.trim() !== '') || []
+        };
+
+        if (editMode && editingItem?.id) {
+          await updateDrill(editingItem.id, drillData);
+          Alert.alert('¡Ejercicio Actualizado!', 'Los cambios han sido guardados exitosamente.');
+        } else {
+          await createDrill(drillData);
+          Alert.alert('¡Ejercicio Creado!', 'El nuevo ejercicio táctico ha sido agregado.');
+        }
       }
 
-      if (opponentsData) {
-        setOpponentAnalyses(JSON.parse(opponentsData));
-      } else {
-        setOpponentAnalyses(sampleOpponents);
-        saveOpponentAnalyses(sampleOpponents);
-      }
-
-      if (drillsData) {
-        setTrainingDrills(JSON.parse(drillsData));
-      } else {
-        setTrainingDrills(sampleDrills);
-        saveTrainingDrills(sampleDrills);
-      }
+      setFormVisible(false);
+      setEditMode(false);
+      setEditingItem(null);
     } catch (error) {
-      console.error('Error loading tactical data:', error);
+      Alert.alert('Error', 'No se pudo guardar los datos. Inténtalo de nuevo.');
     }
   };
 
-  const saveTacticalPlans = async (plans: TacticalPlan[]) => {
-    try {
-      await AsyncStorage.setItem('tactical-plans', JSON.stringify(plans));
-      setTacticalPlans(plans);
-      
-      if (syncStatus.isLinked) {
-        updateRemoteData({ tacticalPlans: plans });
-      }
-    } catch (error) {
-      console.error('Error saving tactical plans:', error);
-    }
-  };
+  const toggleFavorite = async (planId: string) => {
+    const plan = tacticalPlans.find(p => p.id === planId);
+    if (!plan) return;
 
-  const saveOpponentAnalyses = async (analyses: OpponentAnalysis[]) => {
-    try {
-      await AsyncStorage.setItem('opponent-analyses', JSON.stringify(analyses));
-      setOpponentAnalyses(analyses);
-      
-      if (syncStatus.isLinked) {
-        updateRemoteData({ opponentAnalyses: analyses });
-      }
-    } catch (error) {
-      console.error('Error saving opponent analyses:', error);
-    }
-  };
-
-  const saveTrainingDrills = async (drills: TrainingDrill[]) => {
-    try {
-      await AsyncStorage.setItem('tactical-drills', JSON.stringify(drills));
-      setTrainingDrills(drills);
-      
-      if (syncStatus.isLinked) {
-        updateRemoteData({ tacticalDrills: drills });
-      }
-    } catch (error) {
-      console.error('Error saving training drills:', error);
-    }
-  };
-
-  const addTacticalPlan = () => {
-    if (!newPlan.name || !newPlan.description) {
-      Alert.alert('Error', 'Por favor completa todos los campos requeridos');
-      return;
-    }
-
-    const plan: TacticalPlan = {
-      id: Date.now().toString(),
-      name: newPlan.name!,
-      sport: newPlan.sport!,
-      type: newPlan.type!,
-      description: newPlan.description!,
-      objectives: newPlan.objectives || [],
-      strategies: newPlan.strategies || [],
-      keyPoints: newPlan.keyPoints || [],
-      dateCreated: new Date().toISOString(),
-      effectiveness: newPlan.effectiveness!,
-      isFavorite: newPlan.isFavorite!
-    };
-
-    const updatedPlans = [plan, ...tacticalPlans];
-    saveTacticalPlans(updatedPlans);
-    setPlanDialogVisible(false);
-    resetPlanForm();
-
-    Alert.alert('Éxito', 'Plan táctico creado correctamente');
-  };
-
-  const resetPlanForm = () => {
-    setNewPlan({
-      name: '',
-      sport: 'general',
-      type: 'offensive',
-      description: '',
-      objectives: [],
-      strategies: [],
-      keyPoints: [],
-      effectiveness: 3,
-      isFavorite: false
-    });
-  };
-
-  const toggleFavorite = (planId: string) => {
-    const updatedPlans = tacticalPlans.map(plan =>
-      plan.id === planId ? { ...plan, isFavorite: !plan.isFavorite } : plan
-    );
-    saveTacticalPlans(updatedPlans);
+    await updatePlan(planId, { isFavorite: !plan.isFavorite });
   };
 
   const getTacticalStats = () => {
@@ -476,38 +527,75 @@ const TacticaDeportivaScreen = () => {
     );
   };
 
-  const renderRivalesView = () => (
-    <View>
-      {opponentAnalyses.length === 0 ? (
-        <Card style={styles.emptyCard}>
-          <Card.Content>
-            <Text style={styles.emptyText}>No hay análisis de rivales</Text>
-            <Text style={styles.emptySubtext}>Agrega análisis de oponentes para mejorar tu estrategia</Text>
-          </Card.Content>
-        </Card>
-      ) : (
-        <FlatList
-          data={opponentAnalyses}
-          renderItem={renderOpponentCard}
-          keyExtractor={(item) => item.id}
-          style={styles.list}
-          showsVerticalScrollIndicator={false}
-        />
-      )}
-    </View>
-  );
+  const renderRivalesView = () => {
+    const listItems = opponentAnalyses.map(opponent => ({
+      id: opponent.id,
+      title: opponent.name,
+      subtitle: opponent.sport,
+      description: `${opponent.tacticalNotes} • ${opponent.strengths.length} fortalezas • ${opponent.weaknesses.length} debilidades${opponent.result ? ` • ${opponent.result === 'win' ? 'Victoria' : opponent.result === 'loss' ? 'Derrota' : 'Empate'}` : ''}`,
+      leftIcon: 'account-search',
+      rightText: opponent.result === 'win' ? 'V' : opponent.result === 'loss' ? 'D' : opponent.result === 'draw' ? 'E' : ''
+    }));
 
-  const renderDrillsView = () => (
-    <View>
-      <FlatList
-        data={trainingDrills}
-        renderItem={renderDrillCard}
-        keyExtractor={(item) => item.id}
-        style={styles.list}
-        showsVerticalScrollIndicator={false}
+    return (
+      <EntryList
+        items={listItems}
+        onItemPress={(item) => {
+          const opponent = opponentAnalyses.find(o => o.id === item.id);
+          if (opponent) {
+            setSelectedItem(opponent);
+            setDetailDialogVisible(true);
+          }
+        }}
+        onEdit={(item) => {
+          const opponent = opponentAnalyses.find(o => o.id === item.id);
+          if (opponent) handleEdit(opponent);
+        }}
+        onDelete={(item) => {
+          const opponent = opponentAnalyses.find(o => o.id === item.id);
+          if (opponent) handleDelete(opponent);
+        }}
+        emptyStateText="No hay análisis de rivales"
+        emptyStateSubtext="Agrega análisis de oponentes para mejorar tu estrategia"
+        loading={opponentsLoading}
       />
-    </View>
-  );
+    );
+  };
+
+  const renderDrillsView = () => {
+    const listItems = trainingDrills.map(drill => ({
+      id: drill.id,
+      title: drill.name,
+      subtitle: drill.category,
+      description: `${drill.description} • ${drill.duration} min • Intensidad ${drill.intensity}/5 • ${drill.materials.length} materiales`,
+      leftIcon: 'dumbbell',
+      rightText: `${drill.duration}min`
+    }));
+
+    return (
+      <EntryList
+        items={listItems}
+        onItemPress={(item) => {
+          const drill = trainingDrills.find(d => d.id === item.id);
+          if (drill) {
+            setSelectedItem(drill as any);
+            setDetailDialogVisible(true);
+          }
+        }}
+        onEdit={(item) => {
+          const drill = trainingDrills.find(d => d.id === item.id);
+          if (drill) handleEdit(drill);
+        }}
+        onDelete={(item) => {
+          const drill = trainingDrills.find(d => d.id === item.id);
+          if (drill) handleDelete(drill);
+        }}
+        emptyStateText="No hay ejercicios tácticos"
+        emptyStateSubtext="Agrega ejercicios específicos para mejorar tu táctica"
+        loading={drillsLoading}
+      />
+    );
+  };
 
   return (
     <View style={styles.container}>
@@ -531,31 +619,469 @@ const TacticaDeportivaScreen = () => {
         {activeTab === 'drills' && renderDrillsView()}
       </ScrollView>
 
-      {/* Plan Dialog */}
-      <Portal>
-        <Dialog visible={planDialogVisible} onDismiss={() => setPlanDialogVisible(false)}>
-          <Dialog.Title>Nuevo Plan Táctico</Dialog.Title>
-          <Dialog.Content>
-            <TextInput
-              label="Nombre del plan"
-              value={newPlan.name || ''}
-              onChangeText={(text) => setNewPlan({...newPlan, name: text})}
-              style={styles.input}
-            />
-            <TextInput
-              label="Descripción"
-              value={newPlan.description || ''}
-              onChangeText={(text) => setNewPlan({...newPlan, description: text})}
-              multiline
-              style={styles.input}
-            />
-          </Dialog.Content>
-          <Dialog.Actions>
-            <Button onPress={() => setPlanDialogVisible(false)}>Cancelar</Button>
-            <Button mode="contained" onPress={addTacticalPlan}>Crear</Button>
-          </Dialog.Actions>
-        </Dialog>
-      </Portal>
+      {/* Form Modal */}
+      <EntryFormModal
+        visible={formVisible}
+        onDismiss={() => {
+          setFormVisible(false);
+          setEditMode(false);
+          setEditingItem(null);
+        }}
+        onSubmit={handleSave}
+        title={
+          editMode 
+            ? editingItem && 'objectives' in editingItem ? 'Editar Plan Táctico'
+              : editingItem && 'strengths' in editingItem ? 'Editar Análisis de Rival'
+              : 'Editar Ejercicio Táctico'
+            : editingItem && 'objectives' in editingItem ? 'Nuevo Plan Táctico'
+              : editingItem && 'strengths' in editingItem ? 'Nuevo Análisis de Rival'
+              : 'Nuevo Ejercicio Táctico'
+        }
+        submitText={editMode ? 'Actualizar' : 'Crear'}
+        submitDisabled={
+          (editingItem && 'objectives' in editingItem && (!formPlan.name || !formPlan.description)) ||
+          (editingItem && 'strengths' in editingItem && (!formOpponent.name || !formOpponent.sport)) ||
+          (editingItem && !('objectives' in editingItem) && !('strengths' in editingItem) && (!formDrill.name || !formDrill.description))
+        }
+      >
+        <ScrollView style={styles.formScrollView}>
+          {editingItem && 'objectives' in editingItem && (
+            <View style={styles.formFields}>
+              <TextInput
+                mode="outlined"
+                label="Nombre del plan *"
+                value={formPlan.name || ''}
+                onChangeText={(text) => setFormPlan(prev => ({ ...prev, name: text }))}
+                style={styles.formInput}
+              />
+              
+              <TextInput
+                mode="outlined"
+                label="Descripción *"
+                value={formPlan.description || ''}
+                onChangeText={(text) => setFormPlan(prev => ({ ...prev, description: text }))}
+                multiline
+                numberOfLines={3}
+                style={styles.formInput}
+              />
+
+              <View style={styles.row}>
+                <View style={styles.halfWidth}>
+                  <Text style={styles.fieldLabel}>Deporte</Text>
+                  <View style={styles.chipContainer}>
+                    {['general', 'judo', 'karate', 'boxing', 'mma'].map((sport) => (
+                      <Chip
+                        key={sport}
+                        selected={formPlan.sport === sport}
+                        onPress={() => setFormPlan(prev => ({ ...prev, sport: sport as any }))}
+                        style={styles.selectionChip}
+                      >
+                        {sport.charAt(0).toUpperCase() + sport.slice(1)}
+                      </Chip>
+                    ))}
+                  </View>
+                </View>
+                
+                <View style={styles.halfWidth}>
+                  <Text style={styles.fieldLabel}>Tipo</Text>
+                  <View style={styles.chipContainer}>
+                    {['offensive', 'defensive', 'counter', 'conditioning'].map((type) => (
+                      <Chip
+                        key={type}
+                        selected={formPlan.type === type}
+                        onPress={() => setFormPlan(prev => ({ ...prev, type: type as any }))}
+                        style={styles.selectionChip}
+                      >
+                        {type === 'offensive' ? 'Ofensivo' : type === 'defensive' ? 'Defensivo' : type === 'counter' ? 'Contraataque' : 'Acondicionamiento'}
+                      </Chip>
+                    ))}
+                  </View>
+                </View>
+              </View>
+
+              <Text style={styles.fieldLabel}>Efectividad: {formPlan.effectiveness}/5</Text>
+              <View style={styles.difficultyContainer}>
+                {[1, 2, 3, 4, 5].map((level) => (
+                  <Chip
+                    key={level}
+                    selected={formPlan.effectiveness === level}
+                    onPress={() => setFormPlan(prev => ({ ...prev, effectiveness: level as any }))}
+                    style={styles.difficultyChip}
+                  >
+                    {level}
+                  </Chip>
+                ))}
+              </View>
+
+              <Text style={styles.fieldLabel}>Objetivos</Text>
+              {formPlan.objectives?.map((objective, index) => (
+                <View key={index} style={styles.stepInputContainer}>
+                  <TextInput
+                    mode="outlined"
+                    label={`Objetivo ${index + 1}`}
+                    value={objective}
+                    onChangeText={(text) => {
+                      const newObjectives = [...(formPlan.objectives || [])];
+                      newObjectives[index] = text;
+                      setFormPlan(prev => ({ ...prev, objectives: newObjectives }));
+                    }}
+                    style={styles.stepInput}
+                  />
+                  {formPlan.objectives && formPlan.objectives.length > 1 && (
+                    <IconButton
+                      icon="delete"
+                      onPress={() => {
+                        const newObjectives = formPlan.objectives?.filter((_, i) => i !== index);
+                        setFormPlan(prev => ({ ...prev, objectives: newObjectives }));
+                      }}
+                    />
+                  )}
+                </View>
+              ))}
+              <Button
+                mode="outlined"
+                onPress={() => {
+                  const newObjectives = [...(formPlan.objectives || []), ''];
+                  setFormPlan(prev => ({ ...prev, objectives: newObjectives }));
+                }}
+                style={styles.addButton}
+              >
+                Agregar Objetivo
+              </Button>
+
+              <Text style={styles.fieldLabel}>Estrategias</Text>
+              {formPlan.strategies?.map((strategy, index) => (
+                <View key={index} style={styles.stepInputContainer}>
+                  <TextInput
+                    mode="outlined"
+                    label={`Estrategia ${index + 1}`}
+                    value={strategy}
+                    onChangeText={(text) => {
+                      const newStrategies = [...(formPlan.strategies || [])];
+                      newStrategies[index] = text;
+                      setFormPlan(prev => ({ ...prev, strategies: newStrategies }));
+                    }}
+                    style={styles.stepInput}
+                  />
+                  {formPlan.strategies && formPlan.strategies.length > 1 && (
+                    <IconButton
+                      icon="delete"
+                      onPress={() => {
+                        const newStrategies = formPlan.strategies?.filter((_, i) => i !== index);
+                        setFormPlan(prev => ({ ...prev, strategies: newStrategies }));
+                      }}
+                    />
+                  )}
+                </View>
+              ))}
+              <Button
+                mode="outlined"
+                onPress={() => {
+                  const newStrategies = [...(formPlan.strategies || []), ''];
+                  setFormPlan(prev => ({ ...prev, strategies: newStrategies }));
+                }}
+                style={styles.addButton}
+              >
+                Agregar Estrategia
+              </Button>
+
+              <Text style={styles.fieldLabel}>Puntos Clave</Text>
+              {formPlan.keyPoints?.map((keyPoint, index) => (
+                <View key={index} style={styles.stepInputContainer}>
+                  <TextInput
+                    mode="outlined"
+                    label={`Punto Clave ${index + 1}`}
+                    value={keyPoint}
+                    onChangeText={(text) => {
+                      const newKeyPoints = [...(formPlan.keyPoints || [])];
+                      newKeyPoints[index] = text;
+                      setFormPlan(prev => ({ ...prev, keyPoints: newKeyPoints }));
+                    }}
+                    style={styles.stepInput}
+                  />
+                  {formPlan.keyPoints && formPlan.keyPoints.length > 1 && (
+                    <IconButton
+                      icon="delete"
+                      onPress={() => {
+                        const newKeyPoints = formPlan.keyPoints?.filter((_, i) => i !== index);
+                        setFormPlan(prev => ({ ...prev, keyPoints: newKeyPoints }));
+                      }}
+                    />
+                  )}
+                </View>
+              ))}
+              <Button
+                mode="outlined"
+                onPress={() => {
+                  const newKeyPoints = [...(formPlan.keyPoints || []), ''];
+                  setFormPlan(prev => ({ ...prev, keyPoints: newKeyPoints }));
+                }}
+                style={styles.addButton}
+              >
+                Agregar Punto Clave
+              </Button>
+            </View>
+          )}
+
+          {editingItem && 'strengths' in editingItem && (
+            <View style={styles.formFields}>
+              <TextInput
+                mode="outlined"
+                label="Nombre del rival *"
+                value={formOpponent.name || ''}
+                onChangeText={(text) => setFormOpponent(prev => ({ ...prev, name: text }))}
+                style={styles.formInput}
+              />
+              
+              <TextInput
+                mode="outlined"
+                label="Deporte *"
+                value={formOpponent.sport || ''}
+                onChangeText={(text) => setFormOpponent(prev => ({ ...prev, sport: text }))}
+                style={styles.formInput}
+              />
+
+              <TextInput
+                mode="outlined"
+                label="Notas tácticas"
+                value={formOpponent.tacticalNotes || ''}
+                onChangeText={(text) => setFormOpponent(prev => ({ ...prev, tacticalNotes: text }))}
+                multiline
+                numberOfLines={3}
+                style={styles.formInput}
+              />
+
+              <TextInput
+                mode="outlined"
+                label="Plan de juego"
+                value={formOpponent.gameplan || ''}
+                onChangeText={(text) => setFormOpponent(prev => ({ ...prev, gameplan: text }))}
+                multiline
+                numberOfLines={3}
+                style={styles.formInput}
+              />
+
+              <Text style={styles.fieldLabel}>Fortalezas</Text>
+              {formOpponent.strengths?.map((strength, index) => (
+                <View key={index} style={styles.stepInputContainer}>
+                  <TextInput
+                    mode="outlined"
+                    label={`Fortaleza ${index + 1}`}
+                    value={strength}
+                    onChangeText={(text) => {
+                      const newStrengths = [...(formOpponent.strengths || [])];
+                      newStrengths[index] = text;
+                      setFormOpponent(prev => ({ ...prev, strengths: newStrengths }));
+                    }}
+                    style={styles.stepInput}
+                  />
+                  {formOpponent.strengths && formOpponent.strengths.length > 1 && (
+                    <IconButton
+                      icon="delete"
+                      onPress={() => {
+                        const newStrengths = formOpponent.strengths?.filter((_, i) => i !== index);
+                        setFormOpponent(prev => ({ ...prev, strengths: newStrengths }));
+                      }}
+                    />
+                  )}
+                </View>
+              ))}
+              <Button
+                mode="outlined"
+                onPress={() => {
+                  const newStrengths = [...(formOpponent.strengths || []), ''];
+                  setFormOpponent(prev => ({ ...prev, strengths: newStrengths }));
+                }}
+                style={styles.addButton}
+              >
+                Agregar Fortaleza
+              </Button>
+
+              <Text style={styles.fieldLabel}>Debilidades</Text>
+              {formOpponent.weaknesses?.map((weakness, index) => (
+                <View key={index} style={styles.stepInputContainer}>
+                  <TextInput
+                    mode="outlined"
+                    label={`Debilidad ${index + 1}`}
+                    value={weakness}
+                    onChangeText={(text) => {
+                      const newWeaknesses = [...(formOpponent.weaknesses || [])];
+                      newWeaknesses[index] = text;
+                      setFormOpponent(prev => ({ ...prev, weaknesses: newWeaknesses }));
+                    }}
+                    style={styles.stepInput}
+                  />
+                  {formOpponent.weaknesses && formOpponent.weaknesses.length > 1 && (
+                    <IconButton
+                      icon="delete"
+                      onPress={() => {
+                        const newWeaknesses = formOpponent.weaknesses?.filter((_, i) => i !== index);
+                        setFormOpponent(prev => ({ ...prev, weaknesses: newWeaknesses }));
+                      }}
+                    />
+                  )}
+                </View>
+              ))}
+              <Button
+                mode="outlined"
+                onPress={() => {
+                  const newWeaknesses = [...(formOpponent.weaknesses || []), ''];
+                  setFormOpponent(prev => ({ ...prev, weaknesses: newWeaknesses }));
+                }}
+                style={styles.addButton}
+              >
+                Agregar Debilidad
+              </Button>
+            </View>
+          )}
+
+          {editingItem && !('objectives' in editingItem) && !('strengths' in editingItem) && (
+            <View style={styles.formFields}>
+              <TextInput
+                mode="outlined"
+                label="Nombre del ejercicio *"
+                value={formDrill.name || ''}
+                onChangeText={(text) => setFormDrill(prev => ({ ...prev, name: text }))}
+                style={styles.formInput}
+              />
+              
+              <TextInput
+                mode="outlined"
+                label="Descripción *"
+                value={formDrill.description || ''}
+                onChangeText={(text) => setFormDrill(prev => ({ ...prev, description: text }))}
+                multiline
+                numberOfLines={3}
+                style={styles.formInput}
+              />
+
+              <View style={styles.row}>
+                <View style={styles.halfWidth}>
+                  <TextInput
+                    mode="outlined"
+                    label="Duración (minutos)"
+                    value={formDrill.duration?.toString() || ''}
+                    onChangeText={(text) => setFormDrill(prev => ({ ...prev, duration: parseInt(text) || 0 }))}
+                    keyboardType="numeric"
+                    style={styles.formInput}
+                  />
+                </View>
+                
+                <View style={styles.halfWidth}>
+                  <Text style={styles.fieldLabel}>Intensidad: {formDrill.intensity}/5</Text>
+                  <View style={styles.difficultyContainer}>
+                    {[1, 2, 3, 4, 5].map((level) => (
+                      <Chip
+                        key={level}
+                        selected={formDrill.intensity === level}
+                        onPress={() => setFormDrill(prev => ({ ...prev, intensity: level as any }))}
+                        style={styles.difficultyChip}
+                      >
+                        {level}
+                      </Chip>
+                    ))}
+                  </View>
+                </View>
+              </View>
+
+              <Text style={styles.fieldLabel}>Categoría</Text>
+              <View style={styles.chipContainer}>
+                {['tactical', 'technical', 'conditioning', 'mental'].map((category) => (
+                  <Chip
+                    key={category}
+                    selected={formDrill.category === category}
+                    onPress={() => setFormDrill(prev => ({ ...prev, category: category as any }))}
+                    style={styles.selectionChip}
+                  >
+                    {category === 'tactical' ? 'Táctico' : category === 'technical' ? 'Técnico' : category === 'conditioning' ? 'Acondicionamiento' : 'Mental'}
+                  </Chip>
+                ))}
+              </View>
+
+              <Text style={styles.fieldLabel}>Materiales</Text>
+              {formDrill.materials?.map((material, index) => (
+                <View key={index} style={styles.stepInputContainer}>
+                  <TextInput
+                    mode="outlined"
+                    label={`Material ${index + 1}`}
+                    value={material}
+                    onChangeText={(text) => {
+                      const newMaterials = [...(formDrill.materials || [])];
+                      newMaterials[index] = text;
+                      setFormDrill(prev => ({ ...prev, materials: newMaterials }));
+                    }}
+                    style={styles.stepInput}
+                  />
+                  {formDrill.materials && formDrill.materials.length > 1 && (
+                    <IconButton
+                      icon="delete"
+                      onPress={() => {
+                        const newMaterials = formDrill.materials?.filter((_, i) => i !== index);
+                        setFormDrill(prev => ({ ...prev, materials: newMaterials }));
+                      }}
+                    />
+                  )}
+                </View>
+              ))}
+              <Button
+                mode="outlined"
+                onPress={() => {
+                  const newMaterials = [...(formDrill.materials || []), ''];
+                  setFormDrill(prev => ({ ...prev, materials: newMaterials }));
+                }}
+                style={styles.addButton}
+              >
+                Agregar Material
+              </Button>
+
+              <Text style={styles.fieldLabel}>Instrucciones</Text>
+              {formDrill.instructions?.map((instruction, index) => (
+                <View key={index} style={styles.stepInputContainer}>
+                  <TextInput
+                    mode="outlined"
+                    label={`Instrucción ${index + 1}`}
+                    value={instruction}
+                    onChangeText={(text) => {
+                      const newInstructions = [...(formDrill.instructions || [])];
+                      newInstructions[index] = text;
+                      setFormDrill(prev => ({ ...prev, instructions: newInstructions }));
+                    }}
+                    style={styles.stepInput}
+                  />
+                  {formDrill.instructions && formDrill.instructions.length > 1 && (
+                    <IconButton
+                      icon="delete"
+                      onPress={() => {
+                        const newInstructions = formDrill.instructions?.filter((_, i) => i !== index);
+                        setFormDrill(prev => ({ ...prev, instructions: newInstructions }));
+                      }}
+                    />
+                  )}
+                </View>
+              ))}
+              <Button
+                mode="outlined"
+                onPress={() => {
+                  const newInstructions = [...(formDrill.instructions || []), ''];
+                  setFormDrill(prev => ({ ...prev, instructions: newInstructions }));
+                }}
+                style={styles.addButton}
+              >
+                Agregar Instrucción
+              </Button>
+            </View>
+          )}
+        </ScrollView>
+      </EntryFormModal>
+
+      {/* Delete Confirmation Dialog */}
+      <ConfirmDeleteDialog
+        visible={deleteDialogVisible}
+        onDismiss={() => setDeleteDialogVisible(false)}
+        onConfirm={confirmDelete}
+        title={`Eliminar ${itemToDelete?.type === 'plan' ? 'Plan Táctico' : itemToDelete?.type === 'opponent' ? 'Análisis de Rival' : 'Ejercicio'}`}
+        message={`¿Estás seguro de que quieres eliminar "${itemToDelete?.name}"? Esta acción no se puede deshacer.`}
+      />
 
       {/* Detail Dialog */}
       <Portal>
@@ -619,19 +1145,14 @@ const TacticaDeportivaScreen = () => {
         style={styles.fab}
         onPress={() => {
           if (activeTab === 'planes') {
-            setPlanDialogVisible(true);
+            setEditingItem({ objectives: [] } as TacticalPlan);
+            handleCreate('plan');
           } else if (activeTab === 'rivales') {
-            Alert.alert(
-              "Análisis de Rival",
-              "Esta funcionalidad estará disponible pronto para agregar análisis detallados de oponentes.",
-              [{ text: 'Entendido', style: 'default' }]
-            );
+            setEditingItem({ strengths: [] } as OpponentAnalysis);
+            handleCreate('opponent');
           } else {
-            Alert.alert(
-              "Ejercicio Táctico",
-              "Esta funcionalidad estará disponible pronto para crear ejercicios táctticos personalizados.",
-              [{ text: 'Entendido', style: 'default' }]
-            );
+            setEditingItem({ materials: [] } as TrainingDrill);
+            handleCreate('drill');
           }
         }}
         label="Nuevo"
@@ -845,6 +1366,58 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
     backgroundColor: '#283750',
+  },
+  formScrollView: {
+    maxHeight: 400,
+  },
+  formFields: {
+    gap: 16,
+  },
+  formInput: {
+    marginBottom: 8,
+  },
+  fieldLabel: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#283750',
+    marginBottom: 8,
+  },
+  row: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  halfWidth: {
+    flex: 1,
+  },
+  chipContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginBottom: 16,
+  },
+  selectionChip: {
+    marginRight: 8,
+    marginBottom: 4,
+  },
+  difficultyContainer: {
+    flexDirection: 'row',
+    gap: 8,
+    marginBottom: 16,
+  },
+  difficultyChip: {
+    minWidth: 40,
+  },
+  stepInputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 8,
+  },
+  stepInput: {
+    flex: 1,
+  },
+  addButton: {
+    marginVertical: 8,
   },
 });
 

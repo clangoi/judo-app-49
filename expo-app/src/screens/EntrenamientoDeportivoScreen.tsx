@@ -2,8 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, Alert, Dimensions } from 'react-native';
 import { Card, Button, TextInput, Dialog, Portal, SegmentedButtons, Chip, IconButton, FAB, RadioButton } from 'react-native-paper';
 import { MaterialIcons } from '@expo/vector-icons';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useSyncManager } from '../hooks/useSyncManager';
+import { useCrudStorage } from '../hooks/useCrudStorage';
+import { transformLegacySportsSession } from '../utils/legacyTransformations';
+import EntryList from '../components/EntryList';
+import EntryFormModal from '../components/EntryFormModal';
+import ConfirmDeleteDialog from '../components/ConfirmDeleteDialog';
 
 interface TrainingDrill {
   id: string;
@@ -18,6 +21,8 @@ interface TrainingDrill {
 
 interface SportsSession {
   id: string;
+  createdAt: string;
+  updatedAt: string;
   date: string;
   sessionType: 'training' | 'sparring' | 'competition' | 'seminar';
   sport: string;
@@ -32,19 +37,27 @@ interface SportsSession {
 }
 
 const EntrenamientoDeportivoScreen = () => {
-  const [sessions, setSessions] = useState<SportsSession[]>([]);
+  const { items: sessions, isLoading, create, update, remove } = useCrudStorage<SportsSession>({
+    storageKey: 'expo:deportivo:sessions',
+    remotePayloadKey: 'sportsSessions',
+    transformLegacyItem: transformLegacySportsSession
+  });
+  
   const [activeTab, setActiveTab] = useState('entrenamientos');
   const [newSessionVisible, setNewSessionVisible] = useState(false);
   const [selectedSession, setSelectedSession] = useState<SportsSession | null>(null);
-  const { syncStatus, updateRemoteData } = useSyncManager();
+  const [deleteDialogVisible, setDeleteDialogVisible] = useState(false);
+  const [sessionToDelete, setSessionToDelete] = useState<SportsSession | null>(null);
+  const [editMode, setEditMode] = useState(false);
 
   // Form states
-  const [sessionForm, setSessionForm] = useState<Partial<SportsSession>>({
+  const [formSession, setFormSession] = useState<Partial<SportsSession>>({
     sessionType: 'training',
     sport: 'judo',
     drills: [],
     intensity: 3,
-    notes: ''
+    notes: '',
+    duration: 0
   });
 
   // Sports types
@@ -91,33 +104,7 @@ const EntrenamientoDeportivoScreen = () => {
     }
   };
 
-  useEffect(() => {
-    loadSessions();
-  }, []);
-
-  const loadSessions = async () => {
-    try {
-      const stored = await AsyncStorage.getItem('sports-sessions');
-      if (stored) {
-        setSessions(JSON.parse(stored));
-      }
-    } catch (error) {
-      console.error('Error loading sports sessions:', error);
-    }
-  };
-
-  const saveSessions = async (newSessions: SportsSession[]) => {
-    try {
-      await AsyncStorage.setItem('sports-sessions', JSON.stringify(newSessions));
-      setSessions(newSessions);
-      
-      if (syncStatus.isLinked) {
-        updateRemoteData({ sportsSessions: newSessions });
-      }
-    } catch (error) {
-      console.error('Error saving sports sessions:', error);
-    }
-  };
+  // No longer needed - useCrudStorage handles loading and saving
 
   const startTrainingSession = (sport: keyof typeof trainingTemplates) => {
     const template = trainingTemplates[sport];
@@ -127,8 +114,7 @@ const EntrenamientoDeportivoScreen = () => {
       completed: false
     } as TrainingDrill));
 
-    const newSession: SportsSession = {
-      id: Date.now().toString(),
+    const newSession: Partial<SportsSession> = {
       date: new Date().toISOString(),
       sessionType: 'training',
       sport,
@@ -137,41 +123,89 @@ const EntrenamientoDeportivoScreen = () => {
       intensity: 3
     };
 
-    setSelectedSession(newSession);
+    setFormSession(newSession);
+    setSelectedSession(newSession as SportsSession);
+    setEditMode(false);
     setNewSessionVisible(true);
   };
 
+  const editSession = (session: SportsSession) => {
+    setFormSession(session);
+    setSelectedSession(session);
+    setEditMode(true);
+    setNewSessionVisible(true);
+  };
+
+  const deleteSession = (session: SportsSession) => {
+    setSessionToDelete(session);
+    setDeleteDialogVisible(true);
+  };
+
+  const confirmDelete = async () => {
+    if (sessionToDelete) {
+      await remove(sessionToDelete.id);
+      setSessionToDelete(null);
+    }
+  };
+
   const completeDrill = (drillId: string) => {
-    if (!selectedSession) return;
+    if (!selectedSession || !formSession) return;
 
     const updatedDrills = selectedSession.drills.map(drill =>
       drill.id === drillId ? { ...drill, completed: !drill.completed } : drill
     );
 
-    setSelectedSession({
+    const updatedSession = {
       ...selectedSession,
+      drills: updatedDrills
+    };
+
+    setSelectedSession(updatedSession);
+    setFormSession({
+      ...formSession,
       drills: updatedDrills
     });
   };
 
-  const saveSession = () => {
-    if (!selectedSession) return;
+  const saveSession = async () => {
+    if (!selectedSession || !formSession) return;
 
-    const completedSession = {
-      ...selectedSession,
-      duration: selectedSession.drills.reduce((sum, drill) => sum + drill.duration, 0)
-    };
+    try {
+      const sessionData = {
+        ...formSession,
+        duration: formSession.duration || selectedSession.drills.reduce((sum, drill) => sum + drill.duration, 0)
+      };
 
-    const updatedSessions = [completedSession, ...sessions];
-    saveSessions(updatedSessions);
-    setSelectedSession(null);
-    setNewSessionVisible(false);
+      if (editMode && selectedSession.id) {
+        await update(selectedSession.id, sessionData);
+        Alert.alert(
+          '¡Entrenamiento Actualizado!',
+          'Los cambios han sido guardados exitosamente.',
+          [{ text: 'Excelente!', style: 'default' }]
+        );
+      } else {
+        await create(sessionData);
+        Alert.alert(
+          '¡Entrenamiento Completado!',
+          `Has completado tu sesión de ${trainingTemplates[sessionData.sport as keyof typeof trainingTemplates]?.name || sessionData.sport}.`,
+          [{ text: 'Excelente!', style: 'default' }]
+        );
+      }
 
-    Alert.alert(
-      '¡Entrenamiento Completado!',
-      `Has completado tu sesión de ${trainingTemplates[completedSession.sport as keyof typeof trainingTemplates]?.name || completedSession.sport}.`,
-      [{ text: 'Excelente!', style: 'default' }]
-    );
+      setSelectedSession(null);
+      setFormSession({
+        sessionType: 'training',
+        sport: 'judo',
+        drills: [],
+        intensity: 3,
+        notes: '',
+        duration: 0
+      });
+      setNewSessionVisible(false);
+      setEditMode(false);
+    } catch (error) {
+      Alert.alert('Error', 'No se pudo guardar el entrenamiento. Inténtalo de nuevo.');
+    }
   };
 
   const getSessionStats = () => {
@@ -274,60 +308,51 @@ const EntrenamientoDeportivoScreen = () => {
     );
   };
 
-  const renderHistory = () => (
-    <View>
-      {sessions.length === 0 ? (
-        <Card style={styles.emptyCard}>
-          <Card.Content>
-            <Text style={styles.emptyText}>No hay entrenamientos registrados</Text>
-            <Text style={styles.emptySubtext}>Comienza tu primer entrenamiento deportivo para ver el historial aquí</Text>
-          </Card.Content>
-        </Card>
-      ) : (
-        sessions.slice(0, 15).map((session) => (
-          <Card key={session.id} style={styles.card}>
-            <Card.Content>
-              <View style={styles.historyHeader}>
-                <Text style={styles.historyTitle}>
-                  {trainingTemplates[session.sport as keyof typeof trainingTemplates]?.name || `Entrenamiento de ${session.sport}`}
-                </Text>
-                <Text style={styles.historyDate}>
-                  {new Date(session.date).toLocaleDateString()}
-                </Text>
-              </View>
-              
-              <View style={styles.historyStats}>
-                <Chip style={styles.chip}>
-                  <Text>{session.duration} min</Text>
-                </Chip>
-                <Chip style={styles.chip}>
-                  <Text>Intensidad {session.intensity}/5</Text>
-                </Chip>
-                <Chip style={styles.chip}>
-                  <Text>{session.drills.filter(d => d.completed).length}/{session.drills.length} ejercicios</Text>
-                </Chip>
-                {session.sessionType === 'sparring' && (
-                  <Chip style={[styles.chip, styles.sparringChip]}>
-                    <Text style={styles.sparringText}>Sparring</Text>
-                  </Chip>
-                )}
-              </View>
-              
-              {session.notes && (
-                <Text style={styles.sessionNotes}>{session.notes}</Text>
-              )}
+  const renderHistory = () => {
+    const listItems = sessions.map(session => ({
+      id: session.id,
+      title: trainingTemplates[session.sport as keyof typeof trainingTemplates]?.name || `Entrenamiento de ${session.sport}`,
+      subtitle: new Date(session.date).toLocaleDateString(),
+      description: `${session.duration} min • Intensidad ${session.intensity}/5 • ${session.drills.filter(d => d.completed).length}/${session.drills.length} ejercicios${session.sessionType === 'sparring' ? ' • Sparring' : ''}${session.partner ? ` • Con: ${session.partner}` : ''}${session.notes ? ` • ${session.notes}` : ''}`,
+      leftIcon: session.sport === 'judo' ? 'sports-martial-arts' : session.sport === 'karate' ? 'sports' : 'sports',
+      rightText: `${session.duration}min`
+    }));
 
-              {session.partner && (
-                <Text style={styles.partnerText}>
-                  Compañero: {session.partner}
-                </Text>
-              )}
-            </Card.Content>
-          </Card>
-        ))
-      )}
-    </View>
-  );
+    return (
+      <EntryList
+        items={listItems}
+        onItemPress={(item) => {
+          const session = sessions.find(s => s.id === item.id);
+          if (session) editSession(session);
+        }}
+        onEdit={(item) => {
+          const session = sessions.find(s => s.id === item.id);
+          if (session) editSession(session);
+        }}
+        onDelete={(item) => {
+          const session = sessions.find(s => s.id === item.id);
+          if (session) deleteSession(session);
+        }}
+        onDuplicate={(item) => {
+          const session = sessions.find(s => s.id === item.id);
+          if (session) {
+            const duplicateSession = {
+              ...session,
+              date: new Date().toISOString(),
+              drills: session.drills.map(drill => ({ ...drill, completed: false, id: `${Date.now()}-${Math.random()}` }))
+            };
+            setFormSession(duplicateSession);
+            setSelectedSession(duplicateSession as SportsSession);
+            setEditMode(false);
+            setNewSessionVisible(true);
+          }
+        }}
+        emptyStateText="No hay entrenamientos registrados"
+        emptyStateSubtext="Comienza tu primer entrenamiento deportivo para ver el historial aquí"
+        loading={isLoading}
+      />
+    );
+  };
 
   return (
     <View style={styles.container}>
@@ -349,57 +374,95 @@ const EntrenamientoDeportivoScreen = () => {
         {activeTab === 'historial' && renderHistory()}
       </ScrollView>
 
-      {/* Training Session Dialog */}
-      <Portal>
-        <Dialog 
-          visible={newSessionVisible} 
-          onDismiss={() => setNewSessionVisible(false)}
-          style={styles.dialog}
-        >
-          <Dialog.Title>
-            {selectedSession ? trainingTemplates[selectedSession.sport as keyof typeof trainingTemplates]?.name || 'Entrenamiento' : 'Entrenamiento'}
-          </Dialog.Title>
-          <Dialog.ScrollArea style={styles.dialogContent}>
-            <ScrollView>
-              {selectedSession?.drills.map((drill) => (
-                <View key={drill.id} style={styles.drillItem}>
-                  <View style={styles.drillHeader}>
-                    <IconButton
-                      icon={drill.completed ? "check-circle" : "circle-outline"}
-                      iconColor={drill.completed ? "#10B981" : "#9CA3AF"}
-                      onPress={() => completeDrill(drill.id)}
-                    />
-                    <View style={styles.drillInfo}>
-                      <Text style={[
-                        styles.drillName,
-                        drill.completed && styles.drillCompleted
-                      ]}>
-                        {drill.name}
-                      </Text>
-                      <Text style={styles.drillDetails}>
-                        {drill.duration} min • Intensidad {drill.intensity}/5 • {drill.type}
-                      </Text>
-                      <Text style={styles.drillDescription}>
-                        {drill.description}
-                      </Text>
-                    </View>
-                  </View>
+      {/* Training Session Modal */}
+      <EntryFormModal
+        visible={newSessionVisible}
+        onDismiss={() => {
+          setNewSessionVisible(false);
+          setSelectedSession(null);
+          setFormSession({
+            sessionType: 'training',
+            sport: 'judo',
+            drills: [],
+            intensity: 3,
+            notes: '',
+            duration: 0
+          });
+          setEditMode(false);
+        }}
+        onSubmit={saveSession}
+        title={editMode ? 'Editar Entrenamiento' : (selectedSession ? trainingTemplates[selectedSession.sport as keyof typeof trainingTemplates]?.name || 'Entrenamiento' : 'Entrenamiento')}
+        submitText={editMode ? 'Actualizar' : 'Finalizar'}
+        submitDisabled={!selectedSession?.drills.some(d => d.completed)}
+      >
+        <ScrollView style={styles.formScrollView}>
+          {selectedSession?.drills.map((drill) => (
+            <View key={drill.id} style={styles.drillItem}>
+              <View style={styles.drillHeader}>
+                <IconButton
+                  icon={drill.completed ? "check-circle" : "circle-outline"}
+                  iconColor={drill.completed ? "#10B981" : "#9CA3AF"}
+                  onPress={() => completeDrill(drill.id)}
+                />
+                <View style={styles.drillInfo}>
+                  <Text style={[
+                    styles.drillName,
+                    drill.completed && styles.drillCompleted
+                  ]}>
+                    {drill.name}
+                  </Text>
+                  <Text style={styles.drillDetails}>
+                    {drill.duration} min • Intensidad {drill.intensity}/5 • {drill.type}
+                  </Text>
+                  <Text style={styles.drillDescription}>
+                    {drill.description}
+                  </Text>
                 </View>
-              ))}
-            </ScrollView>
-          </Dialog.ScrollArea>
-          <Dialog.Actions>
-            <Button onPress={() => setNewSessionVisible(false)}>Cancelar</Button>
-            <Button 
-              mode="contained" 
-              onPress={saveSession}
-              disabled={!selectedSession?.drills.some(d => d.completed)}
-            >
-              Finalizar
-            </Button>
-          </Dialog.Actions>
-        </Dialog>
-      </Portal>
+              </View>
+            </View>
+          ))}
+          
+          {editMode && (
+            <View style={styles.formFields}>
+              <TextInput
+                mode="outlined"
+                label="Compañero de entrenamiento"
+                value={formSession.partner || ''}
+                onChangeText={(text) => setFormSession(prev => ({ ...prev, partner: text }))}
+                style={styles.formInput}
+              />
+              
+              <TextInput
+                mode="outlined"
+                label="Duración (minutos)"
+                value={formSession.duration?.toString() || ''}
+                onChangeText={(text) => setFormSession(prev => ({ ...prev, duration: parseInt(text) || 0 }))}
+                keyboardType="numeric"
+                style={styles.formInput}
+              />
+              
+              <TextInput
+                mode="outlined"
+                label="Notas"
+                value={formSession.notes || ''}
+                onChangeText={(text) => setFormSession(prev => ({ ...prev, notes: text }))}
+                multiline
+                numberOfLines={3}
+                style={styles.formInput}
+              />
+            </View>
+          )}
+        </ScrollView>
+      </EntryFormModal>
+
+      {/* Delete Confirmation Dialog */}
+      <ConfirmDeleteDialog
+        visible={deleteDialogVisible}
+        onDismiss={() => setDeleteDialogVisible(false)}
+        onConfirm={confirmDelete}
+        title="Eliminar Entrenamiento"
+        message={`¿Estás seguro de que quieres eliminar el entrenamiento "${sessionToDelete ? trainingTemplates[sessionToDelete.sport as keyof typeof trainingTemplates]?.name || sessionToDelete.sport : ''}"? Esta acción no se puede deshacer.`}
+      />
 
       {/* FAB */}
       <FAB
@@ -612,6 +675,16 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
     backgroundColor: '#283750',
+  },
+  formScrollView: {
+    maxHeight: 350,
+  },
+  formFields: {
+    gap: 16,
+    marginTop: 16,
+  },
+  formInput: {
+    marginBottom: 8,
   },
 });
 

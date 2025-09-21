@@ -3,11 +3,16 @@ import { View, Text, StyleSheet, ScrollView, Alert, Dimensions } from 'react-nat
 import { Card, Button, TextInput, Dialog, Portal, SegmentedButtons, Chip, IconButton, FAB } from 'react-native-paper';
 import { MaterialIcons } from '@expo/vector-icons';
 import { LineChart } from 'react-native-chart-kit';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useSyncManager } from '../hooks/useSyncManager';
+import { useCrudStorage } from '../hooks/useCrudStorage';
+import { transformLegacyWeightEntry, transformLegacyWeightGoal, transformLegacyNutritionEntry } from '../utils/legacyTransformations';
+import EntryList from '../components/EntryList';
+import EntryFormModal from '../components/EntryFormModal';
+import ConfirmDeleteDialog from '../components/ConfirmDeleteDialog';
 
 interface WeightEntry {
   id: string;
+  createdAt: string;
+  updatedAt: string;
   date: string;
   weight: number; // en kg
   bodyFat?: number; // porcentaje
@@ -17,6 +22,8 @@ interface WeightEntry {
 
 interface WeightGoal {
   id: string;
+  createdAt: string;
+  updatedAt: string;
   targetWeight: number;
   targetDate: string;
   reason: string;
@@ -25,6 +32,8 @@ interface WeightGoal {
 
 interface NutritionEntry {
   id: string;
+  createdAt: string;
+  updatedAt: string;
   date: string;
   calories: number;
   protein: number; // en gramos
@@ -35,30 +44,52 @@ interface NutritionEntry {
 }
 
 const ControlPesoScreen = () => {
-  const [weightEntries, setWeightEntries] = useState<WeightEntry[]>([]);
-  const [weightGoals, setWeightGoals] = useState<WeightGoal[]>([]);
-  const [nutritionEntries, setNutritionEntries] = useState<NutritionEntry[]>([]);
+  const { items: weightEntries, isLoading: weightLoading, create: createWeight, update: updateWeight, remove: removeWeight } = useCrudStorage<WeightEntry>({
+    storageKey: 'expo:weight:entries',
+    remotePayloadKey: 'weightEntries',
+    transformLegacyItem: transformLegacyWeightEntry
+  });
+  
+  const { items: weightGoals, isLoading: goalsLoading, create: createGoal, update: updateGoal, remove: removeGoal } = useCrudStorage<WeightGoal>({
+    storageKey: 'expo:weight:goals',
+    remotePayloadKey: 'weightGoals',
+    transformLegacyItem: transformLegacyWeightGoal
+  });
+  
+  const { items: nutritionEntries, isLoading: nutritionLoading, create: createNutrition, update: updateNutrition, remove: removeNutrition } = useCrudStorage<NutritionEntry>({
+    storageKey: 'expo:weight:nutrition',
+    remotePayloadKey: 'nutritionEntries',
+    transformLegacyItem: transformLegacyNutritionEntry
+  });
+
   const [activeTab, setActiveTab] = useState('peso');
-  const [entryDialogVisible, setEntryDialogVisible] = useState(false);
-  const [goalDialogVisible, setGoalDialogVisible] = useState(false);
-  const { syncStatus, updateRemoteData } = useSyncManager();
+  
+  // CRUD states
+  const [formVisible, setFormVisible] = useState(false);
+  const [deleteDialogVisible, setDeleteDialogVisible] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState<{ id: string; type: 'weight' | 'goal' | 'nutrition'; name: string } | null>(null);
+  const [editMode, setEditMode] = useState(false);
+  const [editingItem, setEditingItem] = useState<WeightEntry | WeightGoal | NutritionEntry | null>(null);
+  const [currentFormType, setCurrentFormType] = useState<'weight' | 'goal' | 'nutrition'>('weight');
 
   // Form states
-  const [newWeightEntry, setNewWeightEntry] = useState<Partial<WeightEntry>>({
+  const [formWeight, setFormWeight] = useState<Partial<WeightEntry>>({
+    date: new Date().toISOString().split('T')[0],
     weight: 0,
     bodyFat: 0,
     muscleMass: 0,
     notes: ''
   });
 
-  const [newGoal, setNewGoal] = useState<Partial<WeightGoal>>({
+  const [formGoal, setFormGoal] = useState<Partial<WeightGoal>>({
     targetWeight: 0,
     targetDate: new Date().toISOString().split('T')[0],
     reason: '',
     isActive: true
   });
 
-  const [newNutrition, setNewNutrition] = useState<Partial<NutritionEntry>>({
+  const [formNutrition, setFormNutrition] = useState<Partial<NutritionEntry>>({
+    date: new Date().toISOString().split('T')[0],
     calories: 0,
     protein: 0,
     carbs: 0,
@@ -69,114 +100,189 @@ const ControlPesoScreen = () => {
 
   const screenData = Dimensions.get('window');
 
+  // Initialize sample data if needed
+  const initializeSampleData = async () => {
+    if (weightEntries.length === 0 && !weightLoading) {
+      const sampleWeightEntries: Omit<WeightEntry, 'id' | 'createdAt' | 'updatedAt'>[] = [
+        {
+          date: new Date().toISOString(),
+          weight: 70.5,
+          bodyFat: 15.2,
+          muscleMass: 32.1,
+          notes: 'Pesaje inicial'
+        }
+      ];
+
+      for (const entry of sampleWeightEntries) {
+        await createWeight(entry);
+      }
+    }
+  };
+
   useEffect(() => {
-    loadData();
-  }, []);
+    initializeSampleData();
+  }, [weightEntries.length, weightLoading]);
 
-  const loadData = async () => {
-    try {
-      const [weightData, goalsData, nutritionData] = await Promise.all([
-        AsyncStorage.getItem('weight-entries'),
-        AsyncStorage.getItem('weight-goals'),
-        AsyncStorage.getItem('nutrition-entries')
-      ]);
-
-      if (weightData) setWeightEntries(JSON.parse(weightData));
-      if (goalsData) setWeightGoals(JSON.parse(goalsData));
-      if (nutritionData) setNutritionEntries(JSON.parse(nutritionData));
-    } catch (error) {
-      console.error('Error loading weight data:', error);
+  // CRUD Operations
+  const handleCreate = (type: 'weight' | 'goal' | 'nutrition') => {
+    setEditMode(false);
+    setEditingItem(null);
+    setCurrentFormType(type);
+    
+    if (type === 'weight') {
+      setFormWeight({
+        date: new Date().toISOString().split('T')[0],
+        weight: 0,
+        bodyFat: 0,
+        muscleMass: 0,
+        notes: ''
+      });
+    } else if (type === 'goal') {
+      setFormGoal({
+        targetWeight: 0,
+        targetDate: new Date().toISOString().split('T')[0],
+        reason: '',
+        isActive: true
+      });
+    } else {
+      setFormNutrition({
+        date: new Date().toISOString().split('T')[0],
+        calories: 0,
+        protein: 0,
+        carbs: 0,
+        fats: 0,
+        water: 2.0,
+        notes: ''
+      });
     }
+    
+    setFormVisible(true);
   };
 
-  const saveWeightEntries = async (entries: WeightEntry[]) => {
+  const handleEdit = (item: WeightEntry | WeightGoal | NutritionEntry) => {
+    setEditMode(true);
+    setEditingItem(item);
+    
+    if ('weight' in item) {
+      setFormWeight(item);
+      setCurrentFormType('weight');
+    } else if ('targetWeight' in item) {
+      setFormGoal(item);
+      setCurrentFormType('goal');
+    } else {
+      setFormNutrition(item);
+      setCurrentFormType('nutrition');
+    }
+    
+    setFormVisible(true);
+  };
+
+  const handleDelete = (item: WeightEntry | WeightGoal | NutritionEntry) => {
+    const type = 'weight' in item ? 'weight' : 'targetWeight' in item ? 'goal' : 'nutrition';
+    const name = 'weight' in item ? `Peso ${item.weight}kg` : 'targetWeight' in item ? `Meta ${item.targetWeight}kg` : `Nutrición ${item.calories}cal`;
+    setItemToDelete({ id: item.id, type, name });
+    setDeleteDialogVisible(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!itemToDelete) return;
+    
+    if (itemToDelete.type === 'weight') {
+      await removeWeight(itemToDelete.id);
+    } else if (itemToDelete.type === 'goal') {
+      await removeGoal(itemToDelete.id);
+    } else {
+      await removeNutrition(itemToDelete.id);
+    }
+    
+    setItemToDelete(null);
+    setDeleteDialogVisible(false);
+  };
+
+  const handleSave = async () => {
     try {
-      await AsyncStorage.setItem('weight-entries', JSON.stringify(entries));
-      setWeightEntries(entries);
-      
-      if (syncStatus.isLinked) {
-        updateRemoteData({ weightEntries: entries });
+      if (currentFormType === 'weight') {
+        // Weight Entry
+        if (!formWeight.weight || formWeight.weight <= 0) {
+          Alert.alert('Error', 'El peso es obligatorio y debe ser mayor que 0.');
+          return;
+        }
+
+        const weightData = {
+          ...formWeight,
+          date: formWeight.date || new Date().toISOString(),
+          weight: formWeight.weight || 0
+        };
+
+        if (editMode && editingItem?.id) {
+          await updateWeight(editingItem.id, weightData);
+          Alert.alert('¡Registro Actualizado!', 'Los cambios han sido guardados exitosamente.');
+        } else {
+          await createWeight(weightData);
+          Alert.alert('¡Peso Registrado!', 'El nuevo registro ha sido agregado.');
+        }
+      } else if (currentFormType === 'goal') {
+        // Weight Goal
+        if (!formGoal.targetWeight || formGoal.targetWeight <= 0) {
+          Alert.alert('Error', 'El peso objetivo es obligatorio y debe ser mayor que 0.');
+          return;
+        }
+
+        // Deactivate other goals if this one is active
+        if (formGoal.isActive) {
+          const activeGoals = weightGoals.filter(g => g.isActive && g.id !== editingItem?.id);
+          for (const goal of activeGoals) {
+            await updateGoal(goal.id, { isActive: false });
+          }
+        }
+
+        const goalData = {
+          ...formGoal,
+          targetWeight: formGoal.targetWeight || 0,
+          targetDate: formGoal.targetDate || new Date().toISOString().split('T')[0],
+          reason: formGoal.reason || '',
+          isActive: formGoal.isActive || false
+        };
+
+        if (editMode && editingItem?.id) {
+          await updateGoal(editingItem.id, goalData);
+          Alert.alert('¡Meta Actualizada!', 'Los cambios han sido guardados exitosamente.');
+        } else {
+          await createGoal(goalData);
+          Alert.alert('¡Meta Establecida!', 'La nueva meta ha sido agregada.');
+        }
+      } else {
+        // Nutrition Entry
+        if (!formNutrition.calories || formNutrition.calories <= 0) {
+          Alert.alert('Error', 'Las calorías son obligatorias y deben ser mayor que 0.');
+          return;
+        }
+
+        const nutritionData = {
+          ...formNutrition,
+          date: formNutrition.date || new Date().toISOString(),
+          calories: formNutrition.calories || 0,
+          protein: formNutrition.protein || 0,
+          carbs: formNutrition.carbs || 0,
+          fats: formNutrition.fats || 0,
+          water: formNutrition.water || 0
+        };
+
+        if (editMode && editingItem?.id) {
+          await updateNutrition(editingItem.id, nutritionData);
+          Alert.alert('¡Nutrición Actualizada!', 'Los cambios han sido guardados exitosamente.');
+        } else {
+          await createNutrition(nutritionData);
+          Alert.alert('¡Nutrición Registrada!', 'El nuevo registro nutricional ha sido agregado.');
+        }
       }
+
+      setFormVisible(false);
+      setEditMode(false);
+      setEditingItem(null);
     } catch (error) {
-      console.error('Error saving weight entries:', error);
+      Alert.alert('Error', 'No se pudo guardar los datos. Inténtalo de nuevo.');
     }
-  };
-
-  const saveWeightGoals = async (goals: WeightGoal[]) => {
-    try {
-      await AsyncStorage.setItem('weight-goals', JSON.stringify(goals));
-      setWeightGoals(goals);
-      
-      if (syncStatus.isLinked) {
-        updateRemoteData({ weightGoals: goals });
-      }
-    } catch (error) {
-      console.error('Error saving weight goals:', error);
-    }
-  };
-
-  const saveNutritionEntries = async (entries: NutritionEntry[]) => {
-    try {
-      await AsyncStorage.setItem('nutrition-entries', JSON.stringify(entries));
-      setNutritionEntries(entries);
-      
-      if (syncStatus.isLinked) {
-        updateRemoteData({ nutritionEntries: entries });
-      }
-    } catch (error) {
-      console.error('Error saving nutrition entries:', error);
-    }
-  };
-
-  const addWeightEntry = () => {
-    if (!newWeightEntry.weight || newWeightEntry.weight <= 0) {
-      Alert.alert('Error', 'Por favor ingresa un peso válido');
-      return;
-    }
-
-    const entry: WeightEntry = {
-      id: Date.now().toString(),
-      date: new Date().toISOString(),
-      weight: newWeightEntry.weight!,
-      bodyFat: newWeightEntry.bodyFat,
-      muscleMass: newWeightEntry.muscleMass,
-      notes: newWeightEntry.notes
-    };
-
-    const updatedEntries = [entry, ...weightEntries].sort((a, b) => 
-      new Date(b.date).getTime() - new Date(a.date).getTime()
-    );
-
-    saveWeightEntries(updatedEntries);
-    setEntryDialogVisible(false);
-    setNewWeightEntry({ weight: 0, bodyFat: 0, muscleMass: 0, notes: '' });
-
-    Alert.alert('Éxito', 'Peso registrado correctamente');
-  };
-
-  const addGoal = () => {
-    if (!newGoal.targetWeight || newGoal.targetWeight <= 0) {
-      Alert.alert('Error', 'Por favor ingresa un peso objetivo válido');
-      return;
-    }
-
-    const goal: WeightGoal = {
-      id: Date.now().toString(),
-      targetWeight: newGoal.targetWeight!,
-      targetDate: newGoal.targetDate!,
-      reason: newGoal.reason!,
-      isActive: true
-    };
-
-    // Deactivate other goals
-    const updatedGoals = weightGoals.map(g => ({ ...g, isActive: false }));
-    updatedGoals.unshift(goal);
-
-    saveWeightGoals(updatedGoals);
-    setGoalDialogVisible(false);
-    setNewGoal({ targetWeight: 0, targetDate: new Date().toISOString().split('T')[0], reason: '', isActive: true });
-
-    Alert.alert('Éxito', 'Meta establecida correctamente');
   };
 
   const getWeightChartData = () => {
@@ -308,30 +414,33 @@ const ControlPesoScreen = () => {
           <Card.Content>
             <View style={styles.cardHeader}>
               <Text style={styles.sectionTitle}>Registros Recientes</Text>
-              <Button mode="text" onPress={() => setEntryDialogVisible(true)}>
+              <Button mode="text" onPress={() => handleCreate('weight')}>
                 Agregar
               </Button>
             </View>
             
-            {weightEntries.length === 0 ? (
-              <Text style={styles.emptyText}>No hay registros de peso</Text>
-            ) : (
-              weightEntries.slice(0, 5).map((entry) => (
-                <View key={entry.id} style={styles.entryItem}>
-                  <View style={styles.entryDate}>
-                    <Text style={styles.entryDateText}>
-                      {new Date(entry.date).toLocaleDateString()}
-                    </Text>
-                  </View>
-                  <View style={styles.entryData}>
-                    <Text style={styles.entryWeight}>{entry.weight.toFixed(1)} kg</Text>
-                    {entry.bodyFat && (
-                      <Text style={styles.entryDetail}>{entry.bodyFat.toFixed(1)}% grasa</Text>
-                    )}
-                  </View>
-                </View>
-              ))
-            )}
+            <EntryList
+              items={weightEntries.slice(0, 5).map(entry => ({
+                id: entry.id,
+                title: `${entry.weight.toFixed(1)} kg`,
+                subtitle: new Date(entry.date).toLocaleDateString(),
+                description: `${entry.bodyFat ? `${entry.bodyFat.toFixed(1)}% grasa` : ''}${entry.muscleMass ? ` • ${entry.muscleMass.toFixed(1)}kg músculo` : ''}${entry.notes ? ` • ${entry.notes}` : ''}`,
+                leftIcon: 'scale',
+                rightText: new Date(entry.date).toLocaleDateString('es-ES', { month: 'short', day: 'numeric' })
+              }))}
+              onItemPress={() => {}}
+              onEdit={(item) => {
+                const entry = weightEntries.find(e => e.id === item.id);
+                if (entry) handleEdit(entry);
+              }}
+              onDelete={(item) => {
+                const entry = weightEntries.find(e => e.id === item.id);
+                if (entry) handleDelete(entry);
+              }}
+              emptyStateText="No hay registros de peso"
+              emptyStateSubtext="Agrega tu primer registro de peso"
+              loading={weightLoading}
+            />
           </Card.Content>
         </Card>
 
@@ -341,7 +450,7 @@ const ControlPesoScreen = () => {
             <Card.Content>
               <View style={styles.cardHeader}>
                 <Text style={styles.sectionTitle}>Meta Activa</Text>
-                <Button mode="text" onPress={() => setGoalDialogVisible(true)}>
+                <Button mode="text" onPress={() => handleCreate('goal')}>
                   Cambiar
                 </Button>
               </View>
@@ -384,16 +493,83 @@ const ControlPesoScreen = () => {
     );
   };
 
-  const renderNutritionView = () => (
-    <View>
-      <Card style={styles.emptyCard}>
-        <Card.Content>
-          <Text style={styles.emptyText}>Seguimiento Nutricional</Text>
-          <Text style={styles.emptySubtext}>Esta funcionalidad estará disponible pronto para registrar calorías, macronutrientes y hidratación</Text>
-        </Card.Content>
-      </Card>
-    </View>
-  );
+  const renderNutritionView = () => {
+    const todayNutrition = nutritionEntries.filter(entry => 
+      new Date(entry.date).toDateString() === new Date().toDateString()
+    );
+    
+    const todayCalories = todayNutrition.reduce((sum, entry) => sum + entry.calories, 0);
+    const todayProtein = todayNutrition.reduce((sum, entry) => sum + entry.protein, 0);
+    const todayCarbs = todayNutrition.reduce((sum, entry) => sum + entry.carbs, 0);
+    const todayFats = todayNutrition.reduce((sum, entry) => sum + entry.fats, 0);
+    const todayWater = todayNutrition.reduce((sum, entry) => sum + entry.water, 0);
+
+    const listItems = nutritionEntries.map(entry => ({
+      id: entry.id,
+      title: `${entry.calories} calorías`,
+      subtitle: new Date(entry.date).toLocaleDateString(),
+      description: `Proteínas: ${entry.protein}g • Carbohidratos: ${entry.carbs}g • Grasas: ${entry.fats}g • Agua: ${entry.water}L${entry.notes ? ` • ${entry.notes}` : ''}`,
+      leftIcon: 'food-apple',
+      rightText: `${entry.protein}P`
+    }));
+
+    return (
+      <View>
+        {/* Daily Summary */}
+        <Card style={styles.statsCard}>
+          <Card.Content>
+            <Text style={styles.sectionTitle}>Resumen de Hoy</Text>
+            <View style={styles.statsGrid}>
+              <View style={styles.statItem}>
+                <Text style={styles.statNumber}>{todayCalories}</Text>
+                <Text style={styles.statLabel}>Calorías</Text>
+              </View>
+              <View style={styles.statItem}>
+                <Text style={styles.statNumber}>{todayProtein.toFixed(1)}g</Text>
+                <Text style={styles.statLabel}>Proteínas</Text>
+              </View>
+              <View style={styles.statItem}>
+                <Text style={styles.statNumber}>{todayCarbs.toFixed(1)}g</Text>
+                <Text style={styles.statLabel}>Carbohidratos</Text>
+              </View>
+              <View style={styles.statItem}>
+                <Text style={styles.statNumber}>{todayWater.toFixed(1)}L</Text>
+                <Text style={styles.statLabel}>Agua</Text>
+              </View>
+            </View>
+          </Card.Content>
+        </Card>
+
+        {/* Nutrition Entries */}
+        <Card style={styles.entriesCard}>
+          <Card.Content>
+            <View style={styles.cardHeader}>
+              <Text style={styles.sectionTitle}>Registros Nutricionales</Text>
+              <Button mode="text" onPress={() => handleCreate('nutrition')}>
+                Agregar
+              </Button>
+            </View>
+            
+            <EntryList
+              items={listItems}
+              onItemPress={() => {}}
+              onEdit={(item) => {
+                const entry = nutritionEntries.find(e => e.id === item.id);
+                if (entry) handleEdit(entry);
+              }}
+              onDelete={(item) => {
+                const entry = nutritionEntries.find(e => e.id === item.id);
+                if (entry) handleDelete(entry);
+              }}
+              emptyStateText="No hay registros nutricionales"
+              emptyStateSubtext="Agrega tu primera comida o registro nutricional"
+              loading={nutritionLoading}
+            />
+          </Card.Content>
+        </Card>
+      </View>
+    );
+  };
 
   return (
     <View style={styles.container}>
@@ -415,79 +591,211 @@ const ControlPesoScreen = () => {
         {activeTab === 'nutricion' && renderNutritionView()}
       </ScrollView>
 
-      {/* Weight Entry Dialog */}
-      <Portal>
-        <Dialog visible={entryDialogVisible} onDismiss={() => setEntryDialogVisible(false)}>
-          <Dialog.Title>Registrar Peso</Dialog.Title>
-          <Dialog.Content>
-            <TextInput
-              label="Peso (kg)"
-              value={newWeightEntry.weight?.toString() || ''}
-              onChangeText={(text) => setNewWeightEntry({...newWeightEntry, weight: parseFloat(text) || 0})}
-              keyboardType="numeric"
-              style={styles.input}
-            />
-            <TextInput
-              label="Grasa corporal (%) - Opcional"
-              value={newWeightEntry.bodyFat?.toString() || ''}
-              onChangeText={(text) => setNewWeightEntry({...newWeightEntry, bodyFat: parseFloat(text) || 0})}
-              keyboardType="numeric"
-              style={styles.input}
-            />
-            <TextInput
-              label="Masa muscular (kg) - Opcional"
-              value={newWeightEntry.muscleMass?.toString() || ''}
-              onChangeText={(text) => setNewWeightEntry({...newWeightEntry, muscleMass: parseFloat(text) || 0})}
-              keyboardType="numeric"
-              style={styles.input}
-            />
-            <TextInput
-              label="Notas"
-              value={newWeightEntry.notes || ''}
-              onChangeText={(text) => setNewWeightEntry({...newWeightEntry, notes: text})}
-              multiline
-              style={styles.input}
-            />
-          </Dialog.Content>
-          <Dialog.Actions>
-            <Button onPress={() => setEntryDialogVisible(false)}>Cancelar</Button>
-            <Button mode="contained" onPress={addWeightEntry}>Guardar</Button>
-          </Dialog.Actions>
-        </Dialog>
-      </Portal>
+      {/* Form Modal */}
+      <EntryFormModal
+        visible={formVisible}
+        onDismiss={() => {
+          setFormVisible(false);
+          setEditMode(false);
+          setEditingItem(null);
+        }}
+        onSubmit={handleSave}
+        title={
+          editMode 
+            ? currentFormType === 'weight' ? 'Editar Registro de Peso'
+              : currentFormType === 'goal' ? 'Editar Meta'
+              : 'Editar Registro Nutricional'
+            : currentFormType === 'weight' ? 'Nuevo Registro de Peso'
+              : currentFormType === 'goal' ? 'Nueva Meta'
+              : 'Nuevo Registro Nutricional'
+        }
+        submitText={editMode ? 'Actualizar' : 'Guardar'}
+        submitDisabled={
+          (currentFormType === 'weight' && (!formWeight.weight || formWeight.weight <= 0)) ||
+          (currentFormType === 'goal' && (!formGoal.targetWeight || formGoal.targetWeight <= 0)) ||
+          (currentFormType === 'nutrition' && (!formNutrition.calories || formNutrition.calories <= 0))
+        }
+      >
+        <ScrollView style={styles.formScrollView}>
+          {currentFormType === 'weight' && (
+            <View style={styles.formFields}>
+              <TextInput
+                mode="outlined"
+                label="Fecha"
+                value={formWeight.date || ''}
+                onChangeText={(text) => setFormWeight(prev => ({ ...prev, date: text }))}
+                style={styles.formInput}
+              />
+              
+              <TextInput
+                mode="outlined"
+                label="Peso (kg) *"
+                value={formWeight.weight?.toString() || ''}
+                onChangeText={(text) => setFormWeight(prev => ({ ...prev, weight: parseFloat(text) || 0 }))}
+                keyboardType="numeric"
+                style={styles.formInput}
+              />
 
-      {/* Goal Dialog */}
-      <Portal>
-        <Dialog visible={goalDialogVisible} onDismiss={() => setGoalDialogVisible(false)}>
-          <Dialog.Title>Establecer Meta</Dialog.Title>
-          <Dialog.Content>
-            <TextInput
-              label="Peso objetivo (kg)"
-              value={newGoal.targetWeight?.toString() || ''}
-              onChangeText={(text) => setNewGoal({...newGoal, targetWeight: parseFloat(text) || 0})}
-              keyboardType="numeric"
-              style={styles.input}
-            />
-            <TextInput
-              label="Fecha objetivo (YYYY-MM-DD)"
-              value={newGoal.targetDate || ''}
-              onChangeText={(text) => setNewGoal({...newGoal, targetDate: text})}
-              style={styles.input}
-            />
-            <TextInput
-              label="Razón/Motivación"
-              value={newGoal.reason || ''}
-              onChangeText={(text) => setNewGoal({...newGoal, reason: text})}
-              multiline
-              style={styles.input}
-            />
-          </Dialog.Content>
-          <Dialog.Actions>
-            <Button onPress={() => setGoalDialogVisible(false)}>Cancelar</Button>
-            <Button mode="contained" onPress={addGoal}>Establecer</Button>
-          </Dialog.Actions>
-        </Dialog>
-      </Portal>
+              <TextInput
+                mode="outlined"
+                label="Grasa corporal (%)"
+                value={formWeight.bodyFat?.toString() || ''}
+                onChangeText={(text) => setFormWeight(prev => ({ ...prev, bodyFat: parseFloat(text) || 0 }))}
+                keyboardType="numeric"
+                style={styles.formInput}
+              />
+
+              <TextInput
+                mode="outlined"
+                label="Masa muscular (kg)"
+                value={formWeight.muscleMass?.toString() || ''}
+                onChangeText={(text) => setFormWeight(prev => ({ ...prev, muscleMass: parseFloat(text) || 0 }))}
+                keyboardType="numeric"
+                style={styles.formInput}
+              />
+
+              <TextInput
+                mode="outlined"
+                label="Notas"
+                value={formWeight.notes || ''}
+                onChangeText={(text) => setFormWeight(prev => ({ ...prev, notes: text }))}
+                multiline
+                numberOfLines={3}
+                style={styles.formInput}
+              />
+            </View>
+          )}
+
+          {currentFormType === 'goal' && (
+            <View style={styles.formFields}>
+              <TextInput
+                mode="outlined"
+                label="Peso objetivo (kg) *"
+                value={formGoal.targetWeight?.toString() || ''}
+                onChangeText={(text) => setFormGoal(prev => ({ ...prev, targetWeight: parseFloat(text) || 0 }))}
+                keyboardType="numeric"
+                style={styles.formInput}
+              />
+              
+              <TextInput
+                mode="outlined"
+                label="Fecha objetivo"
+                value={formGoal.targetDate || ''}
+                onChangeText={(text) => setFormGoal(prev => ({ ...prev, targetDate: text }))}
+                style={styles.formInput}
+              />
+
+              <TextInput
+                mode="outlined"
+                label="Razón/Motivación"
+                value={formGoal.reason || ''}
+                onChangeText={(text) => setFormGoal(prev => ({ ...prev, reason: text }))}
+                multiline
+                numberOfLines={3}
+                style={styles.formInput}
+              />
+
+              <View style={styles.row}>
+                <Chip
+                  selected={formGoal.isActive}
+                  onPress={() => setFormGoal(prev => ({ ...prev, isActive: !prev.isActive }))}
+                  style={styles.selectionChip}
+                >
+                  Meta Activa
+                </Chip>
+              </View>
+            </View>
+          )}
+
+          {currentFormType === 'nutrition' && (
+            <View style={styles.formFields}>
+              <TextInput
+                mode="outlined"
+                label="Fecha"
+                value={formNutrition.date || ''}
+                onChangeText={(text) => setFormNutrition(prev => ({ ...prev, date: text }))}
+                style={styles.formInput}
+              />
+              
+              <TextInput
+                mode="outlined"
+                label="Calorías *"
+                value={formNutrition.calories?.toString() || ''}
+                onChangeText={(text) => setFormNutrition(prev => ({ ...prev, calories: parseFloat(text) || 0 }))}
+                keyboardType="numeric"
+                style={styles.formInput}
+              />
+
+              <View style={styles.row}>
+                <View style={styles.halfWidth}>
+                  <TextInput
+                    mode="outlined"
+                    label="Proteínas (g)"
+                    value={formNutrition.protein?.toString() || ''}
+                    onChangeText={(text) => setFormNutrition(prev => ({ ...prev, protein: parseFloat(text) || 0 }))}
+                    keyboardType="numeric"
+                    style={styles.formInput}
+                  />
+                </View>
+                
+                <View style={styles.halfWidth}>
+                  <TextInput
+                    mode="outlined"
+                    label="Carbohidratos (g)"
+                    value={formNutrition.carbs?.toString() || ''}
+                    onChangeText={(text) => setFormNutrition(prev => ({ ...prev, carbs: parseFloat(text) || 0 }))}
+                    keyboardType="numeric"
+                    style={styles.formInput}
+                  />
+                </View>
+              </View>
+
+              <View style={styles.row}>
+                <View style={styles.halfWidth}>
+                  <TextInput
+                    mode="outlined"
+                    label="Grasas (g)"
+                    value={formNutrition.fats?.toString() || ''}
+                    onChangeText={(text) => setFormNutrition(prev => ({ ...prev, fats: parseFloat(text) || 0 }))}
+                    keyboardType="numeric"
+                    style={styles.formInput}
+                  />
+                </View>
+                
+                <View style={styles.halfWidth}>
+                  <TextInput
+                    mode="outlined"
+                    label="Agua (L)"
+                    value={formNutrition.water?.toString() || ''}
+                    onChangeText={(text) => setFormNutrition(prev => ({ ...prev, water: parseFloat(text) || 0 }))}
+                    keyboardType="numeric"
+                    style={styles.formInput}
+                  />
+                </View>
+              </View>
+
+              <TextInput
+                mode="outlined"
+                label="Notas"
+                value={formNutrition.notes || ''}
+                onChangeText={(text) => setFormNutrition(prev => ({ ...prev, notes: text }))}
+                multiline
+                numberOfLines={3}
+                style={styles.formInput}
+              />
+            </View>
+          )}
+        </ScrollView>
+      </EntryFormModal>
+
+      {/* Delete Confirmation Dialog */}
+      <ConfirmDeleteDialog
+        visible={deleteDialogVisible}
+        onDismiss={() => setDeleteDialogVisible(false)}
+        onConfirm={confirmDelete}
+        title={`Eliminar ${itemToDelete?.type === 'weight' ? 'Registro' : itemToDelete?.type === 'goal' ? 'Meta' : 'Registro Nutricional'}`}
+        message={`¿Estás seguro de que quieres eliminar "${itemToDelete?.name}"? Esta acción no se puede deshacer.`}
+      />
 
       {/* FAB */}
       <FAB
@@ -495,13 +803,9 @@ const ControlPesoScreen = () => {
         style={styles.fab}
         onPress={() => {
           if (activeTab === 'peso') {
-            setEntryDialogVisible(true);
+            handleCreate('weight');
           } else {
-            Alert.alert(
-              "Nutrición",
-              "Esta funcionalidad estará disponible pronto",
-              [{ text: 'Entendido', style: 'default' }]
-            );
+            handleCreate('nutrition');
           }
         }}
         label={activeTab === 'peso' ? 'Pesar' : 'Comida'}
@@ -677,6 +981,32 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
     backgroundColor: '#283750',
+  },
+  formScrollView: {
+    maxHeight: 400,
+  },
+  formFields: {
+    gap: 16,
+  },
+  formInput: {
+    marginBottom: 8,
+  },
+  fieldLabel: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#283750',
+    marginBottom: 8,
+  },
+  row: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  halfWidth: {
+    flex: 1,
+  },
+  selectionChip: {
+    marginRight: 8,
+    marginBottom: 4,
   },
 });
 
