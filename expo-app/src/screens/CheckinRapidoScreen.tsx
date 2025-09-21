@@ -63,7 +63,9 @@ const CheckinRapidoScreen: React.FC<CheckinRapidoScreenProps> = ({ navigation })
   const [currentMood, setCurrentMood] = useState<number>(3);
   const [energyLevel, setEnergyLevel] = useState<number>(3);
   const [stressLevel, setStressLevel] = useState<number>(3);
+  const [protectiveFactors, setProtectiveFactors] = useState<number>(3);
   const [quickNote, setQuickNote] = useState<string>('');
+  const [contextNote, setContextNote] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
   const saveCheckIn = async () => {
@@ -76,7 +78,9 @@ const CheckinRapidoScreen: React.FC<CheckinRapidoScreenProps> = ({ navigation })
         currentMood,
         energyLevel,
         stressLevel,
+        protectiveFactors,
         quickNote,
+        contextNote,
         timeOfDay: getTimeOfDay(),
         dayOfWeek: getDayOfWeek(),
       };
@@ -110,7 +114,9 @@ const CheckinRapidoScreen: React.FC<CheckinRapidoScreenProps> = ({ navigation })
               setCurrentMood(3);
               setEnergyLevel(3);
               setStressLevel(3);
+              setProtectiveFactors(3);
               setQuickNote('');
+              setContextNote('');
             }
           }
         ]
@@ -164,7 +170,7 @@ const CheckinRapidoScreen: React.FC<CheckinRapidoScreenProps> = ({ navigation })
             <EmojiRating
               value={currentMood}
               onChange={setCurrentMood}
-              emojis={['😰', '😔', '😐', '😊', '😄']}
+              emojis={['😭', '😞', '😐', '🙂', '😄']}
               labels={['Muy mal', 'Mal', 'Normal', 'Bien', 'Excelente']}
               title="¿Cómo te sientes ahora?"
               description="Tu estado de ánimo en este momento"
@@ -177,7 +183,7 @@ const CheckinRapidoScreen: React.FC<CheckinRapidoScreenProps> = ({ navigation })
             <EmojiRating
               value={energyLevel}
               onChange={setEnergyLevel}
-              emojis={['🪫', '🔋', '🔋', '🔋', '⚡']}
+              emojis={['😴', '🥱', '😐', '😊', '⚡']}
               labels={['Sin energía', 'Poca', 'Normal', 'Buena', 'Mucha energía']}
               title="¿Cuál es tu nivel de energía?"
               description="Qué tan activo te sientes"
@@ -190,11 +196,50 @@ const CheckinRapidoScreen: React.FC<CheckinRapidoScreenProps> = ({ navigation })
             <EmojiRating
               value={stressLevel}
               onChange={setStressLevel}
-              emojis={['😌', '😐', '😟', '😰', '😵‍💫']}
+              emojis={['😌', '🙂', '😕', '😰', '🤯']}
               labels={['Muy relajado', 'Relajado', 'Normal', 'Estresado', 'Muy estresado']}
               title="¿Qué tan estresado estás?"
               description="Tu nivel de estrés actual"
             />
+          </Card.Content>
+        </Card>
+
+        {/* Factores Protectores */}
+        <Card style={styles.card}>
+          <Card.Content style={styles.cardContent}>
+            <EmojiRating
+              value={protectiveFactors}
+              onChange={setProtectiveFactors}
+              emojis={['🌧️', '⛅', '🌤️', '☀️', '🌈']}
+              labels={['Muy débiles', 'Débiles', 'Normales', 'Fuertes', 'Muy fuertes']}
+              title="¿Qué tan fuertes sientes tus recursos internos?"
+              description="Tu capacidad de afrontar situaciones difíciles"
+            />
+          </Card.Content>
+        </Card>
+
+        {/* Contexto - Tres preguntas */}
+        <Card style={styles.card}>
+          <Card.Content style={styles.cardContent}>
+            <Text style={styles.noteTitle}>Contexto (opcional)</Text>
+            <Text style={styles.noteDescription}>
+              Reflexiona sobre estas preguntas:{'\n'}
+              • ¿Qué eventos o situaciones han influido en cómo te sientes hoy?{'\n'}
+              • ¿Hay algo específico que te preocupa o te motiva en este momento?{'\n'}
+              • ¿Cómo ha sido tu día hasta ahora en general?
+            </Text>
+            <TextInput
+              mode="outlined"
+              value={contextNote}
+              onChangeText={setContextNote}
+              placeholder="Ej: Tuve una reunión importante que me puso nervioso, pero salió mejor de lo esperado..."
+              multiline
+              numberOfLines={4}
+              style={styles.noteInput}
+              maxLength={200}
+              data-testid="input-context-note"
+            />
+            <Text style={styles.characterCount}>{contextNote.length}/200 caracteres</Text>
           </Card.Content>
         </Card>
 
