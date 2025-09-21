@@ -16,6 +16,7 @@ import MentalCheckScreen from './src/screens/MentalCheckScreen';
 import CheckinRapidoScreen from './src/screens/CheckinRapidoScreen';
 import BienestarScreen from './src/screens/BienestarScreen';
 import ManejoCrisisScreen from './src/screens/ManejoCrisisScreen';
+import GraficosAnalisisScreen from './src/screens/GraficosAnalisisScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -53,6 +54,13 @@ function InicioStack() {
       <Stack.Screen
         name="ManejoCrisis"
         component={ManejoCrisisScreen}
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="GraficosAnalisis"
+        component={GraficosAnalisisScreen}
         options={{
           headerShown: false,
         }}
