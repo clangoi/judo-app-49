@@ -3,10 +3,12 @@ import { View, Text, StyleSheet, ScrollView, Alert, Dimensions } from 'react-nat
 import { Card, Button, TextInput, Dialog, Portal, SegmentedButtons, Chip, IconButton, FAB, RadioButton } from 'react-native-paper';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useCrudStorage } from '../hooks/useCrudStorage';
+import { useCustomTemplates, TrainingTemplate } from '../hooks/useCustomTemplates';
 import { transformLegacySportsSession } from '../utils/legacyTransformations';
 import EntryList from '../components/EntryList';
 import EntryFormModal from '../components/EntryFormModal';
 import ConfirmDeleteDialog from '../components/ConfirmDeleteDialog';
+import CustomTemplateManager from '../components/CustomTemplateManager';
 
 interface TrainingDrill {
   id: string;
@@ -36,42 +38,18 @@ interface SportsSession {
   injuries?: string[];
 }
 
-const EntrenamientoDeportivoScreen = () => {
-  const { items: sessions, isLoading, create, update, remove } = useCrudStorage<SportsSession>({
-    storageKey: 'expo:deportivo:sessions',
-    remotePayloadKey: 'sportsSessions',
-    transformLegacyItem: transformLegacySportsSession
-  });
-  
-  const [activeTab, setActiveTab] = useState('entrenamientos');
-  const [newSessionVisible, setNewSessionVisible] = useState(false);
-  const [selectedSession, setSelectedSession] = useState<SportsSession | null>(null);
-  const [deleteDialogVisible, setDeleteDialogVisible] = useState(false);
-  const [sessionToDelete, setSessionToDelete] = useState<SportsSession | null>(null);
-  const [editMode, setEditMode] = useState(false);
+// Sports types
+const sportsTypes = [
+  { label: 'Judo', value: 'judo' },
+  { label: 'Karate', value: 'karate' },
+  { label: 'Taekwondo', value: 'taekwondo' },
+  { label: 'Boxeo', value: 'boxing' },
+  { label: 'MMA', value: 'mma' },
+  { label: 'Otro', value: 'other' }
+];
 
-  // Form states
-  const [formSession, setFormSession] = useState<Partial<SportsSession>>({
-    sessionType: 'training',
-    sport: 'judo',
-    drills: [],
-    intensity: 3,
-    notes: '',
-    duration: 0
-  });
-
-  // Sports types
-  const sportsTypes = [
-    { label: 'Judo', value: 'judo' },
-    { label: 'Karate', value: 'karate' },
-    { label: 'Taekwondo', value: 'taekwondo' },
-    { label: 'Boxeo', value: 'boxing' },
-    { label: 'MMA', value: 'mma' },
-    { label: 'Otro', value: 'other' }
-  ];
-
-  // Predefined training drills
-  const trainingTemplates = {
+// Default training templates (used for initialization) - MOVED BEFORE COMPONENT
+const defaultTrainingTemplates = {
     judo: {
       name: 'Entrenamiento de Judo',
       drills: [
@@ -104,10 +82,52 @@ const EntrenamientoDeportivoScreen = () => {
     }
   };
 
-  // No longer needed - useCrudStorage handles loading and saving
+const EntrenamientoDeportivoScreen = () => {
+  const { items: sessions, isLoading, create, update, remove } = useCrudStorage<SportsSession>({
+    storageKey: 'expo:deportivo:sessions',
+    remotePayloadKey: 'sportsSessions',
+    transformLegacyItem: transformLegacySportsSession
+  });
 
-  const startTrainingSession = (sport: keyof typeof trainingTemplates) => {
-    const template = trainingTemplates[sport];
+  // Custom templates hook
+  const { 
+    templates: trainingTemplates, 
+    isLoading: templatesLoading,
+    createTemplate,
+    updateTemplate,
+    deleteTemplate
+  } = useCustomTemplates<TrainingTemplate>({
+    storageKey: 'expo:deportivo:templates',
+    templateType: 'training',
+    defaultTemplates: Object.entries(defaultTrainingTemplates).map(([key, template]) => ({
+      name: template.name,
+      type: 'training' as const,
+      sport: key,
+      category: 'technique' as any,
+      drills: template.drills,
+      description: `Template predefinido de ${template.name.toLowerCase()}`
+    }))
+  });
+  
+  const [activeTab, setActiveTab] = useState('entrenamientos');
+  const [newSessionVisible, setNewSessionVisible] = useState(false);
+  const [selectedSession, setSelectedSession] = useState<SportsSession | null>(null);
+  const [deleteDialogVisible, setDeleteDialogVisible] = useState(false);
+  const [sessionToDelete, setSessionToDelete] = useState<SportsSession | null>(null);
+  const [editMode, setEditMode] = useState(false);
+  const [templatesManagerVisible, setTemplatesManagerVisible] = useState(false);
+
+  // Form states
+  const [formSession, setFormSession] = useState<Partial<SportsSession>>({
+    sessionType: 'training',
+    sport: 'judo',
+    drills: [],
+    intensity: 3,
+    notes: '',
+    duration: 0
+  });
+
+  const startTrainingSession = (template: TrainingTemplate) => {
     const drills: TrainingDrill[] = template.drills.map((drill, index) => ({
       id: `${Date.now()}-${index}`,
       ...drill,
@@ -117,7 +137,7 @@ const EntrenamientoDeportivoScreen = () => {
     const newSession: Partial<SportsSession> = {
       date: new Date().toISOString(),
       sessionType: 'training',
-      sport,
+      sport: template.sport,
       drills,
       duration: 0,
       intensity: 3

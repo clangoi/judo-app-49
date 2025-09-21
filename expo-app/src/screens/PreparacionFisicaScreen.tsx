@@ -3,10 +3,12 @@ import { View, Text, StyleSheet, ScrollView, Alert, Dimensions } from 'react-nat
 import { Card, Button, TextInput, Dialog, Portal, SegmentedButtons, Chip, IconButton, FAB } from 'react-native-paper';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useCrudStorage } from '../hooks/useCrudStorage';
+import { useCustomTemplates, WorkoutTemplate } from '../hooks/useCustomTemplates';
 import { transformLegacyWorkoutSession } from '../utils/legacyTransformations';
 import EntryList from '../components/EntryList';
 import EntryFormModal from '../components/EntryFormModal';
 import ConfirmDeleteDialog from '../components/ConfirmDeleteDialog';
+import CustomTemplateManager from '../components/CustomTemplateManager';
 
 interface Exercise {
   id: string;
@@ -33,31 +35,8 @@ interface WorkoutSession {
   intensity: 1 | 2 | 3 | 4 | 5;
 }
 
-const PreparacionFisicaScreen = () => {
-  const { items: sessions, isLoading, create, update, remove } = useCrudStorage<WorkoutSession>({
-    storageKey: 'expo:fisica:sessions',
-    remotePayloadKey: 'workoutSessions',
-    transformLegacyItem: transformLegacyWorkoutSession
-  });
-  
-  const [activeTab, setActiveTab] = useState('rutinas');
-  const [newSessionVisible, setNewSessionVisible] = useState(false);
-  const [selectedSession, setSelectedSession] = useState<WorkoutSession | null>(null);
-  const [deleteDialogVisible, setDeleteDialogVisible] = useState(false);
-  const [sessionToDelete, setSessionToDelete] = useState<WorkoutSession | null>(null);
-  const [editMode, setEditMode] = useState(false);
-
-  // Form states
-  const [formSession, setFormSession] = useState<Partial<WorkoutSession>>({
-    type: 'full',
-    exercises: [],
-    intensity: 3,
-    notes: '',
-    duration: 0
-  });
-
-  // Predefined workouts
-  const workoutTemplates = {
+// Default workout templates (used for initialization) - MOVED BEFORE COMPONENT
+const defaultWorkoutTemplates = {
     upper: {
       name: 'Tren Superior',
       exercises: [
@@ -96,10 +75,50 @@ const PreparacionFisicaScreen = () => {
     }
   };
 
-  // No longer needed - useCrudStorage handles loading and saving
+const PreparacionFisicaScreen = () => {
+  const { items: sessions, isLoading, create, update, remove } = useCrudStorage<WorkoutSession>({
+    storageKey: 'expo:fisica:sessions',
+    remotePayloadKey: 'workoutSessions',
+    transformLegacyItem: transformLegacyWorkoutSession
+  });
 
-  const startWorkout = (type: keyof typeof workoutTemplates) => {
-    const template = workoutTemplates[type];
+  // Custom templates hook
+  const { 
+    templates: workoutTemplates, 
+    isLoading: templatesLoading,
+    createTemplate,
+    updateTemplate,
+    deleteTemplate
+  } = useCustomTemplates<WorkoutTemplate>({
+    storageKey: 'expo:fisica:templates',
+    templateType: 'workout',
+    defaultTemplates: Object.entries(defaultWorkoutTemplates).map(([key, template]) => ({
+      name: template.name,
+      type: 'workout' as const,
+      category: key as any,
+      exercises: template.exercises,
+      description: `Template predefinido de ${template.name.toLowerCase()}`
+    }))
+  });
+  
+  const [activeTab, setActiveTab] = useState('rutinas');
+  const [newSessionVisible, setNewSessionVisible] = useState(false);
+  const [selectedSession, setSelectedSession] = useState<WorkoutSession | null>(null);
+  const [deleteDialogVisible, setDeleteDialogVisible] = useState(false);
+  const [sessionToDelete, setSessionToDelete] = useState<WorkoutSession | null>(null);
+  const [editMode, setEditMode] = useState(false);
+  const [templatesManagerVisible, setTemplatesManagerVisible] = useState(false);
+
+  // Form states
+  const [formSession, setFormSession] = useState<Partial<WorkoutSession>>({
+    type: 'full',
+    exercises: [],
+    intensity: 3,
+    notes: '',
+    duration: 0
+  });
+
+  const startWorkout = (template: WorkoutTemplate) => {
     const exercises: Exercise[] = template.exercises.map((ex, index) => ({
       id: `${Date.now()}-${index}`,
       ...ex,
@@ -108,7 +127,7 @@ const PreparacionFisicaScreen = () => {
 
     const newWorkout: Partial<WorkoutSession> = {
       date: new Date().toISOString(),
-      type,
+      type: template.category === 'custom' ? 'full' : template.category,
       exercises,
       duration: 0,
       intensity: 3
@@ -241,54 +260,87 @@ const PreparacionFisicaScreen = () => {
           </Card.Content>
         </Card>
 
-        {/* Workout Templates */}
-        {Object.entries(workoutTemplates).map(([key, template]) => (
-          <Card key={key} style={styles.card}>
-            <Card.Content>
-              <View style={styles.cardHeader}>
-                <MaterialIcons 
-                  name={key === 'cardio' ? 'favorite' : key === 'flexibility' ? 'self-improvement' : 'fitness-center'} 
-                  size={24} 
-                  color="#283750" 
-                />
-                <Text style={styles.cardTitle}>{template.name}</Text>
-              </View>
-              
-              <View style={styles.exerciseList}>
-                {template.exercises.slice(0, 3).map((exercise, index) => (
-                  <Text key={index} style={styles.exerciseText}>
-                    • {exercise.name}
-                    {exercise.sets ? ` (${exercise.sets} series)` : ''}
-                    {exercise.duration ? ` (${exercise.duration} min)` : ''}
-                  </Text>
-                ))}
-                {template.exercises.length > 3 && (
-                  <Text style={styles.moreText}>+{template.exercises.length - 3} ejercicios más</Text>
-                )}
-              </View>
+        {/* Templates Manager Button */}
+        <Card style={styles.managerCard} onPress={() => setTemplatesManagerVisible(true)}>
+          <Card.Content style={styles.managerContent}>
+            <MaterialIcons name="settings" size={24} color="#283750" />
+            <Text style={styles.managerText}>Gestionar Templates de Ejercicios</Text>
+            <MaterialIcons name="chevron-right" size={24} color="#283750" />
+          </Card.Content>
+        </Card>
 
-              <Button
-                mode="contained"
-                style={styles.startButton}
-                buttonColor="#283750"
-                onPress={() => startWorkout(key as keyof typeof workoutTemplates)}
-                icon={({ size, color }) => (
-                  <MaterialIcons name="play-arrow" size={size} color={color} />
-                )}
-              >
-                Comenzar Entrenamiento
-              </Button>
+        {templatesLoading ? (
+          <Card style={styles.card}>
+            <Card.Content>
+              <Text style={styles.loadingText}>Cargando templates...</Text>
             </Card.Content>
           </Card>
-        ))}
+        ) : (
+          /* Workout Templates */
+          workoutTemplates.map((template) => (
+            <Card key={template.id} style={styles.card}>
+              <Card.Content>
+                <View style={styles.cardHeader}>
+                  <MaterialIcons 
+                    name={template.category === 'cardio' ? 'favorite' : template.category === 'flexibility' ? 'self-improvement' : 'fitness-center'} 
+                    size={24} 
+                    color="#283750" 
+                  />
+                  <View style={styles.templateTitleContainer}>
+                    <Text style={styles.cardTitle}>{template.name}</Text>
+                    {!template.isDefault && (
+                      <Chip mode="outlined" compact style={styles.customChip}>
+                        Personalizado
+                      </Chip>
+                    )}
+                  </View>
+                </View>
+                
+                {template.description && (
+                  <Text style={styles.templateDescription}>{template.description}</Text>
+                )}
+                
+                <View style={styles.exerciseList}>
+                  {template.exercises.slice(0, 3).map((exercise, index) => (
+                    <Text key={index} style={styles.exerciseText}>
+                      • {exercise.name}
+                      {exercise.sets ? ` (${exercise.sets} series)` : ''}
+                      {exercise.duration ? ` (${exercise.duration} min)` : ''}
+                    </Text>
+                  ))}
+                  {template.exercises.length > 3 && (
+                    <Text style={styles.moreText}>+{template.exercises.length - 3} ejercicios más</Text>
+                  )}
+                </View>
+
+                <Button
+                  mode="contained"
+                  style={styles.startButton}
+                  buttonColor="#283750"
+                  onPress={() => startWorkout(template)}
+                  icon={({ size, color }) => (
+                    <MaterialIcons name="play-arrow" size={size} color={color} />
+                  )}
+                >
+                  Comenzar Entrenamiento
+                </Button>
+              </Card.Content>
+            </Card>
+          ))
+        )}
       </View>
     );
   };
 
   const renderHistory = () => {
+    const getTemplateTitle = (sessionType: string) => {
+      const template = workoutTemplates.find(t => t.category === sessionType);
+      return template ? template.name : sessionType.charAt(0).toUpperCase() + sessionType.slice(1);
+    };
+
     const listItems = sessions.map(session => ({
       id: session.id,
-      title: workoutTemplates[session.type].name,
+      title: getTemplateTitle(session.type),
       subtitle: new Date(session.date).toLocaleDateString(),
       description: `${session.duration} min • Intensidad ${session.intensity}/5 • ${session.exercises.filter(ex => ex.completed).length}/${session.exercises.length} ejercicios${session.notes ? ` • ${session.notes}` : ''}`,
       leftIcon: session.type === 'cardio' ? 'favorite' : session.type === 'flexibility' ? 'self-improvement' : 'fitness-center',
@@ -367,7 +419,7 @@ const PreparacionFisicaScreen = () => {
           setEditMode(false);
         }}
         onSubmit={saveWorkoutSession}
-        title={editMode ? 'Editar Entrenamiento' : (selectedSession ? workoutTemplates[selectedSession.type].name : 'Entrenamiento')}
+        title={editMode ? 'Editar Entrenamiento' : (selectedSession ? (workoutTemplates.find(t => t.category === selectedSession.type)?.name || 'Entrenamiento') : 'Entrenamiento')}
         submitText={editMode ? 'Actualizar' : 'Finalizar'}
         submitDisabled={!selectedSession?.exercises.some(ex => ex.completed)}
       >
@@ -429,7 +481,18 @@ const PreparacionFisicaScreen = () => {
         onDismiss={() => setDeleteDialogVisible(false)}
         onConfirm={confirmDelete}
         title="Eliminar Entrenamiento"
-        message={`¿Estás seguro de que quieres eliminar el entrenamiento "${sessionToDelete ? workoutTemplates[sessionToDelete.type].name : ''}"? Esta acción no se puede deshacer.`}
+        message={`¿Estás seguro de que quieres eliminar el entrenamiento "${sessionToDelete ? (workoutTemplates.find(t => t.category === sessionToDelete.type)?.name || sessionToDelete.type) : ''}"? Esta acción no se puede deshacer.`}
+      />
+
+      {/* Custom Templates Manager */}
+      <CustomTemplateManager
+        templates={workoutTemplates}
+        templateType="workout"
+        visible={templatesManagerVisible}
+        onClose={() => setTemplatesManagerVisible(false)}
+        onCreateTemplate={createTemplate}
+        onUpdateTemplate={updateTemplate}
+        onDeleteTemplate={deleteTemplate}
       />
 
       {/* FAB */}
@@ -437,16 +500,19 @@ const PreparacionFisicaScreen = () => {
         icon="add"
         style={styles.fab}
         onPress={() => {
+          const availableTemplates = workoutTemplates.slice(0, 4);
+          const buttons = [
+            { text: "Cancelar", style: "cancel" as const },
+            ...availableTemplates.map(template => ({
+              text: template.name,
+              onPress: () => startWorkout(template)
+            }))
+          ];
+          
           Alert.alert(
             "Nuevo Entrenamiento",
             "Selecciona el tipo de entrenamiento:",
-            [
-              { text: "Cancelar", style: "cancel" },
-              { text: "Tren Superior", onPress: () => startWorkout('upper') },
-              { text: "Tren Inferior", onPress: () => startWorkout('lower') },
-              { text: "Cardiovascular", onPress: () => startWorkout('cardio') },
-              { text: "Flexibilidad", onPress: () => startWorkout('flexibility') }
-            ]
+            buttons
           );
         }}
         label="Entrenar"
@@ -506,6 +572,26 @@ const styles = StyleSheet.create({
     margin: 8,
     backgroundColor: '#FFFFFF',
     elevation: 2,
+  },
+  managerCard: {
+    margin: 8,
+    backgroundColor: '#F0F9FF',
+    elevation: 1,
+    borderColor: '#283750',
+    borderWidth: 1,
+  },
+  managerContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 8,
+  },
+  managerText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#283750',
+    flex: 1,
+    marginLeft: 12,
   },
   cardHeader: {
     flexDirection: 'row',
