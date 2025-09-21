@@ -41,24 +41,20 @@ const InicioScreen = ({ navigation }: InicioScreenProps) => {
   const handleNavigation = (screen: string) => {
     switch (screen) {
       case "Deporte":
-        navigation.navigate("Deporte");
+        navigation.navigate("Deporte", { screen: "DeporteHome" });
         break;
       case "MentalCheck":
-        Alert.alert(
-          "MentalCheck",
-          "Funcionalidad de evaluación mental y bienestar psicológico.\n\n🧠 Próximamente disponible en la app móvil.\n\nPor ahora, puedes usar las funciones de entrenamiento en la sección Deporte.",
-          [{ text: 'Ir a Entrenamientos', onPress: () => navigation.navigate("Deporte") }]
-        );
+        navigation.navigate("MentalCheck");
         break;
       case "Graficos":
         Alert.alert(
           "Gráficos y Análisis",
           "Visualización de progreso con gráficos detallados.\n\n📊 Próximamente disponible en la app móvil.\n\nPor ahora, revisa tu configuración de sincronización para conectar dispositivos.",
-          [{ text: 'Ver Configuración', onPress: () => navigation.navigate("Configuracion") }]
+          [{ text: 'Ver Configuración', onPress: () => navigation.navigate("Configuracion", { screen: "ConfiguracionHome" }) }]
         );
         break;
       default:
-        navigation.navigate("Deporte");
+        navigation.navigate("Deporte", { screen: "DeporteHome" });
     }
   };
 
