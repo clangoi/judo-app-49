@@ -84,8 +84,8 @@ const Index = () => {
               <Card key={item.path} className="bg-white hover:shadow-lg transition-shadow cursor-pointer border-primary">
                 <CardHeader className="pb-3">
                   <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-lg bg-primary">
-                      <IconComponent className="h-6 w-6 text-white" />
+                    <div className="p-2 rounded-lg" style={{ backgroundColor: 'hsl(180, 30%, 35%)', color: 'white' }}>
+                      <IconComponent className="h-6 w-6" style={{ color: 'white', display: 'block' }} />
                     </div>
                     <CardTitle className="text-foreground">{item.title}</CardTitle>
                   </div>
