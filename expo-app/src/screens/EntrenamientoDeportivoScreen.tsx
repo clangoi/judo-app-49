@@ -3,10 +3,12 @@ import { View, Text, StyleSheet, ScrollView, Alert, Dimensions } from 'react-nat
 import { Card, Button, TextInput, Dialog, Portal, SegmentedButtons, Chip, IconButton, FAB, RadioButton } from 'react-native-paper';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useCrudStorage } from '../hooks/useCrudStorage';
+import { useCustomTemplates, TrainingTemplate } from '../hooks/useCustomTemplates';
 import { transformLegacySportsSession } from '../utils/legacyTransformations';
 import EntryList from '../components/EntryList';
 import EntryFormModal from '../components/EntryFormModal';
 import ConfirmDeleteDialog from '../components/ConfirmDeleteDialog';
+import CustomTemplateManager from '../components/CustomTemplateManager';
 
 interface TrainingDrill {
   id: string;
@@ -34,44 +36,22 @@ interface SportsSession {
   result?: 'win' | 'loss' | 'draw';
   notes?: string;
   injuries?: string[];
+  templateId?: string;
+  templateName?: string;
 }
 
-const EntrenamientoDeportivoScreen = () => {
-  const { items: sessions, isLoading, create, update, remove } = useCrudStorage<SportsSession>({
-    storageKey: 'expo:deportivo:sessions',
-    remotePayloadKey: 'sportsSessions',
-    transformLegacyItem: transformLegacySportsSession
-  });
-  
-  const [activeTab, setActiveTab] = useState('entrenamientos');
-  const [newSessionVisible, setNewSessionVisible] = useState(false);
-  const [selectedSession, setSelectedSession] = useState<SportsSession | null>(null);
-  const [deleteDialogVisible, setDeleteDialogVisible] = useState(false);
-  const [sessionToDelete, setSessionToDelete] = useState<SportsSession | null>(null);
-  const [editMode, setEditMode] = useState(false);
+// Sports types
+const sportsTypes = [
+  { label: 'Judo', value: 'judo' },
+  { label: 'Karate', value: 'karate' },
+  { label: 'Taekwondo', value: 'taekwondo' },
+  { label: 'Boxeo', value: 'boxing' },
+  { label: 'MMA', value: 'mma' },
+  { label: 'Otro', value: 'other' }
+];
 
-  // Form states
-  const [formSession, setFormSession] = useState<Partial<SportsSession>>({
-    sessionType: 'training',
-    sport: 'judo',
-    drills: [],
-    intensity: 3,
-    notes: '',
-    duration: 0
-  });
-
-  // Sports types
-  const sportsTypes = [
-    { label: 'Judo', value: 'judo' },
-    { label: 'Karate', value: 'karate' },
-    { label: 'Taekwondo', value: 'taekwondo' },
-    { label: 'Boxeo', value: 'boxing' },
-    { label: 'MMA', value: 'mma' },
-    { label: 'Otro', value: 'other' }
-  ];
-
-  // Predefined training drills
-  const trainingTemplates = {
+// Default training templates (used for initialization) - MOVED BEFORE COMPONENT
+const defaultTrainingTemplates = {
     judo: {
       name: 'Entrenamiento de Judo',
       drills: [
@@ -104,10 +84,52 @@ const EntrenamientoDeportivoScreen = () => {
     }
   };
 
-  // No longer needed - useCrudStorage handles loading and saving
+const EntrenamientoDeportivoScreen = () => {
+  const { items: sessions, isLoading, create, update, remove } = useCrudStorage<SportsSession>({
+    storageKey: 'expo:deportivo:sessions',
+    remotePayloadKey: 'sportsSessions',
+    transformLegacyItem: transformLegacySportsSession
+  });
 
-  const startTrainingSession = (sport: keyof typeof trainingTemplates) => {
-    const template = trainingTemplates[sport];
+  // Custom templates hook
+  const { 
+    templates: trainingTemplates, 
+    isLoading: templatesLoading,
+    createTemplate,
+    updateTemplate,
+    deleteTemplate
+  } = useCustomTemplates<TrainingTemplate>({
+    storageKey: 'expo:deportivo:templates',
+    templateType: 'training',
+    defaultTemplates: Object.entries(defaultTrainingTemplates).map(([key, template]) => ({
+      name: template.name,
+      type: 'training' as const,
+      sport: key,
+      category: 'technique' as any,
+      drills: template.drills,
+      description: `Template predefinido de ${template.name.toLowerCase()}`
+    }))
+  });
+  
+  const [activeTab, setActiveTab] = useState('entrenamientos');
+  const [newSessionVisible, setNewSessionVisible] = useState(false);
+  const [selectedSession, setSelectedSession] = useState<SportsSession | null>(null);
+  const [deleteDialogVisible, setDeleteDialogVisible] = useState(false);
+  const [sessionToDelete, setSessionToDelete] = useState<SportsSession | null>(null);
+  const [editMode, setEditMode] = useState(false);
+  const [templatesManagerVisible, setTemplatesManagerVisible] = useState(false);
+
+  // Form states
+  const [formSession, setFormSession] = useState<Partial<SportsSession>>({
+    sessionType: 'training',
+    sport: 'judo',
+    drills: [],
+    intensity: 3,
+    notes: '',
+    duration: 0
+  });
+
+  const startTrainingSession = (template: TrainingTemplate) => {
     const drills: TrainingDrill[] = template.drills.map((drill, index) => ({
       id: `${Date.now()}-${index}`,
       ...drill,
@@ -117,10 +139,12 @@ const EntrenamientoDeportivoScreen = () => {
     const newSession: Partial<SportsSession> = {
       date: new Date().toISOString(),
       sessionType: 'training',
-      sport,
+      sport: template.sport,
       drills,
       duration: 0,
-      intensity: 3
+      intensity: 3,
+      templateId: template.id,
+      templateName: template.name
     };
 
     setFormSession(newSession);
@@ -185,9 +209,10 @@ const EntrenamientoDeportivoScreen = () => {
         );
       } else {
         await create(sessionData);
+        const templateName = sessionData.templateName || trainingTemplates.find(t => t.sport === sessionData.sport)?.name || sessionData.sport;
         Alert.alert(
           '¡Entrenamiento Completado!',
-          `Has completado tu sesión de ${trainingTemplates[sessionData.sport as keyof typeof trainingTemplates]?.name || sessionData.sport}.`,
+          `Has completado tu sesión de ${templateName}.`,
           [{ text: 'Excelente!', style: 'default' }]
         );
       }
@@ -294,7 +319,7 @@ const EntrenamientoDeportivoScreen = () => {
                 mode="contained"
                 style={styles.startButton}
                 buttonColor="#283750"
-                onPress={() => startTrainingSession(key as keyof typeof trainingTemplates)}
+                onPress={() => startTrainingSession(template)}
                 icon={({ size, color }) => (
                   <MaterialIcons name="play-arrow" size={size} color={color} />
                 )}
@@ -311,7 +336,7 @@ const EntrenamientoDeportivoScreen = () => {
   const renderHistory = () => {
     const listItems = sessions.map(session => ({
       id: session.id,
-      title: trainingTemplates[session.sport as keyof typeof trainingTemplates]?.name || `Entrenamiento de ${session.sport}`,
+      title: session.templateName || trainingTemplates.find(t => t.sport === session.sport)?.name || `Entrenamiento de ${session.sport}`,
       subtitle: new Date(session.date).toLocaleDateString(),
       description: `${session.duration} min • Intensidad ${session.intensity}/5 • ${session.drills.filter(d => d.completed).length}/${session.drills.length} ejercicios${session.sessionType === 'sparring' ? ' • Sparring' : ''}${session.partner ? ` • Con: ${session.partner}` : ''}${session.notes ? ` • ${session.notes}` : ''}`,
       leftIcon: session.sport === 'judo' ? 'sports-martial-arts' : session.sport === 'karate' ? 'sports' : 'sports',
@@ -391,7 +416,7 @@ const EntrenamientoDeportivoScreen = () => {
           setEditMode(false);
         }}
         onSubmit={saveSession}
-        title={editMode ? 'Editar Entrenamiento' : (selectedSession ? trainingTemplates[selectedSession.sport as keyof typeof trainingTemplates]?.name || 'Entrenamiento' : 'Entrenamiento')}
+        title={editMode ? 'Editar Entrenamiento' : (selectedSession ? (selectedSession.templateName || trainingTemplates.find(t => t.sport === selectedSession.sport)?.name || 'Entrenamiento') : 'Entrenamiento')}
         submitText={editMode ? 'Actualizar' : 'Finalizar'}
         submitDisabled={!selectedSession?.drills.some(d => d.completed)}
       >
@@ -461,7 +486,7 @@ const EntrenamientoDeportivoScreen = () => {
         onDismiss={() => setDeleteDialogVisible(false)}
         onConfirm={confirmDelete}
         title="Eliminar Entrenamiento"
-        message={`¿Estás seguro de que quieres eliminar el entrenamiento "${sessionToDelete ? trainingTemplates[sessionToDelete.sport as keyof typeof trainingTemplates]?.name || sessionToDelete.sport : ''}"? Esta acción no se puede deshacer.`}
+        message={`¿Estás seguro de que quieres eliminar el entrenamiento "${sessionToDelete ? (sessionToDelete.templateName || trainingTemplates.find(t => t.sport === sessionToDelete.sport)?.name || sessionToDelete.sport) : ''}"? Esta acción no se puede deshacer.`}
       />
 
       {/* FAB */}
@@ -469,15 +494,19 @@ const EntrenamientoDeportivoScreen = () => {
         icon="sports-martial-arts"
         style={styles.fab}
         onPress={() => {
+          const availableTemplates = trainingTemplates.slice(0, 3);
+          const buttons = [
+            { text: "Cancelar", style: "cancel" as const },
+            ...availableTemplates.map(template => ({
+              text: template.name,
+              onPress: () => startTrainingSession(template)
+            }))
+          ];
+          
           Alert.alert(
             "Nuevo Entrenamiento",
             "Selecciona el tipo de entrenamiento deportivo:",
-            [
-              { text: "Cancelar", style: "cancel" },
-              { text: "Judo", onPress: () => startTrainingSession('judo') },
-              { text: "Karate", onPress: () => startTrainingSession('karate') },
-              { text: "Boxeo", onPress: () => startTrainingSession('boxing') }
-            ]
+            buttons
           );
         }}
         label="Entrenar"

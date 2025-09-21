@@ -130,9 +130,6 @@ const DeporteScreen = () => {
           <Card key={index} style={styles.moduleCard}>
             <Card.Content>
               <View style={styles.cardHeader}>
-                <View style={styles.iconContainer}>
-                  <MaterialIcons name={module.icon as any} size={24} color="#FFFFFF" />
-                </View>
                 <Text style={styles.cardTitle}>{module.title}</Text>
               </View>
               <Text style={styles.cardDescription}>{module.description}</Text>
@@ -167,9 +164,6 @@ const DeporteScreen = () => {
         <Card key={index} style={styles.card}>
           <Card.Content>
             <View style={styles.cardHeader}>
-              <View style={styles.iconContainer}>
-                <MaterialIcons name={module.icon as any} size={24} color="#FFFFFF" />
-              </View>
               <View style={styles.headerText}>
                 <Text style={styles.cardTitle}>{module.title}</Text>
                 <Text style={styles.cardDescription}>{module.description}</Text>
@@ -207,9 +201,6 @@ const DeporteScreen = () => {
         <Card key={index} style={styles.card}>
           <Card.Content>
             <View style={styles.cardHeader}>
-              <View style={styles.iconContainer}>
-                <MaterialIcons name={action.icon as any} size={24} color="#FFFFFF" />
-              </View>
               <View style={styles.headerText}>
                 <Text style={styles.cardTitle}>{action.title}</Text>
                 <Text style={styles.cardDescription}>{action.description}</Text>
@@ -347,14 +338,6 @@ const styles = StyleSheet.create({
   headerText: {
     flex: 1,
     marginLeft: 12,
-  },
-  iconContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: 8,
-    backgroundColor: '#283750',
-    justifyContent: 'center',
-    alignItems: 'center',
   },
   cardTitle: {
     fontSize: 16,

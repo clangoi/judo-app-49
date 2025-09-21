@@ -47,7 +47,7 @@ const InicioScreen = ({ navigation }: InicioScreenProps) => {
         navigation.navigate("MentalCheck");
         break;
       case "Graficos":
-        navigation.navigate("GraficosAnalisis");
+        navigation.navigate("MentalCheck", { initialTab: 'analytics' });
         break;
       default:
         navigation.navigate("Deporte", { screen: "DeporteHome" });
