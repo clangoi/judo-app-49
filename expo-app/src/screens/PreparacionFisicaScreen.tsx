@@ -2,8 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, Alert, Dimensions } from 'react-native';
 import { Card, Button, TextInput, Dialog, Portal, SegmentedButtons, Chip, IconButton, FAB } from 'react-native-paper';
 import { MaterialIcons } from '@expo/vector-icons';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useSyncManager } from '../hooks/useSyncManager';
+import { useCrudStorage } from '../hooks/useCrudStorage';
+import EntryList from '../components/EntryList';
+import EntryFormModal from '../components/EntryFormModal';
+import ConfirmDeleteDialog from '../components/ConfirmDeleteDialog';
 
 interface Exercise {
   id: string;
@@ -20,6 +22,8 @@ interface Exercise {
 
 interface WorkoutSession {
   id: string;
+  createdAt: string;
+  updatedAt: string;
   date: string;
   type: 'upper' | 'lower' | 'full' | 'cardio' | 'flexibility';
   exercises: Exercise[];
@@ -29,18 +33,25 @@ interface WorkoutSession {
 }
 
 const PreparacionFisicaScreen = () => {
-  const [sessions, setSessions] = useState<WorkoutSession[]>([]);
+  const { items: sessions, isLoading, create, update, remove } = useCrudStorage<WorkoutSession>({
+    storageKey: 'expo:training:workouts.sessions',
+    remotePayloadKey: 'workoutSessions'
+  });
+  
   const [activeTab, setActiveTab] = useState('rutinas');
   const [newSessionVisible, setNewSessionVisible] = useState(false);
   const [selectedSession, setSelectedSession] = useState<WorkoutSession | null>(null);
-  const { syncStatus, updateRemoteData } = useSyncManager();
+  const [deleteDialogVisible, setDeleteDialogVisible] = useState(false);
+  const [sessionToDelete, setSessionToDelete] = useState<WorkoutSession | null>(null);
+  const [editMode, setEditMode] = useState(false);
 
   // Form states
-  const [newSession, setNewSession] = useState<Partial<WorkoutSession>>({
+  const [formSession, setFormSession] = useState<Partial<WorkoutSession>>({
     type: 'full',
     exercises: [],
     intensity: 3,
-    notes: ''
+    notes: '',
+    duration: 0
   });
 
   // Predefined workouts
@@ -83,33 +94,7 @@ const PreparacionFisicaScreen = () => {
     }
   };
 
-  useEffect(() => {
-    loadSessions();
-  }, []);
-
-  const loadSessions = async () => {
-    try {
-      const stored = await AsyncStorage.getItem('workout-sessions');
-      if (stored) {
-        setSessions(JSON.parse(stored));
-      }
-    } catch (error) {
-      console.error('Error loading workout sessions:', error);
-    }
-  };
-
-  const saveSessions = async (newSessions: WorkoutSession[]) => {
-    try {
-      await AsyncStorage.setItem('workout-sessions', JSON.stringify(newSessions));
-      setSessions(newSessions);
-      
-      if (syncStatus.isLinked) {
-        updateRemoteData({ workoutSessions: newSessions });
-      }
-    } catch (error) {
-      console.error('Error saving workout sessions:', error);
-    }
-  };
+  // No longer needed - useCrudStorage handles loading and saving
 
   const startWorkout = (type: keyof typeof workoutTemplates) => {
     const template = workoutTemplates[type];
@@ -119,8 +104,7 @@ const PreparacionFisicaScreen = () => {
       completed: false
     } as Exercise));
 
-    const newWorkout: WorkoutSession = {
-      id: Date.now().toString(),
+    const newWorkout: Partial<WorkoutSession> = {
       date: new Date().toISOString(),
       type,
       exercises,
@@ -128,41 +112,88 @@ const PreparacionFisicaScreen = () => {
       intensity: 3
     };
 
-    setSelectedSession(newWorkout);
+    setFormSession(newWorkout);
+    setSelectedSession(newWorkout as WorkoutSession);
+    setEditMode(false);
     setNewSessionVisible(true);
   };
 
+  const editSession = (session: WorkoutSession) => {
+    setFormSession(session);
+    setSelectedSession(session);
+    setEditMode(true);
+    setNewSessionVisible(true);
+  };
+
+  const deleteSession = (session: WorkoutSession) => {
+    setSessionToDelete(session);
+    setDeleteDialogVisible(true);
+  };
+
+  const confirmDelete = async () => {
+    if (sessionToDelete) {
+      await remove(sessionToDelete.id);
+      setSessionToDelete(null);
+    }
+  };
+
   const completeExercise = (exerciseId: string) => {
-    if (!selectedSession) return;
+    if (!selectedSession || !formSession) return;
 
     const updatedExercises = selectedSession.exercises.map(ex =>
       ex.id === exerciseId ? { ...ex, completed: !ex.completed } : ex
     );
 
-    setSelectedSession({
+    const updatedSession = {
       ...selectedSession,
+      exercises: updatedExercises
+    };
+
+    setSelectedSession(updatedSession);
+    setFormSession({
+      ...formSession,
       exercises: updatedExercises
     });
   };
 
-  const saveWorkoutSession = () => {
-    if (!selectedSession) return;
+  const saveWorkoutSession = async () => {
+    if (!selectedSession || !formSession) return;
 
-    const completedSession = {
-      ...selectedSession,
-      duration: Math.floor(Math.random() * 60) + 30 // Placeholder duration
-    };
+    try {
+      const sessionData = {
+        ...formSession,
+        duration: formSession.duration || Math.floor(Math.random() * 60) + 30 // Placeholder duration
+      };
 
-    const updatedSessions = [completedSession, ...sessions];
-    saveSessions(updatedSessions);
-    setSelectedSession(null);
-    setNewSessionVisible(false);
+      if (editMode && selectedSession.id) {
+        await update(selectedSession.id, sessionData);
+        Alert.alert(
+          '¡Entrenamiento Actualizado!',
+          'Los cambios han sido guardados exitosamente.',
+          [{ text: 'Excelente!', style: 'default' }]
+        );
+      } else {
+        await create(sessionData);
+        Alert.alert(
+          '¡Entrenamiento Completado!',
+          `Has terminado tu sesión de ${workoutTemplates[sessionData.type!].name}.`,
+          [{ text: 'Excelente!', style: 'default' }]
+        );
+      }
 
-    Alert.alert(
-      '¡Entrenamiento Completado!',
-      `Has terminado tu sesión de ${workoutTemplates[completedSession.type].name}.`,
-      [{ text: 'Excelente!', style: 'default' }]
-    );
+      setSelectedSession(null);
+      setFormSession({
+        type: 'full',
+        exercises: [],
+        intensity: 3,
+        notes: '',
+        duration: 0
+      });
+      setNewSessionVisible(false);
+      setEditMode(false);
+    } catch (error) {
+      Alert.alert('Error', 'No se pudo guardar el entrenamiento. Inténtalo de nuevo.');
+    }
   };
 
   const getWorkoutStats = () => {
@@ -252,49 +283,51 @@ const PreparacionFisicaScreen = () => {
     );
   };
 
-  const renderHistory = () => (
-    <View>
-      {sessions.length === 0 ? (
-        <Card style={styles.emptyCard}>
-          <Card.Content>
-            <Text style={styles.emptyText}>No hay entrenamientos registrados</Text>
-            <Text style={styles.emptySubtext}>Comienza tu primer entrenamiento para ver el historial aquí</Text>
-          </Card.Content>
-        </Card>
-      ) : (
-        sessions.slice(0, 10).map((session) => (
-          <Card key={session.id} style={styles.card}>
-            <Card.Content>
-              <View style={styles.historyHeader}>
-                <Text style={styles.historyTitle}>
-                  {workoutTemplates[session.type].name}
-                </Text>
-                <Text style={styles.historyDate}>
-                  {new Date(session.date).toLocaleDateString()}
-                </Text>
-              </View>
-              
-              <View style={styles.historyStats}>
-                <Chip style={styles.chip}>
-                  <Text>{session.duration} min</Text>
-                </Chip>
-                <Chip style={styles.chip}>
-                  <Text>Intensidad {session.intensity}/5</Text>
-                </Chip>
-                <Chip style={styles.chip}>
-                  <Text>{session.exercises.filter(ex => ex.completed).length}/{session.exercises.length} ejercicios</Text>
-                </Chip>
-              </View>
-              
-              {session.notes && (
-                <Text style={styles.sessionNotes}>{session.notes}</Text>
-              )}
-            </Card.Content>
-          </Card>
-        ))
-      )}
-    </View>
-  );
+  const renderHistory = () => {
+    const listItems = sessions.map(session => ({
+      id: session.id,
+      title: workoutTemplates[session.type].name,
+      subtitle: new Date(session.date).toLocaleDateString(),
+      description: `${session.duration} min • Intensidad ${session.intensity}/5 • ${session.exercises.filter(ex => ex.completed).length}/${session.exercises.length} ejercicios${session.notes ? ` • ${session.notes}` : ''}`,
+      leftIcon: session.type === 'cardio' ? 'favorite' : session.type === 'flexibility' ? 'self-improvement' : 'fitness-center',
+      rightText: `${session.duration}min`
+    }));
+
+    return (
+      <EntryList
+        items={listItems}
+        onItemPress={(item) => {
+          const session = sessions.find(s => s.id === item.id);
+          if (session) editSession(session);
+        }}
+        onEdit={(item) => {
+          const session = sessions.find(s => s.id === item.id);
+          if (session) editSession(session);
+        }}
+        onDelete={(item) => {
+          const session = sessions.find(s => s.id === item.id);
+          if (session) deleteSession(session);
+        }}
+        onDuplicate={(item) => {
+          const session = sessions.find(s => s.id === item.id);
+          if (session) {
+            const duplicateSession = {
+              ...session,
+              date: new Date().toISOString(),
+              exercises: session.exercises.map(ex => ({ ...ex, completed: false, id: `${Date.now()}-${Math.random()}` }))
+            };
+            setFormSession(duplicateSession);
+            setSelectedSession(duplicateSession as WorkoutSession);
+            setEditMode(false);
+            setNewSessionVisible(true);
+          }
+        }}
+        emptyStateText="No hay entrenamientos registrados"
+        emptyStateSubtext="Comienza tu primer entrenamiento para ver el historial aquí"
+        loading={isLoading}
+      />
+    );
+  };
 
   return (
     <View style={styles.container}>
@@ -316,57 +349,86 @@ const PreparacionFisicaScreen = () => {
         {activeTab === 'historial' && renderHistory()}
       </ScrollView>
 
-      {/* Workout Session Dialog */}
-      <Portal>
-        <Dialog 
-          visible={newSessionVisible} 
-          onDismiss={() => setNewSessionVisible(false)}
-          style={styles.dialog}
-        >
-          <Dialog.Title>
-            {selectedSession ? workoutTemplates[selectedSession.type].name : 'Entrenamiento'}
-          </Dialog.Title>
-          <Dialog.ScrollArea style={styles.dialogContent}>
-            <ScrollView>
-              {selectedSession?.exercises.map((exercise) => (
-                <View key={exercise.id} style={styles.exerciseItem}>
-                  <View style={styles.exerciseHeader}>
-                    <IconButton
-                      icon={exercise.completed ? "check-circle" : "circle-outline"}
-                      iconColor={exercise.completed ? "#10B981" : "#9CA3AF"}
-                      onPress={() => completeExercise(exercise.id)}
-                    />
-                    <View style={styles.exerciseInfo}>
-                      <Text style={[
-                        styles.exerciseName,
-                        exercise.completed && styles.exerciseCompleted
-                      ]}>
-                        {exercise.name}
-                      </Text>
-                      <Text style={styles.exerciseDetails}>
-                        {exercise.sets && `${exercise.sets} series`}
-                        {exercise.reps && ` × ${exercise.reps} reps`}
-                        {exercise.duration && `${exercise.duration} minutos`}
-                        {exercise.distance && ` - ${exercise.distance} km`}
-                      </Text>
-                    </View>
-                  </View>
+      {/* Workout Session Modal */}
+      <EntryFormModal
+        visible={newSessionVisible}
+        onDismiss={() => {
+          setNewSessionVisible(false);
+          setSelectedSession(null);
+          setFormSession({
+            type: 'full',
+            exercises: [],
+            intensity: 3,
+            notes: '',
+            duration: 0
+          });
+          setEditMode(false);
+        }}
+        onSubmit={saveWorkoutSession}
+        title={editMode ? 'Editar Entrenamiento' : (selectedSession ? workoutTemplates[selectedSession.type].name : 'Entrenamiento')}
+        submitText={editMode ? 'Actualizar' : 'Finalizar'}
+        submitDisabled={!selectedSession?.exercises.some(ex => ex.completed)}
+      >
+        <ScrollView style={styles.formScrollView}>
+          {selectedSession?.exercises.map((exercise) => (
+            <View key={exercise.id} style={styles.exerciseItem}>
+              <View style={styles.exerciseHeader}>
+                <IconButton
+                  icon={exercise.completed ? "check-circle" : "circle-outline"}
+                  iconColor={exercise.completed ? "#10B981" : "#9CA3AF"}
+                  onPress={() => completeExercise(exercise.id)}
+                />
+                <View style={styles.exerciseInfo}>
+                  <Text style={[
+                    styles.exerciseName,
+                    exercise.completed && styles.exerciseCompleted
+                  ]}>
+                    {exercise.name}
+                  </Text>
+                  <Text style={styles.exerciseDetails}>
+                    {exercise.sets && `${exercise.sets} series`}
+                    {exercise.reps && ` × ${exercise.reps} reps`}
+                    {exercise.duration && `${exercise.duration} minutos`}
+                    {exercise.distance && ` - ${exercise.distance} km`}
+                  </Text>
                 </View>
-              ))}
-            </ScrollView>
-          </Dialog.ScrollArea>
-          <Dialog.Actions>
-            <Button onPress={() => setNewSessionVisible(false)}>Cancelar</Button>
-            <Button 
-              mode="contained" 
-              onPress={saveWorkoutSession}
-              disabled={!selectedSession?.exercises.some(ex => ex.completed)}
-            >
-              Finalizar
-            </Button>
-          </Dialog.Actions>
-        </Dialog>
-      </Portal>
+              </View>
+            </View>
+          ))}
+          
+          {editMode && (
+            <View style={styles.formFields}>
+              <TextInput
+                mode="outlined"
+                label="Duración (minutos)"
+                value={formSession.duration?.toString() || ''}
+                onChangeText={(text) => setFormSession(prev => ({ ...prev, duration: parseInt(text) || 0 }))}
+                keyboardType="numeric"
+                style={styles.formInput}
+              />
+              
+              <TextInput
+                mode="outlined"
+                label="Notas"
+                value={formSession.notes || ''}
+                onChangeText={(text) => setFormSession(prev => ({ ...prev, notes: text }))}
+                multiline
+                numberOfLines={3}
+                style={styles.formInput}
+              />
+            </View>
+          )}
+        </ScrollView>
+      </EntryFormModal>
+
+      {/* Delete Confirmation Dialog */}
+      <ConfirmDeleteDialog
+        visible={deleteDialogVisible}
+        onDismiss={() => setDeleteDialogVisible(false)}
+        onConfirm={confirmDelete}
+        title="Eliminar Entrenamiento"
+        message={`¿Estás seguro de que quieres eliminar el entrenamiento "${sessionToDelete ? workoutTemplates[sessionToDelete.type].name : ''}"? Esta acción no se puede deshacer.`}
+      />
 
       {/* FAB */}
       <FAB
@@ -555,6 +617,16 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
     backgroundColor: '#283750',
+  },
+  formScrollView: {
+    maxHeight: 300,
+  },
+  formFields: {
+    gap: 16,
+    marginTop: 16,
+  },
+  formInput: {
+    marginBottom: 8,
   },
 });
 
