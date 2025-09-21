@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "MentalCheck - Entrenamiento",
-    "slug": "mentalcheck-deportes",
+    "slug": "rest-express",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./expo-assets/icon.png",
@@ -37,11 +37,14 @@
       "favicon": "./expo-assets/favicon.png"
     },
     "plugins": [
-      "expo-notifications"
+      "expo-notifications",
+      "expo-asset",
+      "expo-font",
+      "expo-web-browser"
     ],
     "extra": {
       "eas": {
-        "projectId": "mentalcheck-deportes-uuid"
+        "projectId": "14fbcd12-aa8f-433a-a1e6-a204da1c105e"
       }
     }
   }

@@ -31,10 +31,31 @@ export interface SyncContextType {
   linkDevice: (code: string, deviceName: string) => Promise<boolean>;
   unlinkDevice: () => void;
   updateRemoteData: (data: Partial<SyncData>) => Promise<void>;
-  syncData: () => Promise<boolean>;
+  triggerSync: () => Promise<boolean>;
 }
 
-const SyncContext = createContext<SyncContextType | undefined>(undefined);
+export const SyncContext = createContext<SyncContextType>({
+  syncStatus: {
+    isLinked: false,
+    isGenerating: false,
+    isLinking: false,
+    isSyncing: false,
+  },
+  syncData: {},
+  generateDeviceCode: () => '',
+  linkDevice: async () => false,
+  unlinkDevice: () => {},
+  updateRemoteData: async () => {},
+  triggerSync: async () => false,
+});
+
+export const useSyncContext = () => {
+  const context = useContext(SyncContext);
+  if (!context) {
+    throw new Error('useSyncContext must be used within a SyncProvider');
+  }
+  return context;
+};
 
 export const useSyncManager = () => {
   const context = useContext(SyncContext);
@@ -64,7 +85,7 @@ export const SyncProvider = ({ children }: { children: ReactNode }) => {
     isLinking: false,
     isSyncing: false
   });
-  const [syncData, setSyncData] = useState<SyncData>({});
+  const [syncData, setSyncData] = useState<SyncData>({}); // ← Estado: los datos
 
   // Load sync status on startup
   useEffect(() => {
@@ -75,7 +96,6 @@ export const SyncProvider = ({ children }: { children: ReactNode }) => {
         
         if (savedStatus) {
           const parsedStatus = JSON.parse(savedStatus);
-          // Convert date strings back to Date objects
           if (parsedStatus.lastSync) {
             parsedStatus.lastSync = new Date(parsedStatus.lastSync);
           }
@@ -93,7 +113,7 @@ export const SyncProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const generateDeviceCode = (): string => {
-    const code = generateRandomCode();
+    const code = generateRandomCode(); // ← Asegúrate de que esta función exista
     return code;
   };
 
@@ -101,9 +121,7 @@ export const SyncProvider = ({ children }: { children: ReactNode }) => {
     try {
       setSyncStatus(prev => ({ ...prev, isLinking: true, error: undefined }));
       
-      // Simulated linking logic - in a real app this would connect to a sync service
-      // For now, we'll just simulate a successful link locally
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate network delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
       
       const newStatus = {
         isLinked: true,
@@ -154,7 +172,6 @@ export const SyncProvider = ({ children }: { children: ReactNode }) => {
       setSyncData(newSyncData);
       await AsyncStorage.setItem('sync-data', JSON.stringify(newSyncData));
       
-      // Update last sync time
       const newStatus = { 
         ...syncStatus, 
         lastSync: new Date(),
@@ -172,15 +189,12 @@ export const SyncProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const syncData = async (): Promise<boolean> => {
+  const triggerSync = async (): Promise<boolean> => {
     try {
       setSyncStatus(prev => ({ ...prev, isSyncing: true, error: undefined }));
       
-      // In a real implementation, this would sync with a remote service
-      // For now, we just simulate the sync process
-      await new Promise(resolve => setTimeout(resolve, 500)); // Simulate network delay
+      await new Promise(resolve => setTimeout(resolve, 500));
       
-      // Update last sync time
       const newStatus = { 
         ...syncStatus, 
         lastSync: new Date(),
@@ -201,14 +215,15 @@ export const SyncProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  // ✅ Ahora NO hay duplicados
   const value: SyncContextType = {
     syncStatus,
-    syncData,
+    syncData,        // ← El estado (objeto con datos)
     generateDeviceCode,
     linkDevice,
     unlinkDevice,
     updateRemoteData,
-    syncData
+    triggerSync      // ← ¡La función! (antes era syncData)
   };
 
   return <SyncContext.Provider value={value}>{children}</SyncContext.Provider>;

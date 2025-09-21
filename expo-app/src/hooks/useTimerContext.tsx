@@ -118,6 +118,8 @@ Notifications.setNotificationHandler({
     shouldShowAlert: true,
     shouldPlaySound: true,
     shouldSetBadge: false,
+    shouldShowBanner: true, 
+    shouldShowList: true, 
   }),
 });
 
@@ -146,8 +148,8 @@ const loadInitialState = async (): Promise<TimerState> => {
 
 export const TimerProvider = ({ children }: { children: ReactNode }) => {
   const [state, setState] = useState<TimerState>(defaultState);
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
-  const { syncStatus, updateRemoteData, syncData } = useSyncManager();
+  const intervalRef = useRef<number | null>(null);
+  const { syncStatus, updateRemoteData, triggerSync } = useSyncManager();
 
   // Cargar estado inicial
   useEffect(() => {
@@ -170,7 +172,7 @@ export const TimerProvider = ({ children }: { children: ReactNode }) => {
     if (syncStatus.isLinked) {
       const syncTimerData = async () => {
         try {
-          const success = await syncData();
+          const success = await triggerSync();
           if (success) {
             const newState = await loadInitialState();
             setState(newState);
@@ -188,11 +190,12 @@ export const TimerProvider = ({ children }: { children: ReactNode }) => {
       
       return () => clearInterval(interval);
     }
-  }, [syncStatus.isLinked, syncData]);
+  }, [syncStatus.isLinked, triggerSync]);
 
   // Main timer effect
   useEffect(() => {
     if (state.isRunning && !state.isPaused) {
+      // ✅ Aquí setTimeout devuelve un number en web
       intervalRef.current = setTimeout(() => {
         setState(prevState => {
           if (prevState.mode === 'stopwatch') {
@@ -207,7 +210,6 @@ export const TimerProvider = ({ children }: { children: ReactNode }) => {
                 timeLeft: prevState.timeLeft - 1
               };
             } else {
-              // Timer finished
               playNotification('¡Tiempo terminado!');
               return {
                 ...prevState,
@@ -222,7 +224,6 @@ export const TimerProvider = ({ children }: { children: ReactNode }) => {
                 timeLeft: prevState.timeLeft - 1
               };
             } else {
-              // Handle phase change for Tabata
               return handleTabataPhaseChange(prevState);
             }
           }
@@ -233,7 +234,7 @@ export const TimerProvider = ({ children }: { children: ReactNode }) => {
 
     return () => {
       if (intervalRef.current) {
-        clearTimeout(intervalRef.current);
+        clearTimeout(intervalRef.current); // ✅ clearTimeout acepta number en web
       }
     };
   }, [state.isRunning, state.isPaused, state.timeLeft, state.stopwatchTime, state.mode]);

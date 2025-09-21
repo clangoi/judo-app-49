@@ -1,0 +1,12 @@
+{
+  "expo": {
+    "extra": {
+      "eas": {
+        "projectId": "14fbcd12-aa8f-433a-a1e6-a204da1c105e"
+      }
+    },
+    "android": {
+      "package": "com.clangoi.restexpress"
+    }
+  }
+}
