@@ -2,11 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, Alert, FlatList } from 'react-native';
 import { Card, Button, TextInput, Dialog, Portal, SegmentedButtons, Chip, IconButton, FAB, Searchbar } from 'react-native-paper';
 import { MaterialIcons } from '@expo/vector-icons';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useSyncManager } from '../hooks/useSyncManager';
+import { useCrudStorage } from '../hooks/useCrudStorage';
+import EntryList from '../components/EntryList';
+import EntryFormModal from '../components/EntryFormModal';
+import ConfirmDeleteDialog from '../components/ConfirmDeleteDialog';
 
 interface Technique {
   id: string;
+  createdAt: string;
+  updatedAt: string;
   name: string;
   category: 'throws' | 'grappling' | 'strikes' | 'submissions' | 'escapes' | 'combinations';
   sport: 'judo' | 'karate' | 'boxing' | 'bjj' | 'mma' | 'general';
@@ -19,10 +23,15 @@ interface Technique {
   timesLearned: number;
   lastPracticed?: string;
   mastery: 1 | 2 | 3 | 4 | 5; // 1 = Principiante, 5 = Maestro
+  isDefault?: boolean; // Para técnicas predefinidas que no se pueden eliminar
 }
 
 const TecnicasDeportivasScreen = () => {
-  const [techniques, setTechniques] = useState<Technique[]>([]);
+  const { items: techniques, isLoading, create, update, remove } = useCrudStorage<Technique>({
+    storageKey: 'expo:training:techniques.library',
+    remotePayloadKey: 'martialTechniques'
+  });
+  
   const [filteredTechniques, setFilteredTechniques] = useState<Technique[]>([]);
   const [activeTab, setActiveTab] = useState('explorar');
   const [selectedCategory, setSelectedCategory] = useState('all');
@@ -30,7 +39,22 @@ const TecnicasDeportivasScreen = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [techniqueDetailVisible, setTechniqueDetailVisible] = useState(false);
   const [selectedTechnique, setSelectedTechnique] = useState<Technique | null>(null);
-  const { syncStatus, updateRemoteData } = useSyncManager();
+  const [newTechniqueVisible, setNewTechniqueVisible] = useState(false);
+  const [deleteDialogVisible, setDeleteDialogVisible] = useState(false);
+  const [techniqueToDelete, setTechniqueToDelete] = useState<Technique | null>(null);
+  const [editMode, setEditMode] = useState(false);
+  const [formTechnique, setFormTechnique] = useState<Partial<Technique>>({
+    name: '',
+    category: 'throws',
+    sport: 'judo',
+    difficulty: 1,
+    description: '',
+    steps: [''],
+    tips: [''],
+    isFavorite: false,
+    timesLearned: 0,
+    mastery: 1
+  });
 
   // Categories and sports
   const categories = [
@@ -52,139 +76,96 @@ const TecnicasDeportivasScreen = () => {
     { value: 'mma', label: 'MMA' }
   ];
 
-  // Sample techniques data
-  const sampleTechniques: Technique[] = [
-    {
-      id: '1',
-      name: 'Seoi Nage (Carga de hombros)',
-      category: 'throws',
-      sport: 'judo',
-      difficulty: 3,
-      description: 'Técnica clásica de proyección donde se carga al oponente sobre el hombro',
-      steps: [
-        'Agarra la solapa y manga del oponente',
-        'Da un paso hacia adelante con el pie derecho',
-        'Gira el cuerpo metiendo el hombro bajo el brazo del oponente',
-        'Flexiona las rodillas y levanta al oponente sobre tu espalda',
-        'Proyecta hacia adelante con un movimiento explosivo'
-      ],
-      tips: [
-        'Mantén el contacto cercano durante toda la técnica',
-        'El timing es crucial - aprovecha cuando el oponente se inclina hacia adelante',
-        'Practica la entrada sin proyección primero'
-      ],
-      isFavorite: true,
-      timesLearned: 25,
-      lastPracticed: new Date().toISOString(),
-      mastery: 4
-    },
-    {
-      id: '2',
-      name: 'Jab Cross',
-      category: 'strikes',
-      sport: 'boxing',
-      difficulty: 2,
-      description: 'Combinación básica de golpes directos en boxeo',
-      steps: [
-        'Posición de guardia básica',
-        'Lanza jab directo con la mano adelantada',
-        'Inmediatamente sigue con cross de la mano trasera',
-        'Rota la cadera en el cross para más potencia',
-        'Regresa a guardia'
-      ],
-      tips: [
-        'Mantén el mentón protegido',
-        'No telegrafíes los golpes',
-        'Practica en el saco primero'
-      ],
-      isFavorite: false,
-      timesLearned: 15,
-      mastery: 3
-    },
-    {
-      id: '3',
-      name: 'Armbar desde guardia',
-      category: 'submissions',
-      sport: 'bjj',
-      difficulty: 4,
-      description: 'Finalización básica de Brazilian Jiu-Jitsu desde la guardia cerrada',
-      steps: [
-        'Desde guardia cerrada, controla el brazo del oponente',
-        'Abre la guardia y coloca el pie en la cadera',
-        'Pivota la cadera hacia el brazo objetivo',
-        'Pasa la pierna sobre la cabeza del oponente',
-        'Controla la muñeca y extiende la cadera para finalizar'
-      ],
-      tips: [
-        'Control del brazo es fundamental',
-        'Mantén las rodillas juntas',
-        'Practica lentamente primero'
-      ],
-      isFavorite: true,
-      timesLearned: 8,
-      mastery: 2
-    },
-    {
-      id: '4',
-      name: 'Mae Geri (Patada frontal)',
-      category: 'strikes',
-      sport: 'karate',
-      difficulty: 2,
-      description: 'Patada frontal básica en karate',
-      steps: [
-        'Posición natural de pie',
-        'Levanta la rodilla hacia el pecho',
-        'Extiende la pierna hacia adelante',
-        'Impacta con la bola del pie',
-        'Retrae rápidamente la pierna'
-      ],
-      tips: [
-        'Mantén el equilibrio en la pierna de apoyo',
-        'El movimiento debe ser explosivo',
-        'Practica la flexibilidad de cadera'
-      ],
-      isFavorite: false,
-      timesLearned: 20,
-      mastery: 3
+  // Initialize with sample techniques if empty
+  const initializeSampleTechniques = async () => {
+    if (techniques.length === 0 && !isLoading) {
+      const sampleTechniques: Omit<Technique, 'id' | 'createdAt' | 'updatedAt'>[] = [
+        {
+          name: 'Seoi Nage (Carga de hombros)',
+          category: 'throws',
+          sport: 'judo',
+          difficulty: 3,
+          description: 'Técnica clásica de proyección donde se carga al oponente sobre el hombro',
+          steps: [
+            'Agarra la solapa y manga del oponente',
+            'Da un paso hacia adelante con el pie derecho',
+            'Gira el cuerpo metiendo el hombro bajo el brazo del oponente',
+            'Flexiona las rodillas y levanta al oponente sobre tu espalda',
+            'Proyecta hacia adelante con un movimiento explosivo'
+          ],
+          tips: [
+            'Mantén el contacto cercano durante toda la técnica',
+            'El timing es crucial - aprovecha cuando el oponente se inclina hacia adelante',
+            'Practica la entrada sin proyección primero'
+          ],
+          isFavorite: true,
+          timesLearned: 25,
+          lastPracticed: new Date().toISOString(),
+          mastery: 4,
+          isDefault: true
+        },
+        {
+          name: 'Jab Cross',
+          category: 'strikes',
+          sport: 'boxing',
+          difficulty: 2,
+          description: 'Combinación básica de golpes directos en boxeo',
+          steps: [
+            'Posición de guardia básica',
+            'Lanza jab directo con la mano adelantada',
+            'Inmediatamente sigue con cross de la mano trasera',
+            'Rota la cadera en el cross para más potencia',
+            'Regresa a guardia'
+          ],
+          tips: [
+            'Mantén el mentón protegido',
+            'No telegrafíes los golpes',
+            'Practica en el saco primero'
+          ],
+          isFavorite: false,
+          timesLearned: 15,
+          mastery: 3,
+          isDefault: true
+        },
+        {
+          name: 'Armbar desde guardia',
+          category: 'submissions',
+          sport: 'bjj',
+          difficulty: 4,
+          description: 'Finalización básica de Brazilian Jiu-Jitsu desde la guardia cerrada',
+          steps: [
+            'Desde guardia cerrada, controla el brazo del oponente',
+            'Abre la guardia y coloca el pie en la cadera',
+            'Pivota la cadera hacia el brazo objetivo',
+            'Pasa la pierna sobre la cabeza del oponente',
+            'Controla la muñeca y extiende la cadera para finalizar'
+          ],
+          tips: [
+            'Control del brazo es fundamental',
+            'Mantén las rodillas juntas',
+            'Practica lentamente primero'
+          ],
+          isFavorite: true,
+          timesLearned: 8,
+          mastery: 2,
+          isDefault: true
+        }
+      ];
+
+      // Create sample techniques
+      for (const technique of sampleTechniques) {
+        await create(technique);
+      }
     }
-  ];
+  };
 
   useEffect(() => {
-    loadTechniques();
-  }, []);
+    initializeSampleTechniques();
+  }, [techniques.length, isLoading]);
 
   useEffect(() => {
     filterTechniques();
   }, [techniques, selectedCategory, selectedSport, searchQuery]);
-
-  const loadTechniques = async () => {
-    try {
-      const stored = await AsyncStorage.getItem('martial-techniques');
-      if (stored) {
-        setTechniques(JSON.parse(stored));
-      } else {
-        // Initialize with sample data
-        setTechniques(sampleTechniques);
-        saveTechniques(sampleTechniques);
-      }
-    } catch (error) {
-      console.error('Error loading techniques:', error);
-      setTechniques(sampleTechniques);
-    }
-  };
-
-  const saveTechniques = async (newTechniques: Technique[]) => {
-    try {
-      await AsyncStorage.setItem('martial-techniques', JSON.stringify(newTechniques));
-      setTechniques(newTechniques);
-      
-      if (syncStatus.isLinked) {
-        updateRemoteData({ martialTechniques: newTechniques });
-      }
-    } catch (error) {
-      console.error('Error saving techniques:', error);
-    }
-  };
 
   const filterTechniques = () => {
     let filtered = techniques;
@@ -209,19 +190,16 @@ const TecnicasDeportivasScreen = () => {
   };
 
   const practiceStrokeInTechnique = async (techniqueId: string) => {
-    const updatedTechniques = techniques.map(t => {
-      if (t.id === techniqueId) {
-        return {
-          ...t,
-          timesLearned: t.timesLearned + 1,
-          lastPracticed: new Date().toISOString(),
-          mastery: Math.min(5, t.mastery + (Math.random() > 0.7 ? 1 : 0)) as 1 | 2 | 3 | 4 | 5
-        };
-      }
-      return t;
-    });
+    const technique = techniques.find(t => t.id === techniqueId);
+    if (!technique) return;
 
-    saveTechniques(updatedTechniques);
+    const updatedData = {
+      timesLearned: technique.timesLearned + 1,
+      lastPracticed: new Date().toISOString(),
+      mastery: Math.min(5, technique.mastery + (Math.random() > 0.7 ? 1 : 0)) as 1 | 2 | 3 | 4 | 5
+    };
+
+    await update(techniqueId, updatedData);
     
     Alert.alert(
       '¡Técnica Practicada!',
@@ -230,11 +208,90 @@ const TecnicasDeportivasScreen = () => {
     );
   };
 
-  const toggleFavorite = (techniqueId: string) => {
-    const updatedTechniques = techniques.map(t => 
-      t.id === techniqueId ? { ...t, isFavorite: !t.isFavorite } : t
-    );
-    saveTechniques(updatedTechniques);
+  const toggleFavorite = async (techniqueId: string) => {
+    const technique = techniques.find(t => t.id === techniqueId);
+    if (!technique) return;
+
+    await update(techniqueId, { isFavorite: !technique.isFavorite });
+  };
+
+  const createTechnique = () => {
+    setFormTechnique({
+      name: '',
+      category: 'throws',
+      sport: 'judo',
+      difficulty: 1,
+      description: '',
+      steps: [''],
+      tips: [''],
+      isFavorite: false,
+      timesLearned: 0,
+      mastery: 1
+    });
+    setEditMode(false);
+    setNewTechniqueVisible(true);
+  };
+
+  const editTechnique = (technique: Technique) => {
+    setFormTechnique(technique);
+    setEditMode(true);
+    setNewTechniqueVisible(true);
+  };
+
+  const deleteTechnique = (technique: Technique) => {
+    if (technique.isDefault) {
+      Alert.alert('No se puede eliminar', 'Las técnicas predefinidas no se pueden eliminar.');
+      return;
+    }
+    setTechniqueToDelete(technique);
+    setDeleteDialogVisible(true);
+  };
+
+  const confirmDelete = async () => {
+    if (techniqueToDelete) {
+      await remove(techniqueToDelete.id);
+      setTechniqueToDelete(null);
+    }
+  };
+
+  const saveTechnique = async () => {
+    if (!formTechnique.name || !formTechnique.description) {
+      Alert.alert('Error', 'El nombre y descripción son obligatorios.');
+      return;
+    }
+
+    try {
+      const techniqueData = {
+        ...formTechnique,
+        steps: formTechnique.steps?.filter(step => step.trim() !== '') || [],
+        tips: formTechnique.tips?.filter(tip => tip.trim() !== '') || []
+      };
+
+      if (editMode && selectedTechnique?.id) {
+        await update(selectedTechnique.id, techniqueData);
+        Alert.alert('¡Técnica Actualizada!', 'Los cambios han sido guardados exitosamente.');
+      } else {
+        await create(techniqueData);
+        Alert.alert('¡Técnica Creada!', 'La nueva técnica ha sido agregada a tu biblioteca.');
+      }
+
+      setNewTechniqueVisible(false);
+      setFormTechnique({
+        name: '',
+        category: 'throws',
+        sport: 'judo',
+        difficulty: 1,
+        description: '',
+        steps: [''],
+        tips: [''],
+        isFavorite: false,
+        timesLearned: 0,
+        mastery: 1
+      });
+      setEditMode(false);
+    } catch (error) {
+      Alert.alert('Error', 'No se pudo guardar la técnica. Inténtalo de nuevo.');
+    }
   };
 
   const getMasteryLabel = (mastery: number) => {
@@ -378,39 +435,52 @@ const TecnicasDeportivasScreen = () => {
         </View>
 
         {/* Techniques List */}
-        <FlatList
-          data={filteredTechniques}
-          renderItem={renderTechniqueCard}
-          keyExtractor={(item) => item.id}
-          style={styles.techniquesList}
-          showsVerticalScrollIndicator={false}
-        />
+        <View style={styles.techniquesContainer}>
+          <FlatList
+            data={filteredTechniques}
+            renderItem={renderTechniqueCard}
+            keyExtractor={(item) => item.id}
+            style={styles.techniquesList}
+            showsVerticalScrollIndicator={false}
+          />
+        </View>
       </View>
     );
   };
 
   const renderFavoritesView = () => {
     const favorites = techniques.filter(t => t.isFavorite);
+    const listItems = favorites.map(technique => ({
+      id: technique.id,
+      title: technique.name,
+      subtitle: `${categories.find(c => c.value === technique.category)?.label} • ${sports.find(s => s.value === technique.sport)?.label}`,
+      description: `${technique.description} • Dificultad ${technique.difficulty}/5 • ${getMasteryLabel(technique.mastery)} • ${technique.timesLearned} prácticas`,
+      leftIcon: technique.category === 'throws' ? 'sports-martial-arts' : technique.category === 'strikes' ? 'sports-handball' : 'fitness-center',
+      rightText: `${technique.mastery}/5`
+    }));
 
     return (
-      <View>
-        {favorites.length === 0 ? (
-          <Card style={styles.emptyCard}>
-            <Card.Content>
-              <Text style={styles.emptyText}>No tienes técnicas favoritas</Text>
-              <Text style={styles.emptySubtext}>Marca técnicas como favoritas para acceso rápido</Text>
-            </Card.Content>
-          </Card>
-        ) : (
-          <FlatList
-            data={favorites}
-            renderItem={renderTechniqueCard}
-            keyExtractor={(item) => item.id}
-            style={styles.techniquesList}
-            showsVerticalScrollIndicator={false}
-          />
-        )}
-      </View>
+      <EntryList
+        items={listItems}
+        onItemPress={(item) => {
+          const technique = techniques.find(t => t.id === item.id);
+          if (technique) {
+            setSelectedTechnique(technique);
+            setTechniqueDetailVisible(true);
+          }
+        }}
+        onEdit={(item) => {
+          const technique = techniques.find(t => t.id === item.id);
+          if (technique) editTechnique(technique);
+        }}
+        onDelete={(item) => {
+          const technique = techniques.find(t => t.id === item.id);
+          if (technique) deleteTechnique(technique);
+        }}
+        emptyStateText="No tienes técnicas favoritas"
+        emptyStateSubtext="Marca técnicas como favoritas para acceso rápido"
+        loading={isLoading}
+      />
     );
   };
 
@@ -506,17 +576,187 @@ const TecnicasDeportivasScreen = () => {
         </Dialog>
       </Portal>
 
+      {/* Technique Form Modal */}
+      <EntryFormModal
+        visible={newTechniqueVisible}
+        onDismiss={() => {
+          setNewTechniqueVisible(false);
+          setFormTechnique({
+            name: '',
+            category: 'throws',
+            sport: 'judo',
+            difficulty: 1,
+            description: '',
+            steps: [''],
+            tips: [''],
+            isFavorite: false,
+            timesLearned: 0,
+            mastery: 1
+          });
+          setEditMode(false);
+        }}
+        onSubmit={saveTechnique}
+        title={editMode ? 'Editar Técnica' : 'Nueva Técnica'}
+        submitText={editMode ? 'Actualizar' : 'Crear'}
+        submitDisabled={!formTechnique.name || !formTechnique.description}
+      >
+        <ScrollView style={styles.formScrollView}>
+          <View style={styles.formFields}>
+            <TextInput
+              mode="outlined"
+              label="Nombre de la técnica *"
+              value={formTechnique.name || ''}
+              onChangeText={(text) => setFormTechnique(prev => ({ ...prev, name: text }))}
+              style={styles.formInput}
+            />
+            
+            <TextInput
+              mode="outlined"
+              label="Descripción *"
+              value={formTechnique.description || ''}
+              onChangeText={(text) => setFormTechnique(prev => ({ ...prev, description: text }))}
+              multiline
+              numberOfLines={3}
+              style={styles.formInput}
+            />
+
+            <View style={styles.row}>
+              <View style={styles.halfWidth}>
+                <Text style={styles.fieldLabel}>Categoría</Text>
+                <ScrollView horizontal style={styles.chipContainer}>
+                  {categories.slice(1).map((category) => (
+                    <Chip
+                      key={category.value}
+                      selected={formTechnique.category === category.value}
+                      onPress={() => setFormTechnique(prev => ({ ...prev, category: category.value as any }))}
+                      style={styles.selectionChip}
+                    >
+                      {category.label}
+                    </Chip>
+                  ))}
+                </ScrollView>
+              </View>
+              
+              <View style={styles.halfWidth}>
+                <Text style={styles.fieldLabel}>Deporte</Text>
+                <ScrollView horizontal style={styles.chipContainer}>
+                  {sports.slice(1).map((sport) => (
+                    <Chip
+                      key={sport.value}
+                      selected={formTechnique.sport === sport.value}
+                      onPress={() => setFormTechnique(prev => ({ ...prev, sport: sport.value as any }))}
+                      style={styles.selectionChip}
+                    >
+                      {sport.label}
+                    </Chip>
+                  ))}
+                </ScrollView>
+              </View>
+            </View>
+
+            <Text style={styles.fieldLabel}>Dificultad: {formTechnique.difficulty}/5</Text>
+            <View style={styles.difficultyContainer}>
+              {[1, 2, 3, 4, 5].map((level) => (
+                <Chip
+                  key={level}
+                  selected={formTechnique.difficulty === level}
+                  onPress={() => setFormTechnique(prev => ({ ...prev, difficulty: level as any }))}
+                  style={styles.difficultyChip}
+                >
+                  {level}
+                </Chip>
+              ))}
+            </View>
+
+            <Text style={styles.fieldLabel}>Pasos</Text>
+            {formTechnique.steps?.map((step, index) => (
+              <View key={index} style={styles.stepInputContainer}>
+                <TextInput
+                  mode="outlined"
+                  label={`Paso ${index + 1}`}
+                  value={step}
+                  onChangeText={(text) => {
+                    const newSteps = [...(formTechnique.steps || [])];
+                    newSteps[index] = text;
+                    setFormTechnique(prev => ({ ...prev, steps: newSteps }));
+                  }}
+                  style={styles.stepInput}
+                />
+                {formTechnique.steps && formTechnique.steps.length > 1 && (
+                  <IconButton
+                    icon="delete"
+                    onPress={() => {
+                      const newSteps = formTechnique.steps?.filter((_, i) => i !== index);
+                      setFormTechnique(prev => ({ ...prev, steps: newSteps }));
+                    }}
+                  />
+                )}
+              </View>
+            ))}
+            <Button
+              mode="outlined"
+              onPress={() => {
+                const newSteps = [...(formTechnique.steps || []), ''];
+                setFormTechnique(prev => ({ ...prev, steps: newSteps }));
+              }}
+              style={styles.addButton}
+            >
+              Agregar Paso
+            </Button>
+
+            <Text style={styles.fieldLabel}>Consejos</Text>
+            {formTechnique.tips?.map((tip, index) => (
+              <View key={index} style={styles.stepInputContainer}>
+                <TextInput
+                  mode="outlined"
+                  label={`Consejo ${index + 1}`}
+                  value={tip}
+                  onChangeText={(text) => {
+                    const newTips = [...(formTechnique.tips || [])];
+                    newTips[index] = text;
+                    setFormTechnique(prev => ({ ...prev, tips: newTips }));
+                  }}
+                  style={styles.stepInput}
+                />
+                {formTechnique.tips && formTechnique.tips.length > 1 && (
+                  <IconButton
+                    icon="delete"
+                    onPress={() => {
+                      const newTips = formTechnique.tips?.filter((_, i) => i !== index);
+                      setFormTechnique(prev => ({ ...prev, tips: newTips }));
+                    }}
+                  />
+                )}
+              </View>
+            ))}
+            <Button
+              mode="outlined"
+              onPress={() => {
+                const newTips = [...(formTechnique.tips || []), ''];
+                setFormTechnique(prev => ({ ...prev, tips: newTips }));
+              }}
+              style={styles.addButton}
+            >
+              Agregar Consejo
+            </Button>
+          </View>
+        </ScrollView>
+      </EntryFormModal>
+
+      {/* Delete Confirmation Dialog */}
+      <ConfirmDeleteDialog
+        visible={deleteDialogVisible}
+        onDismiss={() => setDeleteDialogVisible(false)}
+        onConfirm={confirmDelete}
+        title="Eliminar Técnica"
+        message={`¿Estás seguro de que quieres eliminar la técnica "${techniqueToDelete?.name}"? Esta acción no se puede deshacer.`}
+      />
+
       {/* FAB */}
       <FAB
         icon="plus"
         style={styles.fab}
-        onPress={() => {
-          Alert.alert(
-            "Agregar Técnica",
-            "Esta funcionalidad estará disponible pronto para agregar técnicas personalizadas.",
-            [{ text: 'Entendido', style: 'default' }]
-          );
-        }}
+        onPress={createTechnique}
         label="Técnica"
       />
     </View>
@@ -719,6 +959,59 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
     backgroundColor: '#283750',
+  },
+  techniquesContainer: {
+    flex: 1,
+    minHeight: 300,
+  },
+  formScrollView: {
+    maxHeight: 400,
+  },
+  formFields: {
+    gap: 16,
+  },
+  formInput: {
+    marginBottom: 8,
+  },
+  fieldLabel: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#283750',
+    marginBottom: 8,
+  },
+  row: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  halfWidth: {
+    flex: 1,
+  },
+  chipContainer: {
+    maxHeight: 40,
+  },
+  selectionChip: {
+    marginRight: 8,
+    marginBottom: 4,
+  },
+  difficultyContainer: {
+    flexDirection: 'row',
+    gap: 8,
+    marginBottom: 16,
+  },
+  difficultyChip: {
+    minWidth: 40,
+  },
+  stepInputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 8,
+  },
+  stepInput: {
+    flex: 1,
+  },
+  addButton: {
+    marginVertical: 8,
   },
 });
 
