@@ -147,10 +147,10 @@ export const TimerProvider = ({ children }: { children: ReactNode }) => {
       // Configurar audio para sonidos multimedia
       await Audio.setAudioModeAsync({
         allowsRecordingIOS: false,
-        interruptionModeIOS: Audio.INTERRUPTION_MODE_IOS_DO_NOT_MIX,
+        interruptionModeIOS: 1,
         playsInSilentModeIOS: true,
         shouldDuckAndroid: true,
-        interruptionModeAndroid: Audio.INTERRUPTION_MODE_ANDROID_DO_NOT_MIX,
+        interruptionModeAndroid: 1,
         playThroughEarpieceAndroid: false,
       });
       
