@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, Alert, Dimensions } from 'react-native';
-import { Card, Button, TextInput, Dialog, Portal, SegmentedButtons, Chip, IconButton, FAB } from 'react-native-paper';
+import { Card, Button, TextInput, Dialog, Portal, SegmentedButtons, Chip, IconButton, FAB, Modal } from 'react-native-paper';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useCrudStorage } from '../hooks/useCrudStorage';
 import { transformLegacyWorkoutSession } from '../utils/legacyTransformations';
@@ -161,22 +161,12 @@ const PreparacionFisicaScreen = () => {
   };
 
   const completeExercise = (exerciseId: string) => {
-    if (!selectedSession || !formSession) return;
-
-    const updatedExercises = selectedSession.exercises.map(ex =>
+    const updatedExercises = selectedExercises.map(ex =>
       ex.id === exerciseId ? { ...ex, completed: !ex.completed } : ex
     );
 
-    const updatedSession = {
-      ...selectedSession,
-      exercises: updatedExercises
-    };
-
-    setSelectedSession(updatedSession);
-    setFormSession({
-      ...formSession,
-      exercises: updatedExercises
-    });
+    setSelectedExercises(updatedExercises);
+    setFormSession(prev => ({ ...prev, exercises: updatedExercises }));
   };
 
   const saveWorkoutSession = async () => {
@@ -213,6 +203,7 @@ const PreparacionFisicaScreen = () => {
         notes: '',
         duration: 0
       });
+      setSelectedExercises([]);
       setNewSessionVisible(false);
       setEditMode(false);
     } catch (error) {
@@ -343,12 +334,14 @@ const PreparacionFisicaScreen = () => {
         onDuplicate={(item) => {
           const session = sessions.find(s => s.id === item.id);
           if (session) {
+            const { id, ...sessionWithoutId } = session;
             const duplicateSession = {
-              ...session,
+              ...sessionWithoutId,
               date: new Date().toISOString(),
               exercises: session.exercises.map(ex => ({ ...ex, completed: false, id: `${Date.now()}-${Math.random()}` }))
             };
             setFormSession(duplicateSession);
+            setSelectedExercises(duplicateSession.exercises);
             setSelectedSession(duplicateSession as WorkoutSession);
             setEditMode(false);
             setNewSessionVisible(true);
@@ -399,10 +392,20 @@ const PreparacionFisicaScreen = () => {
         onSubmit={saveWorkoutSession}
         title={editMode ? 'Editar Entrenamiento' : 'Nuevo Entrenamiento Personalizado'}
         submitText={editMode ? 'Actualizar' : 'Finalizar'}
-        submitDisabled={!selectedSession?.exercises.some(ex => ex.completed)}
+        submitDisabled={selectedExercises.length === 0 || (editMode && !selectedExercises.some(ex => ex.completed))}
       >
         <ScrollView style={styles.formScrollView}>
-          {selectedSession?.exercises.map((exercise) => (
+          {/* Add Exercise Button */}
+          {!editMode && (
+            <Card style={styles.addExerciseCard} onPress={() => setExerciseSelectorVisible(true)}>
+              <Card.Content style={styles.addExerciseContent}>
+                <MaterialIcons name="add" size={24} color="#283750" />
+                <Text style={styles.addExerciseText}>Agregar Ejercicio</Text>
+              </Card.Content>
+            </Card>
+          )}
+
+          {selectedExercises.map((exercise) => (
             <View key={exercise.id} style={styles.exerciseItem}>
               <View style={styles.exerciseHeader}>
                 <IconButton
@@ -424,6 +427,13 @@ const PreparacionFisicaScreen = () => {
                     {exercise.distance && ` - ${exercise.distance} km`}
                   </Text>
                 </View>
+                {!editMode && (
+                  <IconButton
+                    icon="close"
+                    iconColor="#EF4444"
+                    onPress={() => removeExerciseFromWorkout(exercise.id)}
+                  />
+                )}
               </View>
             </View>
           ))}
@@ -462,7 +472,64 @@ const PreparacionFisicaScreen = () => {
         message={`¿Estás seguro de que quieres eliminar este entrenamiento? Esta acción no se puede deshacer.`}
       />
 
-
+      {/* Exercise Selector Modal */}
+      <Portal>
+        <Modal
+          visible={exerciseSelectorVisible}
+          onDismiss={() => setExerciseSelectorVisible(false)}
+          contentContainerStyle={styles.exerciseSelectorModal}
+        >
+        <View style={styles.exerciseSelectorContent}>
+          <Text style={styles.exerciseSelectorTitle}>Seleccionar Ejercicio</Text>
+          
+          <ScrollView style={styles.exerciseSelectorScroll}>
+            {availableExercises.map((exercise) => (
+              <Card 
+                key={exercise.id} 
+                style={styles.exerciseOption} 
+                onPress={() => {
+                  addExerciseToWorkout(exercise);
+                  setExerciseSelectorVisible(false);
+                }}
+              >
+                <Card.Content style={styles.exerciseOptionContent}>
+                  <View style={styles.exerciseOptionHeader}>
+                    <MaterialIcons 
+                      name={exercise.type === 'cardio' ? 'favorite' : exercise.type === 'flexibility' ? 'self-improvement' : 'fitness-center'} 
+                      size={24} 
+                      color="#283750" 
+                    />
+                    <View style={styles.exerciseOptionInfo}>
+                      <Text style={styles.exerciseOptionName}>{exercise.name}</Text>
+                      <Text style={styles.exerciseOptionType}>
+                        {exercise.type === 'strength' ? 'Fuerza' : 
+                         exercise.type === 'cardio' ? 'Cardio' :
+                         exercise.type === 'flexibility' ? 'Flexibilidad' : 'Core'}
+                      </Text>
+                    </View>
+                    <MaterialIcons name="add" size={20} color="#283750" />
+                  </View>
+                  
+                  <Text style={styles.exerciseOptionDetails}>
+                    {exercise.defaultSets && exercise.defaultReps && `${exercise.defaultSets} series × ${exercise.defaultReps} reps`}
+                    {exercise.defaultDuration && ` - ${exercise.defaultDuration} min`}
+                    {exercise.defaultDistance && ` - ${exercise.defaultDistance} km`}
+                  </Text>
+                </Card.Content>
+              </Card>
+            ))}
+          </ScrollView>
+          
+          <Button
+            mode="outlined"
+            onPress={() => setExerciseSelectorVisible(false)}
+            style={styles.exerciseSelectorCloseButton}
+          >
+            Cerrar
+          </Button>
+        </View>
+        </Modal>
+      </Portal>
     </View>
   );
 };
@@ -661,6 +728,127 @@ const styles = StyleSheet.create({
   },
   formInput: {
     marginBottom: 8,
+  },
+  createCard: {
+    margin: 8,
+    backgroundColor: '#FFFFFF',
+    elevation: 2,
+  },
+  createContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 8,
+  },
+  createTextContainer: {
+    flex: 1,
+    marginLeft: 16,
+  },
+  createTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#283750',
+  },
+  createSubtitle: {
+    fontSize: 14,
+    color: '#6B7280',
+    marginTop: 2,
+  },
+  exercisesCard: {
+    margin: 8,
+    backgroundColor: '#FFFFFF',
+    elevation: 2,
+  },
+  exercisesSubtitle: {
+    fontSize: 14,
+    color: '#6B7280',
+    marginBottom: 12,
+  },
+  exerciseCategories: {
+    gap: 8,
+  },
+  categoryRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  categoryText: {
+    fontSize: 14,
+    color: '#374151',
+  },
+  addExerciseCard: {
+    marginBottom: 16,
+    backgroundColor: '#F9FAFB',
+    borderWidth: 2,
+    borderColor: '#D1D5DB',
+    borderStyle: 'dashed',
+  },
+  addExerciseContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 16,
+    gap: 8,
+  },
+  addExerciseText: {
+    fontSize: 16,
+    color: '#283750',
+    fontWeight: '500',
+  },
+  exerciseSelectorModal: {
+    backgroundColor: 'white',
+    margin: 20,
+    borderRadius: 8,
+    maxHeight: '80%',
+  },
+  exerciseSelectorContent: {
+    padding: 20,
+  },
+  exerciseSelectorTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#283750',
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  exerciseSelectorScroll: {
+    maxHeight: 400,
+    marginBottom: 16,
+  },
+  exerciseOption: {
+    marginBottom: 8,
+    backgroundColor: '#FFFFFF',
+    elevation: 1,
+  },
+  exerciseOptionContent: {
+    paddingVertical: 8,
+  },
+  exerciseOptionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  exerciseOptionInfo: {
+    flex: 1,
+    marginLeft: 12,
+  },
+  exerciseOptionName: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#283750',
+  },
+  exerciseOptionType: {
+    fontSize: 12,
+    color: '#6B7280',
+    marginTop: 2,
+  },
+  exerciseOptionDetails: {
+    fontSize: 14,
+    color: '#374151',
+    marginTop: 4,
+  },
+  exerciseSelectorCloseButton: {
+    marginTop: 8,
   },
 });
 
