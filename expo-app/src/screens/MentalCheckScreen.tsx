@@ -6,6 +6,11 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface MentalCheckScreenProps {
   navigation: any;
+  route?: {
+    params?: {
+      initialTab?: string;
+    };
+  };
 }
 
 interface CheckinData {
@@ -52,8 +57,8 @@ interface CrisisData {
   };
 }
 
-const MentalCheckScreen: React.FC<MentalCheckScreenProps> = ({ navigation }) => {
-  const [activeTab, setActiveTab] = useState('herramientas');
+const MentalCheckScreen: React.FC<MentalCheckScreenProps> = ({ navigation, route }) => {
+  const [activeTab, setActiveTab] = useState(route?.params?.initialTab || 'herramientas');
   
   // Estados para analytics
   const [checkinData, setCheckinData] = useState<CheckinData[]>([]);
