@@ -19,13 +19,13 @@ const MentalCheckScreen: React.FC<MentalCheckScreenProps> = ({ navigation }) => 
       details: ["😊 ¿Cómo te sientes ahora?", "🔋 ¿Cuál es tu nivel de energía?", "😌 ¿Qué tan estresado estás?"]
     },
     {
-      title: "Técnicas de Respiración", 
-      description: "Ejercicios de respiración guiados para reducir estrés, ansiedad y mejorar tu enfoque mental",
-      icon: "air",
-      screen: "TecnicasRespiracion",
+      title: "Técnicas de Bienestar", 
+      description: "Ejercicios de respiración y mindfulness para reducir estrés, mejorar enfoque y cultivar bienestar mental",
+      icon: "psychology",
+      screen: "Bienestar",
       color: "#1976D2",
-      badge: "💨 RESPIRA",
-      details: ["Respiración 4-7-8", "Respiración de Caja", "Respiración Abdominal", "Respiración Alternada"]
+      badge: "🧘 BIENESTAR",
+      details: ["Respiración 4-7-8", "Respiración de Caja", "Exploración Corporal", "Observación Consciente", "Bondad Amorosa"]
     },
     {
       title: "Manejo de Crisis",

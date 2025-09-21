@@ -210,7 +210,7 @@ const EmojiRating: React.FC<EmojiRatingProps> = ({
                 value === rating ? { backgroundColor: '#283750' } : { borderColor: '#E0E0E0' }
               ]}
               contentStyle={styles.emojiButtonContent}
-              data-testid={`emoji-${title.toLowerCase().replace(/\s+/g, '-')}-${rating}`}
+              testID={`emoji-${title.toLowerCase().replace(/\s+/g, '-')}-${rating}`}
             >
               <Text style={styles.emojiText}>{emoji}</Text>
             </Button>
@@ -309,14 +309,29 @@ const BienestarScreen: React.FC<BienestarScreenProps> = ({ navigation }) => {
 
   const completeSession = async () => {
     if (!selectedTechnique || !sessionStartTime) return;
+    
+    // Detener la sesión inmediatamente para evitar loops
+    const tempTechnique = selectedTechnique;
+    const tempStartTime = sessionStartTime;
+    const tempCurrentCycle = currentCycle;
+    const tempCurrentStep = currentStep;
+    
+    setIsActive(false);
+    setSelectedTechnique(null);
+    setCurrentPhase('');
+    setPhaseTime(0);
+    setCurrentCycle(0);
+    setProgress(0);
+    setCurrentStep(0);
+    setSessionStartTime(null);
 
     const sessionData = {
       id: Date.now().toString(),
       timestamp: new Date().toISOString(),
-      techniqueType: selectedTechnique.id,
-      techniqueName: selectedTechnique.name,
-      category: selectedTechnique.type,
-      durationMinutes: Math.round((Date.now() - sessionStartTime.getTime()) / 60000),
+      techniqueType: tempTechnique.id,
+      techniqueName: tempTechnique.name,
+      category: tempTechnique.type,
+      durationMinutes: Math.round((Date.now() - tempStartTime.getTime()) / 60000),
       completed: true,
       // Datos de evaluación inicial
       initialStressLevel: stressLevel,
@@ -326,7 +341,7 @@ const BienestarScreen: React.FC<BienestarScreenProps> = ({ navigation }) => {
       timeOfDay: getTimeOfDay(),
       dayOfWeek: getDayOfWeek(),
       // Datos específicos por tipo
-      ...(selectedTechnique.type === 'breathing' ? { cycles: currentCycle } : { stepsCompleted: currentStep + 1 })
+      ...(tempTechnique.type === 'breathing' ? { cycles: tempCurrentCycle } : { stepsCompleted: tempCurrentStep + 1 })
     };
 
     try {
@@ -342,10 +357,10 @@ const BienestarScreen: React.FC<BienestarScreenProps> = ({ navigation }) => {
 
       Alert.alert(
         "¡Sesión Completada!",
-        `Has completado "${selectedTechnique.name}". ¡Excelente trabajo!`,
+        `Has completado "${tempTechnique.name}". ¡Excelente trabajo!`,
         [
           { text: 'Volver', onPress: () => navigation.goBack() },
-          { text: 'Otra Técnica', onPress: () => resetSessionOnly() }
+          { text: 'Otra Técnica', onPress: () => {} } // Ya está reseteado
         ]
       );
     } catch (error) {
