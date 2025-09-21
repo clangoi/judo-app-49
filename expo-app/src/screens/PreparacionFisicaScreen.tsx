@@ -3,12 +3,10 @@ import { View, Text, StyleSheet, ScrollView, Alert, Dimensions } from 'react-nat
 import { Card, Button, TextInput, Dialog, Portal, SegmentedButtons, Chip, IconButton, FAB } from 'react-native-paper';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useCrudStorage } from '../hooks/useCrudStorage';
-import { useCustomTemplates, WorkoutTemplate } from '../hooks/useCustomTemplates';
 import { transformLegacyWorkoutSession } from '../utils/legacyTransformations';
 import EntryList from '../components/EntryList';
 import EntryFormModal from '../components/EntryFormModal';
 import ConfirmDeleteDialog from '../components/ConfirmDeleteDialog';
-import CustomTemplateManager from '../components/CustomTemplateManager';
 
 interface Exercise {
   id: string;
@@ -37,45 +35,33 @@ interface WorkoutSession {
   templateName?: string;
 }
 
-// Default workout templates (used for initialization) - MOVED BEFORE COMPONENT
-const defaultWorkoutTemplates = {
-    upper: {
-      name: 'Tren Superior',
-      exercises: [
-        { name: 'Flexiones', type: 'strength', sets: 3, reps: 15 },
-        { name: 'Dominadas', type: 'strength', sets: 3, reps: 8 },
-        { name: 'Fondos', type: 'strength', sets: 3, reps: 12 },
-        { name: 'Plancha', type: 'core', duration: 1 },
-      ]
-    },
-    lower: {
-      name: 'Tren Inferior',
-      exercises: [
-        { name: 'Sentadillas', type: 'strength', sets: 4, reps: 20 },
-        { name: 'Zancadas', type: 'strength', sets: 3, reps: 12 },
-        { name: 'Elevación de talones', type: 'strength', sets: 3, reps: 15 },
-        { name: 'Puentes', type: 'strength', sets: 3, reps: 15 },
-      ]
-    },
-    cardio: {
-      name: 'Cardiovascular',
-      exercises: [
-        { name: 'Carrera', type: 'cardio', duration: 20, distance: 3 },
-        { name: 'Burpees', type: 'cardio', sets: 3, reps: 10 },
-        { name: 'Jumping Jacks', type: 'cardio', duration: 2 },
-        { name: 'Mountain Climbers', type: 'cardio', duration: 1 },
-      ]
-    },
-    flexibility: {
-      name: 'Flexibilidad',
-      exercises: [
-        { name: 'Estiramiento de piernas', type: 'flexibility', duration: 3 },
-        { name: 'Estiramiento de brazos', type: 'flexibility', duration: 3 },
-        { name: 'Yoga básico', type: 'flexibility', duration: 15 },
-        { name: 'Movilidad articular', type: 'flexibility', duration: 5 },
-      ]
-    }
-  };
+// Available exercises database - can be selected when creating workouts
+const availableExercises = [
+  // Strength exercises
+  { id: 'flex', name: 'Flexiones', type: 'strength', defaultSets: 3, defaultReps: 15 },
+  { id: 'dom', name: 'Dominadas', type: 'strength', defaultSets: 3, defaultReps: 8 },
+  { id: 'fond', name: 'Fondos', type: 'strength', defaultSets: 3, defaultReps: 12 },
+  { id: 'sent', name: 'Sentadillas', type: 'strength', defaultSets: 4, defaultReps: 20 },
+  { id: 'zanc', name: 'Zancadas', type: 'strength', defaultSets: 3, defaultReps: 12 },
+  { id: 'talones', name: 'Elevación de talones', type: 'strength', defaultSets: 3, defaultReps: 15 },
+  { id: 'puentes', name: 'Puentes', type: 'strength', defaultSets: 3, defaultReps: 15 },
+  
+  // Core exercises
+  { id: 'plancha', name: 'Plancha', type: 'core', defaultDuration: 60 },
+  { id: 'abs', name: 'Abdominales', type: 'core', defaultSets: 3, defaultReps: 20 },
+  
+  // Cardio exercises
+  { id: 'carrera', name: 'Carrera', type: 'cardio', defaultDuration: 20, defaultDistance: 3 },
+  { id: 'burpees', name: 'Burpees', type: 'cardio', defaultSets: 3, defaultReps: 10 },
+  { id: 'jumping', name: 'Jumping Jacks', type: 'cardio', defaultDuration: 120 },
+  { id: 'mountain', name: 'Mountain Climbers', type: 'cardio', defaultDuration: 60 },
+  
+  // Flexibility exercises
+  { id: 'est_piernas', name: 'Estiramiento de piernas', type: 'flexibility', defaultDuration: 180 },
+  { id: 'est_brazos', name: 'Estiramiento de brazos', type: 'flexibility', defaultDuration: 180 },
+  { id: 'yoga', name: 'Yoga básico', type: 'flexibility', defaultDuration: 900 },
+  { id: 'movilidad', name: 'Movilidad articular', type: 'flexibility', defaultDuration: 300 },
+];
 
 const PreparacionFisicaScreen = () => {
   const { items: sessions, isLoading, create, update, remove } = useCrudStorage<WorkoutSession>({
@@ -84,24 +70,7 @@ const PreparacionFisicaScreen = () => {
     transformLegacyItem: transformLegacyWorkoutSession
   });
 
-  // Custom templates hook
-  const { 
-    templates: workoutTemplates, 
-    isLoading: templatesLoading,
-    createTemplate,
-    updateTemplate,
-    deleteTemplate
-  } = useCustomTemplates<WorkoutTemplate>({
-    storageKey: 'expo:fisica:templates',
-    templateType: 'workout',
-    defaultTemplates: Object.entries(defaultWorkoutTemplates).map(([key, template]) => ({
-      name: template.name,
-      type: 'workout' as const,
-      category: key as any,
-      exercises: template.exercises,
-      description: `Template predefinido de ${template.name.toLowerCase()}`
-    }))
-  });
+  // No more templates - only custom workouts
   
   const [activeTab, setActiveTab] = useState('rutinas');
   const [newSessionVisible, setNewSessionVisible] = useState(false);
@@ -109,7 +78,7 @@ const PreparacionFisicaScreen = () => {
   const [deleteDialogVisible, setDeleteDialogVisible] = useState(false);
   const [sessionToDelete, setSessionToDelete] = useState<WorkoutSession | null>(null);
   const [editMode, setEditMode] = useState(false);
-  const [templatesManagerVisible, setTemplatesManagerVisible] = useState(false);
+  const [exerciseSelectorVisible, setExerciseSelectorVisible] = useState(false);
 
   // Form states
   const [formSession, setFormSession] = useState<Partial<WorkoutSession>>({
@@ -119,26 +88,21 @@ const PreparacionFisicaScreen = () => {
     notes: '',
     duration: 0
   });
+  const [selectedExercises, setSelectedExercises] = useState<Exercise[]>([]);
 
-  const startWorkout = (template: WorkoutTemplate) => {
-    const exercises: Exercise[] = template.exercises.map((ex, index) => ({
-      id: `${Date.now()}-${index}`,
-      ...ex,
-      completed: false
-    } as Exercise));
-
+  const startNewWorkout = () => {
     const newWorkout: Partial<WorkoutSession> = {
       date: new Date().toISOString(),
-      type: template.category === 'custom' ? 'full' : template.category,
-      exercises,
+      type: 'full',
+      exercises: [],
       duration: 0,
       intensity: 3,
-      templateId: template.id,
-      templateName: template.name
+      notes: ''
     };
 
     setFormSession(newWorkout);
     setSelectedSession(newWorkout as WorkoutSession);
+    setSelectedExercises([]);
     setEditMode(false);
     setNewSessionVisible(true);
   };
@@ -146,6 +110,7 @@ const PreparacionFisicaScreen = () => {
   const editSession = (session: WorkoutSession) => {
     setFormSession(session);
     setSelectedSession(session);
+    setSelectedExercises(session.exercises || []);
     setEditMode(true);
     setNewSessionVisible(true);
   };
@@ -153,6 +118,39 @@ const PreparacionFisicaScreen = () => {
   const deleteSession = (session: WorkoutSession) => {
     setSessionToDelete(session);
     setDeleteDialogVisible(true);
+  };
+
+  const addExerciseToWorkout = (exerciseTemplate: any) => {
+    const newExercise: Exercise = {
+      id: `${Date.now()}-${Math.random()}`,
+      name: exerciseTemplate.name,
+      type: exerciseTemplate.type,
+      sets: exerciseTemplate.defaultSets,
+      reps: exerciseTemplate.defaultReps,
+      duration: exerciseTemplate.defaultDuration,
+      distance: exerciseTemplate.defaultDistance,
+      weight: 0,
+      notes: '',
+      completed: false
+    };
+
+    const updatedExercises = [...selectedExercises, newExercise];
+    setSelectedExercises(updatedExercises);
+    setFormSession(prev => ({ ...prev, exercises: updatedExercises }));
+  };
+
+  const removeExerciseFromWorkout = (exerciseId: string) => {
+    const updatedExercises = selectedExercises.filter(ex => ex.id !== exerciseId);
+    setSelectedExercises(updatedExercises);
+    setFormSession(prev => ({ ...prev, exercises: updatedExercises }));
+  };
+
+  const updateExerciseInWorkout = (exerciseId: string, updates: Partial<Exercise>) => {
+    const updatedExercises = selectedExercises.map(ex => 
+      ex.id === exerciseId ? { ...ex, ...updates } : ex
+    );
+    setSelectedExercises(updatedExercises);
+    setFormSession(prev => ({ ...prev, exercises: updatedExercises }));
   };
 
   const confirmDelete = async () => {
@@ -199,10 +197,10 @@ const PreparacionFisicaScreen = () => {
         );
       } else {
         await create(sessionData);
-        const templateName = sessionData.templateName || workoutTemplates.find(t => t.type === 'workout' && t.category === sessionData.type)?.name || String(sessionData.type);
+        const workoutTypeName = sessionData.type === 'full' ? 'Entrenamiento Completo' : String(sessionData.type);
         Alert.alert(
           '¡Entrenamiento Completado!',
-          `Has terminado tu sesión de ${templateName}.`,
+          `Has terminado tu sesión de ${workoutTypeName}.`,
           [{ text: 'Excelente!', style: 'default' }]
         );
       }
@@ -239,7 +237,7 @@ const PreparacionFisicaScreen = () => {
     };
   };
 
-  const renderWorkoutTemplates = () => {
+  const renderWorkoutCreation = () => {
     const stats = getWorkoutStats();
 
     return (
@@ -265,87 +263,62 @@ const PreparacionFisicaScreen = () => {
           </Card.Content>
         </Card>
 
-        {/* Templates Manager Button */}
-        <Card style={styles.managerCard} onPress={() => setTemplatesManagerVisible(true)}>
-          <Card.Content style={styles.managerContent}>
-            <MaterialIcons name="settings" size={24} color="#283750" />
-            <Text style={styles.managerText}>Gestionar Templates de Ejercicios</Text>
+        {/* Create New Workout Card */}
+        <Card style={styles.createCard} onPress={startNewWorkout}>
+          <Card.Content style={styles.createContent}>
+            <MaterialIcons name="add" size={32} color="#283750" />
+            <View style={styles.createTextContainer}>
+              <Text style={styles.createTitle}>Crear Entrenamiento Personalizado</Text>
+              <Text style={styles.createSubtitle}>Elige tus ejercicios y arma tu rutina desde cero</Text>
+            </View>
             <MaterialIcons name="chevron-right" size={24} color="#283750" />
           </Card.Content>
         </Card>
 
-        {templatesLoading ? (
-          <Card style={styles.card}>
-            <Card.Content>
-              <Text style={styles.loadingText}>Cargando templates...</Text>
-            </Card.Content>
-          </Card>
-        ) : (
-          /* Workout Templates */
-          workoutTemplates.map((template) => (
-            <Card key={template.id} style={styles.card}>
-              <Card.Content>
-                <View style={styles.cardHeader}>
-                  <MaterialIcons 
-                    name={template.category === 'cardio' ? 'favorite' : template.category === 'flexibility' ? 'self-improvement' : 'fitness-center'} 
-                    size={24} 
-                    color="#283750" 
-                  />
-                  <View style={styles.templateTitleContainer}>
-                    <Text style={styles.cardTitle}>{template.name}</Text>
-                    {!template.isDefault && (
-                      <Chip mode="outlined" compact style={styles.customChip}>
-                        Personalizado
-                      </Chip>
-                    )}
-                  </View>
-                </View>
-                
-                {template.description && (
-                  <Text style={styles.templateDescription}>{template.description}</Text>
-                )}
-                
-                <View style={styles.exerciseList}>
-                  {template.exercises.slice(0, 3).map((exercise, index) => (
-                    <Text key={index} style={styles.exerciseText}>
-                      • {exercise.name}
-                      {exercise.sets ? ` (${exercise.sets} series)` : ''}
-                      {exercise.duration ? ` (${exercise.duration} min)` : ''}
-                    </Text>
-                  ))}
-                  {template.exercises.length > 3 && (
-                    <Text style={styles.moreText}>+{template.exercises.length - 3} ejercicios más</Text>
-                  )}
-                </View>
-
-                <Button
-                  mode="contained"
-                  style={styles.startButton}
-                  buttonColor="#283750"
-                  onPress={() => startWorkout(template)}
-                  icon={({ size, color }) => (
-                    <MaterialIcons name="play-arrow" size={size} color={color} />
-                  )}
-                >
-                  Comenzar Entrenamiento
-                </Button>
-              </Card.Content>
-            </Card>
-          ))
-        )}
+        {/* Available Exercises Preview */}
+        <Card style={styles.exercisesCard}>
+          <Card.Content>
+            <Text style={styles.sectionTitle}>Ejercicios Disponibles</Text>
+            <Text style={styles.exercisesSubtitle}>Estos ejercicios están disponibles para crear tus entrenamientos:</Text>
+            <View style={styles.exerciseCategories}>
+              <View style={styles.categoryRow}>
+                <MaterialIcons name="fitness-center" size={20} color="#283750" />
+                <Text style={styles.categoryText}>Fuerza: {availableExercises.filter(ex => ex.type === 'strength').length} ejercicios</Text>
+              </View>
+              <View style={styles.categoryRow}>
+                <MaterialIcons name="favorite" size={20} color="#283750" />
+                <Text style={styles.categoryText}>Cardio: {availableExercises.filter(ex => ex.type === 'cardio').length} ejercicios</Text>
+              </View>
+              <View style={styles.categoryRow}>
+                <MaterialIcons name="self-improvement" size={20} color="#283750" />
+                <Text style={styles.categoryText}>Flexibilidad: {availableExercises.filter(ex => ex.type === 'flexibility').length} ejercicios</Text>
+              </View>
+              <View style={styles.categoryRow}>
+                <MaterialIcons name="accessibility" size={20} color="#283750" />
+                <Text style={styles.categoryText}>Core: {availableExercises.filter(ex => ex.type === 'core').length} ejercicios</Text>
+              </View>
+            </View>
+          </Card.Content>
+        </Card>
       </View>
     );
   };
 
   const renderHistory = () => {
-    const getTemplateTitle = (sessionType: string) => {
-      const template = workoutTemplates.find(t => t.category === sessionType);
-      return template ? template.name : sessionType.charAt(0).toUpperCase() + sessionType.slice(1);
+    const getWorkoutTypeTitle = (sessionType: string) => {
+      switch(sessionType) {
+        case 'upper': return 'Tren Superior';
+        case 'lower': return 'Tren Inferior';
+        case 'cardio': return 'Cardiovascular';
+        case 'flexibility': return 'Flexibilidad';
+        case 'full': return 'Entrenamiento Completo';
+        default: return sessionType.charAt(0).toUpperCase() + sessionType.slice(1);
+      }
     };
 
     const listItems = sessions.map(session => ({
       id: session.id,
-      title: getTemplateTitle(session.type),
+      title: getWorkoutTypeTitle(session.type),
       subtitle: new Date(session.date).toLocaleDateString(),
       description: `${session.duration} min • Intensidad ${session.intensity}/5 • ${session.exercises.filter(ex => ex.completed).length}/${session.exercises.length} ejercicios${session.notes ? ` • ${session.notes}` : ''}`,
       leftIcon: session.type === 'cardio' ? 'favorite' : session.type === 'flexibility' ? 'self-improvement' : 'fitness-center',
@@ -404,7 +377,7 @@ const PreparacionFisicaScreen = () => {
       </View>
 
       <ScrollView style={styles.scrollContainer}>
-        {activeTab === 'rutinas' && renderWorkoutTemplates()}
+        {activeTab === 'rutinas' && renderWorkoutCreation()}
         {activeTab === 'historial' && renderHistory()}
       </ScrollView>
 
@@ -424,7 +397,7 @@ const PreparacionFisicaScreen = () => {
           setEditMode(false);
         }}
         onSubmit={saveWorkoutSession}
-        title={editMode ? 'Editar Entrenamiento' : (selectedSession ? (workoutTemplates.find(t => t.category === selectedSession.type)?.name || 'Entrenamiento') : 'Entrenamiento')}
+        title={editMode ? 'Editar Entrenamiento' : 'Nuevo Entrenamiento Personalizado'}
         submitText={editMode ? 'Actualizar' : 'Finalizar'}
         submitDisabled={!selectedSession?.exercises.some(ex => ex.completed)}
       >
@@ -486,42 +459,10 @@ const PreparacionFisicaScreen = () => {
         onDismiss={() => setDeleteDialogVisible(false)}
         onConfirm={confirmDelete}
         title="Eliminar Entrenamiento"
-        message={`¿Estás seguro de que quieres eliminar el entrenamiento "${sessionToDelete ? (workoutTemplates.find(t => t.category === sessionToDelete.type)?.name || sessionToDelete.type) : ''}"? Esta acción no se puede deshacer.`}
+        message={`¿Estás seguro de que quieres eliminar este entrenamiento? Esta acción no se puede deshacer.`}
       />
 
-      {/* Custom Templates Manager */}
-      <CustomTemplateManager
-        templates={workoutTemplates}
-        templateType="workout"
-        visible={templatesManagerVisible}
-        onClose={() => setTemplatesManagerVisible(false)}
-        onCreateTemplate={createTemplate}
-        onUpdateTemplate={updateTemplate}
-        onDeleteTemplate={deleteTemplate}
-      />
 
-      {/* FAB */}
-      <FAB
-        icon="add"
-        style={styles.fab}
-        onPress={() => {
-          const availableTemplates = workoutTemplates.slice(0, 4);
-          const buttons = [
-            { text: "Cancelar", style: "cancel" as const },
-            ...availableTemplates.map(template => ({
-              text: template.name,
-              onPress: () => startWorkout(template)
-            }))
-          ];
-          
-          Alert.alert(
-            "Nuevo Entrenamiento",
-            "Selecciona el tipo de entrenamiento:",
-            buttons
-          );
-        }}
-        label="Entrenar"
-      />
     </View>
   );
 };
