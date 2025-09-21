@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useReducer, ReactNode, useRef, useEffect, useState } from 'react';
 import { Audio } from 'expo-av';
-import * as Haptics from 'expo-haptics'; // ✅ Importación estática y correcta
+import * as Haptics from 'expo-haptics'; 
 import { useSyncManager } from './useSyncManager';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
