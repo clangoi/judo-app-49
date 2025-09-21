@@ -69,15 +69,17 @@ eas build --platform android --profile preview
 
 ### 🏠 Pantalla de Inicio
 - **Saludo personalizado** según la hora del día 
-- **Tarjetas de navegación** similares a la app web
+- **Tarjetas de navegación** con iconos MaterialIcons correctos
 - **Acceso directo** a Deporte, MentalCheck y Gráficos
 - **Diseño responsive** adaptado a móviles
+- ✅ **Iconos corregidos**: fitness-center, self-improvement, insert-chart-outlined
 
 ### 🎯 Timer Tabata Avanzado
 - **Configuraciones completas**: Trabajo, descanso, ciclos, sets
 - **Secuencias personalizadas**: Múltiples Tabatas consecutivos
 - **Modo secuencia automático**: Ejecuta secuencias completas
 - **Notificaciones nativas**: Alertas en cada cambio de fase
+- ✅ **Botones corregidos**: Settings, Edit, Delete ahora visibles
 
 ### 🔄 Sincronización entre Dispositivos  
 - **Códigos únicos de 6 caracteres**

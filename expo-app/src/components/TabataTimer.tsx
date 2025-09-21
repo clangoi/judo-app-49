@@ -179,7 +179,12 @@ const TabataTimer = () => {
             <MaterialIcons name="fitness-center" size={24} color="#283750" />
             <Text style={styles.title}>{getModeTitle()}</Text>
           </View>
-          <IconButton icon="cog" onPress={() => setSettingsVisible(true)} />
+          <IconButton 
+            icon={({ size, color }) => (
+              <MaterialIcons name="settings" size={size} color={color} />
+            )}
+            onPress={() => setSettingsVisible(true)} 
+          />
         </View>
         
         <Text style={styles.description}>{getModeDescription()}</Text>
@@ -406,8 +411,20 @@ const TabataTimer = () => {
                         </Text>
                       </View>
                       <View style={styles.sequenceItemActions}>
-                        <IconButton icon="pencil" size={16} onPress={() => handleEditTabata(index)} />
-                        <IconButton icon="delete" size={16} onPress={() => handleRemoveTabata(index)} />
+                        <IconButton 
+                          icon={({ size, color }) => (
+                            <MaterialIcons name="edit" size={size} color={color} />
+                          )}
+                          size={16} 
+                          onPress={() => handleEditTabata(index)} 
+                        />
+                        <IconButton 
+                          icon={({ size, color }) => (
+                            <MaterialIcons name="delete" size={size} color={color} />
+                          )}
+                          size={16} 
+                          onPress={() => handleRemoveTabata(index)} 
+                        />
                       </View>
                     </View>
                   ))}
