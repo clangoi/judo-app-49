@@ -1,0 +1,25 @@
+bjetivo General: Rediseñar y corregir la funcionalidad de la sección “Templates de Preparación Física” para alinearse completamente con el nuevo modelo de uso: todos los entrenamientos de preparación física deben ser creados directamente por el usuario, sin plantillas predefinidas. 
+
+Requisitos Específicos:
+
+Eliminar completamente los Templates de Preparación Física: 
+No debe existir ninguna sección, lista, menú o acceso a “Templates” o “Plantillas” de preparación física.
+Todo rastro de contenido predefinido en esta categoría debe ser removido de la interfaz y la lógica de la aplicación.
+Corregir el flujo de creación de entrenamientos personalizados: 
+Actualmente, al intentar crear un set de preparación física personalizado, no se muestra la sección para agregar ejercicios, ni permite visualizar los ejercicios seleccionados.
+Debe implementarse un flujo funcional donde el usuario pueda:
+Crear un nuevo entrenamiento desde cero.
+Agregar ejercicios (ya existentes en la base de datos) mediante un selector o buscador.
+Visualizar en tiempo real los ejercicios agregados, con opción de editar, reordenar o eliminar.
+Guardar el entrenamiento como un set personalizado.
+Permitir uso de ejercicios previamente creados: 
+Aunque no existan templates, los ejercicios individuales (como sentadillas, flexiones, etc.) pueden y deben estar disponibles para ser seleccionados por el usuario al armar su entrenamiento.
+Estos ejercicios deben cargarse desde la base de datos existente y mostrarse en un catálogo accesible durante la creación del set.
+Eliminar botón innecesario: 
+Remover el botón ubicado en la esquina inferior derecha de la pantalla que dice “Entrenar”.
+Este botón no tiene funcionalidad coherente en el nuevo flujo y genera confusión. Su eliminación es obligatoria.
+Nota de contexto:
+El enfoque actual de la aplicación debe ser 100% centrado en la creación por parte del usuario. No se requiere ni se permite la existencia de plantillas predefinidas. La experiencia debe ser limpia, intuitiva y funcional desde el primer paso de creación. 
+
+Resultado esperado:
+El usuario debe poder crear un entrenamiento de preparación física personalizado, eligiendo ejercicios de un catálogo existente, visualizando su selección en pantalla, y guardando su set — sin ver plantillas, ni botones innecesarios, ni errores de carga o visualización. 
