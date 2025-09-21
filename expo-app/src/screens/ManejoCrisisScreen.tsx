@@ -8,6 +8,15 @@ interface ManejoCrisisScreenProps {
   navigation: any;
 }
 
+interface EmojiRatingProps {
+  value: number;
+  onChange: (value: number) => void;
+  emojis: string[];
+  labels: string[];
+  title: string;
+  description: string;
+}
+
 interface CrisisTechnique {
   id: string;
   name: string;
@@ -81,10 +90,59 @@ const CRISIS_TECHNIQUES: CrisisTechnique[] = [
   }
 ];
 
+const EmojiRating: React.FC<EmojiRatingProps> = ({ 
+  value, 
+  onChange, 
+  emojis, 
+  labels, 
+  title, 
+  description 
+}) => (
+  <View style={styles.ratingContainer}>
+    <Text style={styles.ratingTitle}>{title}</Text>
+    <Text style={styles.ratingDescription}>{description}</Text>
+    
+    <View style={styles.emojisContainer}>
+      {emojis.map((emoji, index) => {
+        const rating = index + 1;
+        return (
+          <View key={index} style={styles.emojiItem}>
+            <Button
+              mode={value === rating ? 'contained' : 'outlined'}
+              onPress={() => onChange(rating)}
+              style={[
+                styles.emojiButton,
+                value === rating ? { backgroundColor: '#D32F2F' } : { borderColor: '#E0E0E0' }
+              ]}
+              contentStyle={styles.emojiButtonContent}
+              data-testid={`emoji-${title.toLowerCase().replace(/\s+/g, '-')}-${rating}`}
+            >
+              <Text style={styles.emojiText}>{emoji}</Text>
+            </Button>
+            <Text style={[
+              styles.emojiLabel,
+              value === rating ? { color: '#D32F2F', fontWeight: 'bold' } : { color: '#666666' }
+            ]}>
+              {labels[index]}
+            </Text>
+          </View>
+        );
+      })}
+    </View>
+  </View>
+);
+
 const ManejoCrisisScreen: React.FC<ManejoCrisisScreenProps> = ({ navigation }) => {
   const [currentTechnique, setCurrentTechnique] = useState<CrisisTechnique | null>(null);
   const [currentStep, setCurrentStep] = useState<number>(0);
   const [sessionStarted, setSessionStarted] = useState<boolean>(false);
+  
+  // Estados para evaluación inicial
+  const [evaluationCompleted, setEvaluationCompleted] = useState<boolean>(false);
+  const [intensityLevel, setIntensityLevel] = useState<number>(3);
+  const [physicalSymptoms, setPhysicalSymptoms] = useState<number>(3);
+  const [emotionalState, setEmotionalState] = useState<number>(3);
+  const [copingCapacity, setCopingCapacity] = useState<number>(3);
 
   const startTechnique = (technique: CrisisTechnique) => {
     setCurrentTechnique(technique);
@@ -100,6 +158,10 @@ const ManejoCrisisScreen: React.FC<ManejoCrisisScreenProps> = ({ navigation }) =
     }
   };
 
+  const completeEvaluation = () => {
+    setEvaluationCompleted(true);
+  };
+
   const completeTechnique = async () => {
     if (!currentTechnique) return;
 
@@ -111,6 +173,11 @@ const ManejoCrisisScreen: React.FC<ManejoCrisisScreenProps> = ({ navigation }) =
       completed: true,
       stepsCompleted: currentStep + 1,
       totalSteps: currentTechnique.steps.length,
+      // Datos de evaluación inicial
+      initialIntensityLevel: intensityLevel,
+      initialPhysicalSymptoms: physicalSymptoms,
+      initialEmotionalState: emotionalState,
+      initialCopingCapacity: copingCapacity,
       timeOfDay: getTimeOfDay(),
       dayOfWeek: getDayOfWeek(),
     };
@@ -145,6 +212,11 @@ const ManejoCrisisScreen: React.FC<ManejoCrisisScreenProps> = ({ navigation }) =
     setCurrentTechnique(null);
     setCurrentStep(0);
     setSessionStarted(false);
+    setEvaluationCompleted(false);
+    setIntensityLevel(3);
+    setPhysicalSymptoms(3);
+    setEmotionalState(3);
+    setCopingCapacity(3);
   };
 
   const getTimeOfDay = () => {
@@ -159,6 +231,103 @@ const ManejoCrisisScreen: React.FC<ManejoCrisisScreenProps> = ({ navigation }) =
     const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
     return days[new Date().getDay()];
   };
+
+  // Pantalla de evaluación inicial
+  if (!evaluationCompleted) {
+    return (
+      <View style={styles.container}>
+        <ScrollView style={styles.scrollContainer}>
+          {/* Header */}
+          <View style={styles.header}>
+            <Button
+              mode="text"
+              onPress={() => navigation.goBack()}
+              style={styles.backButton}
+              icon="arrow-left"
+              data-testid="button-back"
+            >
+              Atrás
+            </Button>
+            <Text style={styles.title}>Evaluación de Crisis</Text>
+            <Text style={styles.subtitle}>
+              Ayúdanos a entender tu situación actual para recomendarte la mejor técnica
+            </Text>
+          </View>
+
+          {/* Intensidad de Crisis */}
+          <Card style={styles.card}>
+            <Card.Content style={styles.cardContent}>
+              <EmojiRating
+                value={intensityLevel}
+                onChange={setIntensityLevel}
+                emojis={['😌', '😟', '😰', '😨', '🆘']}
+                labels={['Muy leve', 'Leve', 'Moderada', 'Intensa', 'Extrema']}
+                title="¿Qué tan intensa sientes la crisis ahora?"
+                description="Nivel de malestar emocional que experimentas"
+              />
+            </Card.Content>
+          </Card>
+
+          {/* Síntomas Físicos */}
+          <Card style={styles.card}>
+            <Card.Content style={styles.cardContent}>
+              <EmojiRating
+                value={physicalSymptoms}
+                onChange={setPhysicalSymptoms}
+                emojis={['💚', '💛', '🧡', '❤️', '💔']}
+                labels={['Ninguno', 'Leves', 'Moderados', 'Intensos', 'Muy intensos']}
+                title="¿Tienes síntomas físicos?"
+                description="Tensión, palpitaciones, sudoración, temblores, etc."
+              />
+            </Card.Content>
+          </Card>
+
+          {/* Estado Emocional */}
+          <Card style={styles.card}>
+            <Card.Content style={styles.cardContent}>
+              <EmojiRating
+                value={emotionalState}
+                onChange={setEmotionalState}
+                emojis={['😊', '😕', '😔', '😰', '😭']}
+                labels={['Tranquilo', 'Inquieto', 'Triste', 'Ansioso', 'Desesperado']}
+                title="¿Cómo describirías tu estado emocional?"
+                description="La emoción principal que sientes ahora"
+              />
+            </Card.Content>
+          </Card>
+
+          {/* Capacidad de Afrontamiento */}
+          <Card style={styles.card}>
+            <Card.Content style={styles.cardContent}>
+              <EmojiRating
+                value={copingCapacity}
+                onChange={setCopingCapacity}
+                emojis={['🌊', '⛅', '🌤️', '☀️', '🌈']}
+                labels={['Abrumado', 'Limitado', 'Suficiente', 'Bueno', 'Excelente']}
+                title="¿Qué tan capaz te sientes de manejar esto?"
+                description="Tu confianza en tu capacidad actual de afrontamiento"
+              />
+            </Card.Content>
+          </Card>
+
+          {/* Continuar Button */}
+          <Button
+            mode="contained"
+            onPress={completeEvaluation}
+            style={styles.continueButton}
+            buttonColor="#D32F2F"
+            contentStyle={styles.continueButtonContent}
+            data-testid="button-complete-evaluation"
+          >
+            <MaterialIcons name="arrow-forward" size={20} color="#FFFFFF" />
+            <Text style={styles.continueButtonText}>Ver Técnicas Recomendadas</Text>
+          </Button>
+          
+          <View style={styles.bottomSpacing} />
+        </ScrollView>
+      </View>
+    );
+  }
 
   if (sessionStarted && currentTechnique) {
     return (
@@ -528,6 +697,78 @@ const styles = StyleSheet.create({
   },
   bottomSpacing: {
     height: 32,
+  },
+  // Evaluation Styles
+  card: {
+    marginHorizontal: 16,
+    marginBottom: 16,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+  },
+  cardContent: {
+    padding: 20,
+  },
+  ratingContainer: {
+    marginBottom: 8,
+  },
+  ratingTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#283750',
+    marginBottom: 4,
+  },
+  ratingDescription: {
+    fontSize: 14,
+    color: '#666666',
+    marginBottom: 16,
+  },
+  emojisContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  emojiItem: {
+    alignItems: 'center',
+    flex: 1,
+    marginHorizontal: 2,
+  },
+  emojiButton: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    marginBottom: 8,
+  },
+  emojiButtonContent: {
+    height: 50,
+    width: 50,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  emojiText: {
+    fontSize: 20,
+  },
+  emojiLabel: {
+    fontSize: 10,
+    textAlign: 'center',
+    lineHeight: 12,
+  },
+  continueButton: {
+    marginHorizontal: 16,
+    marginTop: 16,
+    marginBottom: 16,
+    borderRadius: 12,
+  },
+  continueButtonContent: {
+    height: 56,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  continueButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#FFFFFF',
+    marginLeft: 8,
   },
 });
 
