@@ -7,6 +7,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { MaterialIcons } from '@expo/vector-icons';
 import { TimerProvider } from './src/hooks/useTimerContext';
 import { SyncProvider } from './src/hooks/useSyncManager';
+import InicioScreen from './src/screens/InicioScreen';
 import DeporteScreen from './src/screens/DeporteScreen';
 import ConfiguracionScreen from './src/screens/ConfiguracionScreen';
 
@@ -38,7 +39,9 @@ export default function ExpoApp() {
                   tabBarIcon: ({ focused, color, size }) => {
                     let iconName: keyof typeof MaterialIcons.glyphMap;
 
-                    if (route.name === 'Deporte') {
+                    if (route.name === 'Inicio') {
+                      iconName = 'home';
+                    } else if (route.name === 'Deporte') {
                       iconName = 'fitness-center';
                     } else if (route.name === 'Configuracion') {
                       iconName = 'settings';
@@ -59,6 +62,14 @@ export default function ExpoApp() {
                   },
                 })}
               >
+                <Tab.Screen
+                  name="Inicio"
+                  component={InicioScreen}
+                  options={{
+                    title: 'Inicio',
+                    headerShown: false, // Ocultamos el header porque InicioScreen tiene su propio header personalizado
+                  }}
+                />
                 <Tab.Screen
                   name="Deporte"
                   component={DeporteScreen}

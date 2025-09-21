@@ -5,6 +5,7 @@
 Tu aplicación MentalCheck ha sido **migrada completamente** a un proyecto Expo separado con:
 
 - ✅ **Expo SDK 53** con React Native 0.79 y React 19
+- ✅ **Pantalla de inicio** con navegación por tarjetas como la app web
 - ✅ **Sistema de Timer Tabata** completo con secuencias
 - ✅ **Sincronización entre dispositivos** 
 - ✅ **Notificaciones nativas**
@@ -14,7 +15,7 @@ Tu aplicación MentalCheck ha sido **migrada completamente** a un proyecto Expo 
 
 ```
 expo-app/                    # ← Proyecto Expo independiente
-├── 📄 ExpoApp.tsx          # App principal
+├── 📄 App.tsx              # App principal con navegación de 3 pestañas
 ├── 📄 app.json             # Configuración Expo
 ├── 📄 eas.json             # Configuración EAS Build
 ├── 📄 package.json         # Dependencias React Native
@@ -22,6 +23,9 @@ expo-app/                    # ← Proyecto Expo independiente
 │   ├── 📁 hooks/           # Timer + Sync logic
 │   ├── 📁 components/      # Timer UI
 │   └── 📁 screens/         # Pantallas principales
+│       ├── InicioScreen.tsx    # 🏠 Pantalla de inicio con tarjetas
+│       ├── DeporteScreen.tsx   # 🎯 Timer y entrenamientos
+│       └── ConfiguracionScreen.tsx # ⚙️ Configuración
 └── 📁 expo-assets/         # Assets para APK
 ```
 
@@ -62,6 +66,12 @@ eas build --platform android --profile preview
 ```
 
 ## 📱 Funcionalidades del APK
+
+### 🏠 Pantalla de Inicio
+- **Saludo personalizado** según la hora del día 
+- **Tarjetas de navegación** similares a la app web
+- **Acceso directo** a Deporte, MentalCheck y Gráficos
+- **Diseño responsive** adaptado a móviles
 
 ### 🎯 Timer Tabata Avanzado
 - **Configuraciones completas**: Trabajo, descanso, ciclos, sets
