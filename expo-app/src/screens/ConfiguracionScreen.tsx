@@ -123,7 +123,7 @@ const ConfiguracionScreen = () => {
                   style={styles.syncButton}
                   buttonColor="#EF4444"
                   icon={({ size, color }) => (
-                    <MaterialIcons name="remove-link" size={size} color={color} />
+                    <MaterialIcons name="link-off" size={size} color={color} />
                   )}
                 >
                   Desvincular
