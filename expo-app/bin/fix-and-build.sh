@@ -38,8 +38,8 @@ echo "🔢 SDK detectado: $SDK_MAJOR"
 # 5. Mapear versiones
 case $SDK_MAJOR in
     53)
-        RN_VERSION="0.76.5"
-        TYPES_REACT_VERSION="^18.3.0"
+        RN_VERSION="0.79.5"           # ✅ Compatible con React 19
+        TYPES_REACT_VERSION="~19.0.10" # ✅ Tipos para React 19
         ;;
     52)
         RN_VERSION="0.75.3"
@@ -68,7 +68,6 @@ case $SDK_MAJOR in
 esac
 
 # 6. Actualizar react-native
-# 6. ✅ CORREGIDO: Actualizar react-native
 if grep -q '"react-native":' package.json; then
     sed -i.bak "s/\"react-native\": *\"[^\"]*\"/\"react-native\": \"$RN_VERSION\"/" package.json
     echo "✅ react-native actualizado a $RN_VERSION"
@@ -89,7 +88,6 @@ else
 fi
 
 # 7. Actualizar @types/react
-# 7. ✅ CORREGIDO: Actualizar @types/react
 if grep -q '"@types/react":' package.json; then
     sed -i.bak "s/\"@types/react\": *\"[^\"]*\"/\"@types/react\": \"$TYPES_REACT_VERSION\"/" package.json
     echo "✅ @types/react actualizado a $TYPES_REACT_VERSION"
@@ -117,6 +115,18 @@ else
     fi
 fi
 
+# 7.5 ✅ Asegurar @types/hammerjs
+if ! grep -q '"@types/hammerjs"' package.json; then
+    echo "🔍 @types/hammerjs no encontrado. Instalando..."
+    npm install --save-dev @types/hammerjs
+    if [ $? -ne 0 ]; then
+        echo "❌ Error al instalar @types/hammerjs."
+        exit 1
+    fi
+else
+    echo "✅ @types/hammerjs ya está instalado."
+fi
+
 # 8. Instalar dependencias
 echo "📥 Instalando dependencias con --legacy-peer-deps..."
 npm install --legacy-peer-deps
@@ -128,12 +138,13 @@ fi
 
 # # 9. Alinear con Expo
 # echo "⚙️ Ejecutando 'expo install'..."
-# npx expo install
+echo "⚙️ Ejecutando 'npx expo install' para asegurar compatibilidad con SDK $SDK_MAJOR..."
+npx expo install
 
-# if [ $? -ne 0 ]; then
-#     echo "❌ Error al ejecutar expo install."
-#     exit 1
-# fi
+if [ $? -ne 0 ]; then
+    echo "❌ Error al ejecutar expo install."
+    exit 1
+fi
 
 # 10. ✅ Instalar expo-haptics si no está presente
 if ! grep -q '"expo-haptics"' package.json; then
@@ -148,10 +159,24 @@ else
 fi
 
 # 11. Limpiar caché
-# echo "🧹 Limpiando caché de Metro..."
-# npx expo start --clear
 
-echo "✅ ¡TODO LISTO!"
-echo "👉 Ejecutando eas build --platform all"
+# 12. 🧪 Ejecutar expo-doctor para diagnóstico final
+echo "🧪 Ejecutando 'npx expo-doctor --verbose' para verificar salud del proyecto..."
+echo "-------------------------------------------------------------------------------"
 
-eas build --platform android
+if npx expo-doctor --verbose; then
+    echo "-------------------------------------------------------------------------------"
+    echo "✅ ¡Diagnóstico completado! Tu proyecto está en buen estado de salud."
+    echo "✅ ¡TODO LISTO!"
+    echo "👉 Ejecutando eas build --platform all"
+    eas build --platform android
+else
+    echo "-------------------------------------------------------------------------------"
+    echo "⚠️  ¡Atención! Se detectaron problemas en el diagnóstico. Revisa la salida anterior."
+    echo "   - Ejecuta manualmente: npx expo-doctor --verbose"
+    echo "   - Revisa y corrige los problemas reportados."
+    echo "   - Luego intenta construir de nuevo."
+fi
+
+
+
