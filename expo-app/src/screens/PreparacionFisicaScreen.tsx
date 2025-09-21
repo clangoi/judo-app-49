@@ -33,6 +33,8 @@ interface WorkoutSession {
   duration: number;
   notes?: string;
   intensity: 1 | 2 | 3 | 4 | 5;
+  templateId?: string;
+  templateName?: string;
 }
 
 // Default workout templates (used for initialization) - MOVED BEFORE COMPONENT
@@ -130,7 +132,9 @@ const PreparacionFisicaScreen = () => {
       type: template.category === 'custom' ? 'full' : template.category,
       exercises,
       duration: 0,
-      intensity: 3
+      intensity: 3,
+      templateId: template.id,
+      templateName: template.name
     };
 
     setFormSession(newWorkout);
@@ -195,9 +199,10 @@ const PreparacionFisicaScreen = () => {
         );
       } else {
         await create(sessionData);
+        const templateName = sessionData.templateName || workoutTemplates.find(t => t.type === 'workout' && t.category === sessionData.type)?.name || String(sessionData.type);
         Alert.alert(
           '¡Entrenamiento Completado!',
-          `Has terminado tu sesión de ${workoutTemplates[sessionData.type!].name}.`,
+          `Has terminado tu sesión de ${templateName}.`,
           [{ text: 'Excelente!', style: 'default' }]
         );
       }
