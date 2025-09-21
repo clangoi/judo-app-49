@@ -4,30 +4,13 @@ import {
   Text, 
   StyleSheet, 
   ScrollView, 
-  Dimensions, 
-  Alert,
-  Share
+  Alert
 } from 'react-native';
-import { 
-  Button, 
-  Card, 
-  Divider, 
-  SegmentedButtons,
-  FAB
-} from 'react-native-paper';
-import { MaterialIcons } from '@expo/vector-icons';
+import { Card, Button } from 'react-native-paper';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useFocusEffect } from '@react-navigation/native';
-import {
-  LineChart,
-  BarChart,
-  PieChart,
-  ProgressChart
-} from 'react-native-chart-kit';
-import { Calendar } from 'react-native-calendars';
 
 interface GraficosAnalisisScreenProps {
-  navigation: any;
+  navigation?: any;
 }
 
 interface CheckinData {
@@ -74,52 +57,17 @@ interface CrisisData {
   };
 }
 
-const screenData = Dimensions.get('window');
-
-const chartConfig = {
-  backgroundColor: '#ffffff',
-  backgroundGradientFrom: '#ffffff',
-  backgroundGradientTo: '#ffffff',
-  decimalPlaces: 1,
-  color: (opacity = 1) => `rgba(40, 55, 80, ${opacity})`,
-  labelColor: (opacity = 1) => `rgba(40, 55, 80, ${opacity})`,
-  style: {
-    borderRadius: 16,
-  },
-  propsForDots: {
-    r: '6',
-    strokeWidth: '2',
-    stroke: '#283750',
-  },
-};
-
-const chartConfigSecondary = {
-  ...chartConfig,
-  color: (opacity = 1) => `rgba(76, 175, 80, ${opacity})`,
-  propsForDots: {
-    r: '6',
-    strokeWidth: '2',
-    stroke: '#4CAF50',
-  },
-};
+// Esta pantalla está temporalmente simplificada para compatibilidad web
 
 const GraficosAnalisisScreen: React.FC<GraficosAnalisisScreenProps> = ({ navigation }) => {
-  const [activeSection, setActiveSection] = useState('resumen');
   const [checkinData, setCheckinData] = useState<CheckinData[]>([]);
   const [bienestarData, setBienestarData] = useState<BienestarData[]>([]);
   const [crisisData, setCrisisData] = useState<CrisisData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [timeRange, setTimeRange] = useState('week');
 
   useEffect(() => {
     loadAllData();
   }, []);
-
-  useFocusEffect(
-    React.useCallback(() => {
-      loadAllData();
-    }, [])
-  );
 
   const loadAllData = async () => {
     setIsLoading(true);
@@ -183,10 +131,17 @@ const GraficosAnalisisScreen: React.FC<GraficosAnalisisScreenProps> = ({ navigat
 
       const reportText = generateReport(exportData);
       
-      await Share.share({
-        message: reportText,
-        title: 'Reporte de Bienestar Mental',
-      });
+      // Crear descarga en web
+      const blob = new Blob([reportText], { type: 'text/plain' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'reporte-bienestar-mental.txt';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+      
     } catch (error) {
       Alert.alert('Error', 'No se pudo exportar los datos');
     }
@@ -243,137 +198,41 @@ ${getMostUsedTechniques()}
   const filteredData = useMemo(() => {
     const now = new Date();
     const cutoffDate = new Date();
-    
-    switch (timeRange) {
-      case 'week':
-        cutoffDate.setDate(now.getDate() - 7);
-        break;
-      case 'month':
-        cutoffDate.setDate(now.getDate() - 30);
-        break;
-      case 'year':
-        cutoffDate.setDate(now.getDate() - 365);
-        break;
-      default:
-        cutoffDate.setDate(now.getDate() - 7);
-    }
+    cutoffDate.setDate(now.getDate() - 7); // Última semana por defecto
 
     return {
       checkins: checkinData.filter(item => new Date(item.timestamp) >= cutoffDate),
       bienestar: bienestarData.filter(item => new Date(item.timestamp) >= cutoffDate),
       crisis: crisisData.filter(item => new Date(item.timestamp) >= cutoffDate),
     };
-  }, [checkinData, bienestarData, crisisData, timeRange]);
+  }, [checkinData, bienestarData, crisisData]);
 
-  const trendChartData = useMemo(() => {
-    if (filteredData.checkins.length === 0) {
-      return null; // Return null for empty state handling
-    }
-
-    // Agrupar por días usando ISO dates
-    const groupedByDay = filteredData.checkins.reduce((acc: any, item) => {
-      const date = new Date(item.timestamp).toISOString().split('T')[0]; // YYYY-MM-DD
-      if (!acc[date]) {
-        acc[date] = {
-          mood: [],
-          energy: [],
-          stress: [],
-          timestamp: new Date(item.timestamp).getTime(), // For sorting
-        };
-      }
-      acc[date].mood.push(item.currentMood);
-      acc[date].energy.push(item.energyLevel);
-      acc[date].stress.push(item.stressLevel);
-      return acc;
-    }, {});
-
-    // Sort by timestamp and take last 7 days
-    const sortedDates = Object.keys(groupedByDay)
-      .sort((a, b) => groupedByDay[a].timestamp - groupedByDay[b].timestamp)
-      .slice(-7);
-
-    const moodData = sortedDates.map(date => {
-      const dayData = groupedByDay[date].mood;
-      return dayData.reduce((sum: number, val: number) => sum + val, 0) / dayData.length;
-    });
-
-    const energyData = sortedDates.map(date => {
-      const dayData = groupedByDay[date].energy;
-      return dayData.reduce((sum: number, val: number) => sum + val, 0) / dayData.length;
-    });
-
-    return {
-      labels: sortedDates.map(date => new Date(date).getDate().toString()),
-      datasets: [
-        {
-          data: moodData,
-          color: (opacity = 1) => `rgba(40, 55, 80, ${opacity})`,
-          strokeWidth: 2,
-        },
-        {
-          data: energyData,
-          color: (opacity = 1) => `rgba(76, 175, 80, ${opacity})`,
-          strokeWidth: 2,
-        }
-      ]
-    };
-  }, [filteredData]);
-
-  const techniquesUsageData = useMemo(() => {
-    const techniques = filteredData.bienestar.reduce((acc: any, session) => {
-      const name = session.techniqueName.length > 10 
-        ? session.techniqueName.substring(0, 10) + '...'
-        : session.techniqueName;
-      acc[name] = (acc[name] || 0) + 1;
-      return acc;
-    }, {});
-
-    const entries = Object.entries(techniques);
-    if (entries.length === 0) {
-      return null; // Return null for empty state handling
-    }
-
-    return {
-      labels: entries.map(([name]) => name),
-      datasets: [{
-        data: entries.map(([, count]) => count as number)
-      }]
-    };
-  }, [filteredData]);
-
-  const statsCards = useMemo(() => {
+  // Funciones de análisis simplificadas para web
+  const getStats = () => {
     const totalSessions = filteredData.bienestar.length + filteredData.crisis.length;
     const completedSessions = [...filteredData.bienestar, ...filteredData.crisis].filter(s => s.completed).length;
     const avgMood = filteredData.checkins.reduce((sum, item) => sum + item.currentMood, 0) / filteredData.checkins.length || 0;
     const consistencyDays = getConsistencyDays(filteredData.checkins);
 
-    return [
-      {
-        title: 'Sesiones Totales',
-        value: totalSessions,
-        icon: 'psychology',
-        color: '#2196F3',
-      },
-      {
-        title: 'Tasa de Completado',
-        value: totalSessions > 0 ? `${Math.round((completedSessions / totalSessions) * 100)}%` : '0%',
-        icon: 'check-circle',
-        color: '#4CAF50',
-      },
-      {
-        title: 'Estado de Ánimo Promedio',
-        value: `${avgMood.toFixed(1)}/5`,
-        icon: 'mood',
-        color: '#FF9800',
-      },
-      {
-        title: 'Días Consistentes',
-        value: consistencyDays,
-        icon: 'calendar-today',
-        color: '#9C27B0',
-      },
-    ];
-  }, [filteredData]);
+    return {
+      totalSessions,
+      completedSessions,
+      avgMood,
+      consistencyDays
+    };
+  };
+
+  const getMostUsedTechniques = () => {
+    const techniques = filteredData.bienestar.reduce((acc: any, session) => {
+      acc[session.techniqueName] = (acc[session.techniqueName] || 0) + 1;
+      return acc;
+    }, {});
+    
+    const sorted = Object.entries(techniques).sort(([,a], [,b]) => (b as number) - (a as number));
+    return sorted.slice(0, 5).map(([name, count]) => ({ name, count }));
+  };
+
+  // Función auxiliar movida aquí
 
   const getConsistencyDays = (checkins: CheckinData[]) => {
     if (checkins.length === 0) return 0;
@@ -384,254 +243,81 @@ ${getMostUsedTechniques()}
     return uniqueDays.size;
   };
 
-  const calendarData = useMemo(() => {
-    const markedDates: any = {};
+  // Datos eliminados para simplificar
 
-    // Marcar días con check-ins
-    filteredData.checkins.forEach(item => {
-      const date = new Date(item.timestamp).toISOString().split('T')[0];
-      const avgMood = item.currentMood;
-      
-      let color = '#E0E0E0';
-      if (avgMood >= 4) color = '#4CAF50';
-      else if (avgMood >= 3) color = '#FF9800';
-      else color = '#F44336';
+  const renderContent = () => {
+    const stats = getStats();
+    const techniques = getMostUsedTechniques();
 
-      markedDates[date] = {
-        customStyles: {
-          container: {
-            backgroundColor: color,
-            borderRadius: 15,
-          },
-          text: {
-            color: 'white',
-            fontWeight: 'bold',
-          },
-        },
-      };
-    });
+    return (
+      <View>
+        <Card style={styles.card}>
+          <Card.Content>
+            <Text style={styles.sectionTitle}>📊 Resumen de Bienestar</Text>
+            
+            <View style={styles.statRow}>
+              <Text style={styles.statLabel}>Check-ins realizados:</Text>
+              <Text style={styles.statValue}>{filteredData.checkins.length}</Text>
+            </View>
+            
+            <View style={styles.statRow}>
+              <Text style={styles.statLabel}>Sesiones totales:</Text>
+              <Text style={styles.statValue}>{stats.totalSessions}</Text>
+            </View>
+            
+            <View style={styles.statRow}>
+              <Text style={styles.statLabel}>Sesiones completadas:</Text>
+              <Text style={styles.statValue}>{stats.completedSessions}</Text>
+            </View>
+            
+            <View style={styles.statRow}>
+              <Text style={styles.statLabel}>Estado de ánimo promedio:</Text>
+              <Text style={styles.statValue}>{stats.avgMood.toFixed(1)}/5</Text>
+            </View>
+            
+            <View style={styles.statRow}>
+              <Text style={styles.statLabel}>Días con actividad:</Text>
+              <Text style={styles.statValue}>{stats.consistencyDays}</Text>
+            </View>
+          </Card.Content>
+        </Card>
 
-    return markedDates;
-  }, [filteredData]);
-
-  const progressChartData = useMemo(() => ({
-    labels: ['Ánimo', 'Energía', 'Calma'],
-    data: [
-      filteredData.checkins.reduce((sum, item) => sum + item.currentMood, 0) / filteredData.checkins.length / 5 || 0,
-      filteredData.checkins.reduce((sum, item) => sum + item.energyLevel, 0) / filteredData.checkins.length / 5 || 0,
-      filteredData.checkins.reduce((sum, item) => sum + (6 - item.stressLevel), 0) / filteredData.checkins.length / 5 || 0,
-    ],
-  }), [filteredData]);
-
-  const pieChartData = useMemo(() => {
-    const data = [
-      {
-        name: 'Respiración',
-        population: filteredData.bienestar.filter(s => s.techniqueType.includes('breathing') || s.techniqueType.includes('4-7-8') || s.techniqueType.includes('box')).length,
-        color: '#2196F3',
-        legendFontColor: '#7F7F7F',
-        legendFontSize: 15,
-      },
-      {
-        name: 'Mindfulness',
-        population: filteredData.bienestar.filter(s => !s.techniqueType.includes('breathing') && !s.techniqueType.includes('4-7-8') && !s.techniqueType.includes('box')).length,
-        color: '#4CAF50',
-        legendFontColor: '#7F7F7F',
-        legendFontSize: 15,
-      },
-      {
-        name: 'Crisis',
-        population: filteredData.crisis.length,
-        color: '#F44336',
-        legendFontColor: '#7F7F7F',
-        legendFontSize: 15,
-      },
-    ];
-
-    const totalPopulation = data.reduce((sum, item) => sum + item.population, 0);
-    return totalPopulation > 0 ? data : null;
-  }, [filteredData]);
-
-  const renderResumenSection = () => (
-    <View>
-      {/* Estadísticas principales */}
-      <View style={styles.statsGrid}>
-        {statsCards.map((stat, index) => (
-          <Card key={index} style={styles.statCard}>
-            <Card.Content style={styles.statCardContent}>
-              <View style={[styles.statIcon, { backgroundColor: stat.color }]}>
-                <MaterialIcons name={stat.icon as any} size={24} color="white" />
-              </View>
-              <Text style={styles.statValue}>{stat.value}</Text>
-              <Text style={styles.statTitle}>{stat.title}</Text>
+        {techniques.length > 0 && (
+          <Card style={styles.card}>
+            <Card.Content>
+              <Text style={styles.sectionTitle}>🧘 Técnicas Más Utilizadas</Text>
+              {techniques.map((technique, index) => (
+                <View key={index} style={styles.statRow}>
+                  <Text style={styles.statLabel}>{technique.name}:</Text>
+                  <Text style={styles.statValue}>{technique.count} sesiones</Text>
+                </View>
+              ))}
             </Card.Content>
           </Card>
-        ))}
+        )}
+
+        <Card style={styles.card}>
+          <Card.Content>
+            <Text style={styles.sectionTitle}>📈 Análisis Disponible</Text>
+            <Text style={styles.description}>
+              Esta es una versión simplificada de la pantalla de gráficos y análisis. 
+              La versión completa con gráficos interactivos estará disponible en la aplicación móvil.
+            </Text>
+            
+            <Button 
+              mode="contained" 
+              onPress={exportData}
+              style={styles.exportButton}
+            >
+              📊 Exportar Reporte Completo
+            </Button>
+          </Card.Content>
+        </Card>
       </View>
+    );
+  };
 
-      <Divider style={styles.divider} />
-
-      {/* Gráfico de tendencias */}
-      <Card style={styles.chartCard}>
-        <Card.Content>
-          <Text style={styles.chartTitle}>Tendencias de Bienestar</Text>
-          <Text style={styles.chartSubtitle}>Estado de ánimo (azul) y energía (verde)</Text>
-          {trendChartData ? (
-            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-              <LineChart
-                data={trendChartData}
-                width={Math.max(screenData.width - 60, 350)}
-                height={220}
-                chartConfig={chartConfig}
-                bezier
-                style={styles.chart}
-              />
-            </ScrollView>
-          ) : (
-            <View style={styles.emptyState}>
-              <Text style={styles.emptyStateText}>Sin datos suficientes para mostrar tendencias</Text>
-            </View>
-          )}
-        </Card.Content>
-      </Card>
-    </View>
-  );
-
-  const renderTendenciasSection = () => (
-    <View>
-      <Card style={styles.chartCard}>
-        <Card.Content>
-          <Text style={styles.chartTitle}>Análisis de Tendencias</Text>
-          {trendChartData ? (
-            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-              <LineChart
-                data={trendChartData}
-                width={Math.max(screenData.width - 60, 400)}
-                height={250}
-                chartConfig={chartConfig}
-                bezier
-                style={styles.chart}
-              />
-            </ScrollView>
-          ) : (
-            <View style={styles.emptyState}>
-              <Text style={styles.emptyStateText}>Sin datos suficientes para mostrar tendencias</Text>
-            </View>
-          )}
-          <Text style={styles.chartLegend}>
-            📈 Azul: Estado de ánimo | 🟢 Verde: Nivel de energía
-          </Text>
-        </Card.Content>
-      </Card>
-
-      <Card style={styles.chartCard}>
-        <Card.Content>
-          <Text style={styles.chartTitle}>Progreso Semanal</Text>
-          <ProgressChart
-            data={progressChartData}
-            width={screenData.width - 60}
-            height={220}
-            strokeWidth={16}
-            radius={32}
-            chartConfig={chartConfig}
-            hideLegend={false}
-          />
-        </Card.Content>
-      </Card>
-    </View>
-  );
-
-  const renderTecnicasSection = () => (
-    <View>
-      <Card style={styles.chartCard}>
-        <Card.Content>
-          <Text style={styles.chartTitle}>Uso de Técnicas</Text>
-          {techniquesUsageData ? (
-            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-              <BarChart
-                data={techniquesUsageData}
-                width={Math.max(screenData.width - 60, 350)}
-                height={220}
-                chartConfig={chartConfigSecondary}
-                style={styles.chart}
-                yAxisSuffix=""
-                yAxisLabel=""
-              />
-            </ScrollView>
-          ) : (
-            <View style={styles.emptyState}>
-              <Text style={styles.emptyStateText}>Sin técnicas utilizadas en este período</Text>
-            </View>
-          )}
-        </Card.Content>
-      </Card>
-
-      <Card style={styles.chartCard}>
-        <Card.Content>
-          <Text style={styles.chartTitle}>Distribución por Tipo</Text>
-          {pieChartData ? (
-            <PieChart
-              data={pieChartData}
-              width={screenData.width - 60}
-              height={220}
-              chartConfig={chartConfig}
-              accessor="population"
-              backgroundColor="transparent"
-              paddingLeft="15"
-              center={[10, 10]}
-            />
-          ) : (
-            <View style={styles.emptyState}>
-              <Text style={styles.emptyStateText}>Sin sesiones registradas en este período</Text>
-            </View>
-          )}
-        </Card.Content>
-      </Card>
-    </View>
-  );
-
-  const renderCalendarioSection = () => (
-    <View>
-      <Card style={styles.chartCard}>
-        <Card.Content>
-          <Text style={styles.chartTitle}>Calendario de Actividad</Text>
-          <Text style={styles.chartSubtitle}>
-            🟢 Días buenos • 🟠 Días regulares • 🔴 Días difíciles
-          </Text>
-          <Calendar
-            markedDates={calendarData}
-            markingType="custom"
-            theme={{
-              backgroundColor: '#ffffff',
-              calendarBackground: '#ffffff',
-              textSectionTitleColor: '#283750',
-              selectedDayBackgroundColor: '#283750',
-              selectedDayTextColor: '#ffffff',
-              todayTextColor: '#283750',
-              dayTextColor: '#2d4150',
-              textDisabledColor: '#d9e1e8',
-              dotColor: '#283750',
-              selectedDotColor: '#ffffff',
-              arrowColor: '#283750',
-              disabledArrowColor: '#d9e1e8',
-              monthTextColor: '#283750',
-              indicatorColor: '#283750',
-            }}
-          />
-        </Card.Content>
-      </Card>
-
-      <Card style={styles.chartCard}>
-        <Card.Content>
-          <Text style={styles.chartTitle}>Patrones Semanales</Text>
-          <Text style={styles.chartDescription}>
-            Análisis de tus patrones de bienestar por día de la semana
-          </Text>
-          {/* Aquí podrías agregar un gráfico de patrones semanales */}
-        </Card.Content>
-      </Card>
-    </View>
-  );
+  // Funciones de renderizado eliminadas para simplificar
 
   if (isLoading) {
     return (
@@ -643,63 +329,23 @@ ${getMostUsedTechniques()}
 
   return (
     <View style={styles.container}>
-      {/* Header */}
       <View style={styles.header}>
-        <Button
-          mode="text"
-          onPress={() => navigation.goBack()}
-          style={styles.backButton}
-          icon="arrow-left"
-        >
-          Atrás
-        </Button>
-        <Text style={styles.title}>Gráficos y Análisis</Text>
-        <Text style={styles.subtitle}>Visualiza tu progreso de bienestar</Text>
-      </View>
-
-      {/* Filtros de tiempo */}
-      <View style={styles.timeFilterContainer}>
-        <SegmentedButtons
-          value={timeRange}
-          onValueChange={setTimeRange}
-          buttons={[
-            { value: 'week', label: '7 días' },
-            { value: 'month', label: '30 días' },
-            { value: 'year', label: '1 año' },
-          ]}
-          style={styles.segmentedButtons}
-        />
-      </View>
-
-      {/* Navegación de secciones */}
-      <View style={styles.sectionNavigation}>
-        <SegmentedButtons
-          value={activeSection}
-          onValueChange={setActiveSection}
-          buttons={[
-            { value: 'resumen', label: 'Resumen' },
-            { value: 'tendencias', label: 'Tendencias' },
-            { value: 'tecnicas', label: 'Técnicas' },
-            { value: 'calendario', label: 'Calendario' },
-          ]}
-          style={styles.segmentedButtons}
-        />
+        {navigation && (
+          <Button
+            mode="text"
+            onPress={() => navigation.goBack()}
+            style={styles.backButton}
+          >
+            ← Atrás
+          </Button>
+        )}
+        <Text style={styles.title}>📊 Gráficos y Análisis</Text>
+        <Text style={styles.subtitle}>Resumen de tu progreso de bienestar</Text>
       </View>
 
       <ScrollView style={styles.scrollContainer}>
-        {activeSection === 'resumen' && renderResumenSection()}
-        {activeSection === 'tendencias' && renderTendenciasSection()}
-        {activeSection === 'tecnicas' && renderTecnicasSection()}
-        {activeSection === 'calendario' && renderCalendarioSection()}
+        {renderContent()}
       </ScrollView>
-
-      {/* FAB para exportar */}
-      <FAB
-        icon="download"
-        style={styles.fab}
-        onPress={exportData}
-        label="Exportar"
-      />
     </View>
   );
 };
@@ -714,136 +360,70 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   header: {
-    backgroundColor: '#283750',
-    paddingTop: 50,
-    paddingBottom: 20,
-    paddingHorizontal: 20,
+    padding: 20,
+    backgroundColor: '#FFFFFF',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E7EB',
   },
   backButton: {
     alignSelf: 'flex-start',
     marginBottom: 10,
   },
   title: {
-    fontSize: 28,
+    fontSize: 24,
     fontWeight: 'bold',
-    color: 'white',
+    color: '#283750',
     marginBottom: 5,
   },
   subtitle: {
     fontSize: 16,
-    color: 'rgba(255, 255, 255, 0.8)',
-    marginBottom: 10,
-  },
-  timeFilterContainer: {
-    paddingHorizontal: 20,
-    paddingVertical: 15,
-    backgroundColor: 'white',
-  },
-  sectionNavigation: {
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    backgroundColor: 'white',
-    borderBottomWidth: 1,
-    borderBottomColor: '#E0E0E0',
-  },
-  segmentedButtons: {
-    backgroundColor: 'white',
+    color: '#6B7280',
   },
   scrollContainer: {
     flex: 1,
-    padding: 20,
+    padding: 16,
   },
-  statsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    marginBottom: 20,
-  },
-  statCard: {
-    width: '48%',
-    marginBottom: 15,
-    backgroundColor: 'white',
+  card: {
+    backgroundColor: '#FFFFFF',
+    marginBottom: 16,
     elevation: 2,
   },
-  statCardContent: {
-    alignItems: 'center',
-    paddingVertical: 15,
-  },
-  statIcon: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 10,
-  },
-  statValue: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#283750',
-    marginBottom: 5,
-  },
-  statTitle: {
-    fontSize: 12,
-    color: '#666666',
-    textAlign: 'center',
-  },
-  chartCard: {
-    backgroundColor: 'white',
-    marginBottom: 20,
-    elevation: 2,
-  },
-  chartTitle: {
+  sectionTitle: {
     fontSize: 18,
     fontWeight: 'bold',
     color: '#283750',
-    marginBottom: 5,
+    marginBottom: 16,
   },
-  chartSubtitle: {
-    fontSize: 14,
-    color: '#666666',
-    marginBottom: 15,
+  statRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F3F4F6',
   },
-  chartDescription: {
+  statLabel: {
     fontSize: 14,
-    color: '#666666',
+    color: '#6B7280',
+    flex: 1,
+  },
+  statValue: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#283750',
+  },
+  description: {
+    fontSize: 14,
+    color: '#6B7280',
     lineHeight: 20,
+    marginBottom: 16,
   },
-  chart: {
-    marginVertical: 8,
-    borderRadius: 16,
-  },
-  chartLegend: {
-    fontSize: 12,
-    color: '#666666',
-    textAlign: 'center',
-    marginTop: 10,
-  },
-  divider: {
-    marginVertical: 20,
-    backgroundColor: '#E0E0E0',
+  exportButton: {
+    backgroundColor: '#283750',
   },
   loadingText: {
     fontSize: 16,
-    color: '#666666',
-  },
-  fab: {
-    position: 'absolute',
-    margin: 20,
-    right: 0,
-    bottom: 0,
-    backgroundColor: '#283750',
-  },
-  emptyState: {
-    padding: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  emptyStateText: {
-    fontSize: 16,
-    color: '#666666',
-    textAlign: 'center',
-    fontStyle: 'italic',
+    color: '#6B7280',
   },
 });
 
