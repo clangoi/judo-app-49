@@ -1,192 +1,67 @@
-# Judo Training Management System
+# MentalCheck Sports Training Platform
 
 ## Overview
 
-This is a full-stack web application for managing judo training, athlete performance tracking, and club management. The system serves multiple user roles including athletes (practicantes), trainers (entrenadores), and administrators (admin) with role-based access control and comprehensive training management features.
+This project is a comprehensive dual-platform sports training and mental health system. It includes a full-stack **Web Application** for managing sports training, athlete performance, and club administration with role-based access. Complementing this is a **Mobile Application (MentalCheck)** built with React Native/Expo, focusing on sports training timers, mental health evaluation, and cross-device synchronization. The system supports multiple user roles: athletes (deportistas), trainers (entrenadores), and administrators (admin), providing extensive training management and mental health support. The project aims to provide a robust solution for sports clubs and individual athletes to manage their physical and mental well-being effectively.
 
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
 Terminology: Refer to users as "deportistas" instead of "estudiantes" or "practicantes". The system now handles multiple sports, not just Judo - avoid sport-specific references in UI.
 
-## Recent Changes (July 20, 2025)
-
-### Authentication and Role Management System Fix
-- ✓ Fixed critical authentication issue where Diego Fernández appeared as deportista instead of entrenador
-- ✓ Implemented dynamic role detection that queries database in real-time instead of hardcoded patterns
-- ✓ Updated useUserRoles hook to check database first, then fallback to static mapping
-- ✓ Added comprehensive mapping for all trainers in the database
-- ✓ Fixed role update functionality in admin panel to properly refresh UI after changes
-- ✓ Enhanced cache invalidation for role-related queries
-
-### Trainer Dashboard Widget System (Previous)
-- ✓ Completed comprehensive customizable trainer dashboard widget system with 6 widget types
-- ✓ Implemented drag-and-drop grid layout with position management and widget customization
-- ✓ Added full backend API with CRUD operations for trainer dashboard widget management
-- ✓ Created database table for storing trainer widget preferences
-
-### Weight Categories Implementation (July 17, 2025)
-- ✓ Expanded sports database schema to include weight_categories (JSONB column)
-- ✓ Created comprehensive weight category management in AdminSports.tsx
-- ✓ Implemented gender-specific (masculino, femenino, mixto) weight categories
-- ✓ Added age-category-specific weight divisions
-- ✓ Fixed UI bug where adding weight categories triggered sport name editing
-- ✓ Improved form event handling with onKeyDown instead of onKeyPress
-- ✓ Added DialogDescription for better accessibility compliance
-- ✓ Applied database migration to add weight_categories column to existing sports table
-
 ## System Architecture
 
-### Frontend Architecture
+The system comprises a Web Application, a Mobile Application (MentalCheck), and a shared backend.
+
+### Web Application Architecture
 - **Framework**: React 18 with TypeScript
-- **Build Tool**: Vite for fast development and optimized builds
-- **UI Framework**: Shadcn/ui components built on top of Radix UI primitives
-- **Styling**: Tailwind CSS with custom design system using HSL color values
-- **State Management**: TanStack Query (React Query) for server state management
-- **Routing**: React Router v6 for client-side navigation
+- **Build Tool**: Vite
+- **UI Framework**: Shadcn/ui (Radix UI base) with Tailwind CSS (HSL color system)
+- **State Management**: TanStack Query
+- **Routing**: React Router v6
 - **Form Handling**: React Hook Form with Zod validation
 - **Authentication**: Custom React context with Supabase Auth
+- **Key Features**: Training session management, technique library, progress tracking, tactical planning, club management, and a gamification system with achievement badges.
+
+### Mobile Application Architecture (MentalCheck)
+- **Framework**: React Native (0.79) with Expo SDK 53 and React 19
+- **UI Framework**: React Native Paper + MaterialIcons
+- **Navigation**: React Navigation v6
+- **Storage**: AsyncStorage for local persistence
+- **Notifications**: Expo Notifications
+- **Audio**: Expo AV
+- **Build System**: EAS Build
+- **Key Features**: Advanced customizable timer system (Tabata, stopwatch), mental health evaluation with integrated analytics, cross-device synchronization without a central backend, and native mobile features like push notifications and screen wake locks.
 
 ### Backend Architecture
-- **Runtime**: Node.js with Express.js server
+- **Runtime**: Node.js with Express.js
 - **Language**: TypeScript with ES modules
-- **Database ORM**: Drizzle ORM for type-safe database operations
-- **Database**: PostgreSQL (specifically configured for Neon serverless)
-- **Session Management**: PostgreSQL-backed sessions using connect-pg-simple
-- **Development**: Hot module replacement via Vite in development mode
+- **Database ORM**: Drizzle ORM
+- **Database**: PostgreSQL (Neon serverless)
+- **Session Management**: PostgreSQL-backed sessions using `connect-pg-simple`
+- **Authentication & Authorization**: Multi-role system (practicante, entrenador, admin), JWT-based via Supabase, role-based access control via database functions, and protected routes.
 
-### Directory Structure
-```
-├── client/          # Frontend React application
-├── server/          # Express.js backend
-├── shared/          # Shared schemas and types
-└── migrations/      # Database migration files
-```
+### Data Models
+The system employs a comprehensive schema including `Users`, `User roles`, `Training sessions`, `Techniques`, `Tactical notes`, `Weight tracking`, `Nutrition entries`, `Clubs`, `Trainer assignments`, `Achievement badges`, and `User achievements`.
 
-## Key Components
-
-### Authentication & Authorization
-- **Multi-role system**: practicante (athlete), entrenador (trainer), admin
-- **JWT-based authentication** through Supabase
-- **Role-based access control** implemented via database functions
-- **Protected routes** with AuthGuard component
-
-### Data Models (Schema)
-- **Users table**: Basic user authentication data
-- **User roles**: Role assignment and management
-- **Training sessions**: Physical preparation and judo-specific training
-- **Techniques**: Judo technique documentation with media
-- **Tactical notes**: Strategy and tactical planning
-- **Weight tracking**: Weight management and progress
-- **Nutrition entries**: Meal and nutrition tracking
-- **Clubs**: Organization management
-- **Trainer assignments**: Trainer-athlete relationships
-- **Achievement badges**: Gamification milestone definitions
-- **User achievements**: Individual achievement progress and completion
-
-### Core Features
-1. **Training Session Management**
-   - Physical preparation sessions with exercise tracking
-   - Judo-specific training with randori documentation
-   - Video and image uploads for technique analysis
-
-2. **Technique Library**
-   - Comprehensive judo technique database
-   - Categorized by belt levels
-   - Media attachments (photos, videos, YouTube links)
-
-3. **Progress Tracking**
-   - Weight monitoring with trend analysis
-   - Training frequency and intensity tracking
-   - Performance analytics and visualizations
-
-4. **Tactical Planning**
-   - Opponent analysis and strategy documentation
-   - Match preparation notes
-   - Multimedia tactical resources
-
-5. **Club Management**
-   - Multi-club support with logo management
-   - Trainer-athlete assignment system
-   - Administrative oversight capabilities
-
-6. **Gamification System**
-   - Achievement badge system with multiple categories
-   - Automatic progress tracking and milestone detection
-   - Visual achievement notifications and progress statistics
-   - Badge categories: training, technique, consistency, weight, nutrition
-
-## Data Flow
-
-1. **Authentication Flow**
-   - Users authenticate via Supabase Auth
-   - Role verification through database functions
-   - Session persistence with PostgreSQL backend
-
-2. **Data Management Flow**
-   - Frontend components use React Query for caching
-   - API calls routed through Express.js middleware
-   - Drizzle ORM handles database operations
-   - Real-time updates via query invalidation
-
-3. **File Upload Flow**
-   - Media files uploaded to Supabase Storage
-   - URLs stored in PostgreSQL database
-   - Optimistic updates in React Query cache
+### Core Architectural Decisions
+- **Type-safe database operations**: Drizzle ORM ensures end-to-end type safety.
+- **Role-based access control**: Implemented via PostgreSQL functions and React Query for efficient client-side caching.
+- **Media file management**: Supabase Storage with optimistic UI updates.
+- **Cross-platform mobile development**: React Native with Expo SDK for rapid development and native feature access.
+- **Local data persistence and offline functionality**: AsyncStorage in mobile app for uninterrupted user experience.
+- **Device-to-device synchronization**: Shared storage keys and unique device codes enable simple cross-device data sync without a dedicated backend.
 
 ## External Dependencies
 
-### Database & Backend Services
-- **Neon Database**: Serverless PostgreSQL hosting
-- **Supabase**: Authentication and file storage services
+### Web Application Dependencies
+- **Database & Backend Services**: Neon Database (PostgreSQL), Supabase (Authentication, file storage)
+- **UI & Styling**: Radix UI, Tailwind CSS, Lucide React, Recharts
+- **Development Tools**: Drizzle Kit, ESBuild, TSX
+- **Form & Validation**: React Hook Form, Zod, Hookform Resolvers
 
-### UI & Styling
-- **Radix UI**: Accessible component primitives
-- **Tailwind CSS**: Utility-first CSS framework
-- **Lucide React**: Icon library
-- **Recharts**: Data visualization library
-
-### Development Tools
-- **Drizzle Kit**: Database migration management
-- **ESBuild**: Production build optimization
-- **TSX**: TypeScript execution for development
-
-### Form & Validation
-- **React Hook Form**: Performant form handling
-- **Zod**: Runtime type validation
-- **Hookform Resolvers**: Integration between RHF and Zod
-
-## Deployment Strategy
-
-### Development
-- **Hot Module Replacement**: Vite dev server with Express.js integration
-- **Live Reloading**: Automatic restart on server file changes
-- **Type Checking**: Continuous TypeScript compilation checking
-
-### Production Build
-- **Frontend**: Vite builds optimized static assets to `dist/public`
-- **Backend**: ESBuild bundles server code to `dist/index.js`
-- **Database**: Drizzle migrations applied via `drizzle-kit push`
-
-### Environment Configuration
-- **Database URL**: Required for PostgreSQL connection
-- **Supabase Config**: Authentication and storage credentials
-- **Session Security**: PostgreSQL session store configuration
-
-### Architectural Decisions
-
-**Problem**: Need for type-safe database operations
-**Solution**: Drizzle ORM with shared schema definitions
-**Rationale**: Provides end-to-end type safety from database to frontend while maintaining flexibility
-
-**Problem**: Complex role-based access control
-**Solution**: PostgreSQL functions with React Query integration
-**Rationale**: Leverages database-level security with efficient client-side caching
-
-**Problem**: Media file management
-**Solution**: Supabase Storage with optimistic UI updates
-**Rationale**: Scalable file hosting with seamless user experience
-
-**Problem**: Real-time data synchronization
-**Solution**: React Query with strategic cache invalidation
-**Rationale**: Maintains data consistency while minimizing unnecessary API calls
+### Mobile Application Dependencies
+- **Core Framework**: Expo SDK 53, React Native 0.79, React 19
+- **UI & Navigation**: React Native Paper, React Navigation v6, MaterialIcons
+- **Native Features**: Expo Notifications, Expo AV, Expo Haptics, AsyncStorage
+- **Development & Build**: EAS Build, Expo CLI, TypeScript
