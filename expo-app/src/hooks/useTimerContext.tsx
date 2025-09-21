@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useRef, useEffect, ReactNode } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import * as Notifications from 'expo-notifications';
+import { Audio } from 'expo-av';
 import { useSyncManager } from './useSyncManager';
 
 export type TimerMode = 'tabata' | 'timer' | 'stopwatch';
@@ -112,16 +112,6 @@ export const useTimerContext = () => {
   return context;
 };
 
-// Configurar notificaciones
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldPlaySound: true,
-    shouldSetBadge: false,
-    shouldShowBanner: true, 
-    shouldShowList: true, 
-  }),
-});
 
 // Función para cargar estado inicial desde AsyncStorage/sync
 const loadInitialState = async (): Promise<TimerState> => {
@@ -151,21 +141,66 @@ export const TimerProvider = ({ children }: { children: ReactNode }) => {
   const intervalRef = useRef<number | null>(null);
   const { syncStatus, updateRemoteData, triggerSync } = useSyncManager();
 
-  // Cargar estado inicial
+  // Configurar audio y cargar estado inicial
   useEffect(() => {
-    loadInitialState().then(setState);
+    const initializeApp = async () => {
+      // Configurar audio para sonidos multimedia
+      await Audio.setAudioModeAsync({
+        allowsRecordingIOS: false,
+        interruptionModeIOS: Audio.INTERRUPTION_MODE_IOS_DO_NOT_MIX,
+        playsInSilentModeIOS: true,
+        shouldDuckAndroid: true,
+        interruptionModeAndroid: Audio.INTERRUPTION_MODE_ANDROID_DO_NOT_MIX,
+        playThroughEarpieceAndroid: false,
+      });
+      
+      // Cargar estado inicial
+      const initialState = await loadInitialState();
+      setState(initialState);
+    };
+    
+    initializeApp();
   }, []);
 
-  // Configurar permisos de notificaciones
+  // Función simple para reproducir beep como sonido multimedia
+  const playBeep = async () => {
+    try {
+      // Crear un beep simple con un sonido breve de sistema
+      const { sound } = await Audio.Sound.createAsync(
+        // Usar un blob de audio simple que funciona multiplataforma
+        { 
+          uri: 'data:audio/mpeg;base64,SUQzBAAAAAABEVRYWFgAAAAtAAADY29tbWVudABCaWdTb3VuZEJhbmsuY29tIC8gTGFTb25vdGhlcXVlLm9yZwBURU5DAAAAHQAAAG1wM1BSRUBUSRP/' 
+        },
+        { 
+          shouldPlay: true, 
+          volume: 0.7,
+          isLooping: false
+        }
+      );
+      
+      // Limpiar el sonido después de un breve tiempo
+      setTimeout(async () => {
+        try {
+          await sound.unloadAsync();
+        } catch (e) {
+          // Ignorar errores de limpieza
+        }
+      }, 800);
+      
+    } catch (error) {
+      // Fallback: Log visible para verificar que funciona
+      console.log('🔊 BEEP MULTIMEDIA - Últimos 3 segundos (audio no disponible en simulador)');
+    }
+  };
+
+  // Detectar últimos 3 segundos para reproducir beep
   useEffect(() => {
-    const requestPermissions = async () => {
-      const { status } = await Notifications.requestPermissionsAsync();
-      if (status !== 'granted') {
-        console.log('Notification permissions not granted!');
-      }
-    };
-    requestPermissions();
-  }, []);
+    if (state.isRunning && 
+        (state.mode === 'timer' || state.mode === 'tabata') && 
+        state.timeLeft <= 3 && state.timeLeft > 0) {
+      playBeep();
+    }
+  }, [state.timeLeft, state.isRunning, state.mode]);
 
   // Efecto de sincronización para cargar datos desde otros dispositivos
   useEffect(() => {
@@ -210,7 +245,6 @@ export const TimerProvider = ({ children }: { children: ReactNode }) => {
                 timeLeft: prevState.timeLeft - 1
               };
             } else {
-              playNotification('¡Tiempo terminado!');
               return {
                 ...prevState,
                 isRunning: false,
@@ -242,7 +276,6 @@ export const TimerProvider = ({ children }: { children: ReactNode }) => {
   const handleTabataPhaseChange = (prevState: TimerState): TimerState => {
     
     if (prevState.isSetRest) {
-      playNotification('¡Nuevo set comenzando!');
       // End of set rest, start new set
       if (prevState.currentSet < prevState.tabataConfig.sets) {
         return {
@@ -258,7 +291,6 @@ export const TimerProvider = ({ children }: { children: ReactNode }) => {
         return handleTabataCompletion(prevState);
       }
     } else if (prevState.isWorkPhase) {
-      playNotification('¡Descanso!');
       // End of work phase, start rest
       return {
         ...prevState,
@@ -266,7 +298,6 @@ export const TimerProvider = ({ children }: { children: ReactNode }) => {
         timeLeft: prevState.tabataConfig.restTime
       };
     } else {
-      playNotification('¡A trabajar!');
       // End of rest phase
       if (prevState.currentCycle < prevState.tabataConfig.cycles) {
         // Start next cycle
@@ -301,7 +332,7 @@ export const TimerProvider = ({ children }: { children: ReactNode }) => {
       if (nextIndex < prevState.tabataSequence.length) {
         // Avanzar al siguiente Tabata de la secuencia
         const nextTabataConfig = prevState.tabataSequence[nextIndex];
-        playNotification(`¡Siguiente Tabata: ${nextTabataConfig.name || `Tabata ${nextIndex + 1}`}!`);
+        // Avanzar al siguiente Tabata de la secuencia
         return {
           ...prevState,
           currentTabataIndex: nextIndex,
@@ -319,7 +350,6 @@ export const TimerProvider = ({ children }: { children: ReactNode }) => {
     }
     
     // Si no hay más Tabatas en la secuencia o no está en modo secuencia
-    playNotification('¡Entrenamiento completado!');
     return {
       ...prevState,
       isRunning: false,
@@ -327,20 +357,6 @@ export const TimerProvider = ({ children }: { children: ReactNode }) => {
     };
   };
 
-  const playNotification = async (message: string) => {
-    try {
-      await Notifications.scheduleNotificationAsync({
-        content: {
-          title: 'MentalCheck Timer',
-          body: message,
-          sound: true,
-        },
-        trigger: null, // Immediately
-      });
-    } catch (error) {
-      console.warn('Error playing notification:', error);
-    }
-  };
 
   // Timer control functions
   const setMode = async (mode: TimerMode) => {

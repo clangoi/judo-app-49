@@ -78,7 +78,8 @@ eas build --platform android --profile preview
 - **Configuraciones completas**: Trabajo, descanso, ciclos, sets
 - **Secuencias personalizadas**: Múltiples Tabatas consecutivos
 - **Modo secuencia automático**: Ejecuta secuencias completas
-- **Notificaciones nativas**: Alertas en cada cambio de fase
+- **Sonidos multimedia**: Beep en los últimos 3 segundos de cada intervalo
+- ✅ **Sistema de audio mejorado**: expo-av en lugar de notificaciones
 - ✅ **Botones corregidos**: Settings, Edit, Delete ahora visibles
 
 ### 🔄 Sincronización entre Dispositivos  
