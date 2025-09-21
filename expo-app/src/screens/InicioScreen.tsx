@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Alert } from 'react-native';
 import { Card, Button } from 'react-native-paper';
 import { MaterialIcons } from '@expo/vector-icons';
 
@@ -44,9 +44,18 @@ const InicioScreen = ({ navigation }: InicioScreenProps) => {
         navigation.navigate("Deporte");
         break;
       case "MentalCheck":
+        Alert.alert(
+          "MentalCheck",
+          "Funcionalidad de evaluación mental y bienestar psicológico.\n\n🧠 Próximamente disponible en la app móvil.\n\nPor ahora, puedes usar las funciones de entrenamiento en la sección Deporte.",
+          [{ text: 'Ir a Entrenamientos', onPress: () => navigation.navigate("Deporte") }]
+        );
+        break;
       case "Graficos":
-        // Por ahora redirigimos a Configuración ya que estas pantallas no están implementadas en la app móvil
-        navigation.navigate("Configuracion");
+        Alert.alert(
+          "Gráficos y Análisis",
+          "Visualización de progreso con gráficos detallados.\n\n📊 Próximamente disponible en la app móvil.\n\nPor ahora, revisa tu configuración de sincronización para conectar dispositivos.",
+          [{ text: 'Ver Configuración', onPress: () => navigation.navigate("Configuracion") }]
+        );
         break;
       default:
         navigation.navigate("Deporte");

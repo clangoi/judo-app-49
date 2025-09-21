@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Alert } from 'react-native';
 import { Appbar, Card, Button } from 'react-native-paper';
 import { MaterialIcons } from '@expo/vector-icons';
 import TabataTimer from '../components/TabataTimer';
@@ -60,8 +60,11 @@ const DeporteScreen = () => {
                 style={styles.cardButton}
                 buttonColor="#283750"
                 onPress={() => {
-                  // En la versión móvil, estas funciones están simplificadas
-                  // Solo mostramos el timer por ahora
+                  Alert.alert(
+                    item.title,
+                    `Función "${item.title}" disponible en versión completa.\n\nPor ahora, usa el Timer Tabata arriba para tus entrenamientos.`,
+                    [{ text: 'Entendido', style: 'default' }]
+                  );
                 }}
               >
                 Acceder
