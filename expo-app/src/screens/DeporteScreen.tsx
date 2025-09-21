@@ -15,25 +15,25 @@ const DeporteScreen = () => {
     {
       title: "Entrenamientos Deportivos", 
       description: "Documenta tus sesiones deportivas y combates",
-      icon: "sports-mma",
+      icon: "sports",
       color: "#283750",
     },
     {
       title: "Técnicas Deportivas",
       description: "Explora y aprende técnicas por categorías", 
-      icon: "sports-kabaddi",
+      icon: "sports",
       color: "#283750",
     },
     {
       title: "Táctica Deportiva",
       description: "Desarrolla estrategias y tácticas de combate",
-      icon: "psychology",
+      icon: "sports",
       color: "#283750",
     },
     {
       title: "Control de Peso",
       description: "Monitorea tu peso y progreso físico",
-      icon: "monitor-weight",
+      icon: "monitor",
       color: "#283750",
     }
   ];

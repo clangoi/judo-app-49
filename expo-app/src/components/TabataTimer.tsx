@@ -226,7 +226,13 @@ const TabataTimer = () => {
           <Button
             mode={state.isRunning ? "outlined" : "contained"}
             onPress={handleToggleTimer}
-            icon={state.isRunning ? "pause" : "play"}
+            icon={({ size, color }) => (
+              <MaterialIcons 
+                name={state.isRunning ? "pause" : "play-arrow"} 
+                size={size} 
+                color={color} 
+              />
+            )}
             style={styles.controlButton}
           >
             {state.isRunning ? 'Pausar' : (state.isPaused ? 'Reanudar' : 'Iniciar')}
@@ -234,7 +240,9 @@ const TabataTimer = () => {
           <Button
             mode="outlined"
             onPress={actions.resetTimer}
-            icon="restart"
+            icon={({ size, color }) => (
+              <MaterialIcons name="restart-alt" size={size} color={color} />
+            )}
             style={styles.controlButton}
           >
             Reiniciar

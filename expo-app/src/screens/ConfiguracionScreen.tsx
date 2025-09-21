@@ -54,7 +54,7 @@ const ConfiguracionScreen = () => {
         <Card style={styles.card}>
           <Card.Content>
             <View style={styles.cardHeader}>
-              <MaterialIcons name="sync" size={24} color="#283750" />
+              <MaterialIcons name="autorenew" size={24} color="#283750" />
               <Text style={styles.cardTitle}>Sincronización</Text>
             </View>
             
@@ -98,7 +98,9 @@ const ConfiguracionScreen = () => {
                     onPress={() => setLinkCodeDialogVisible(true)}
                     style={styles.syncButton}
                     buttonColor="#283750"
-                    icon="link"
+                    icon={({ size, color }) => (
+                      <MaterialIcons name="add-link" size={size} color={color} />
+                    )}
                   >
                     Vincular Dispositivo
                   </Button>
@@ -107,7 +109,9 @@ const ConfiguracionScreen = () => {
                     mode="outlined"
                     onPress={handleGenerateCode}
                     style={styles.syncButton}
-                    icon="qr-code"
+                    icon={({ size, color }) => (
+                      <MaterialIcons name="qr-code" size={size} color={color} />
+                    )}
                   >
                     Generar Código
                   </Button>
@@ -118,7 +122,9 @@ const ConfiguracionScreen = () => {
                   onPress={handleUnlinkDevice}
                   style={styles.syncButton}
                   buttonColor="#EF4444"
-                  icon="link-off"
+                  icon={({ size, color }) => (
+                    <MaterialIcons name="remove-link" size={size} color={color} />
+                  )}
                 >
                   Desvincular
                 </Button>
@@ -135,7 +141,7 @@ const ConfiguracionScreen = () => {
         <Card style={styles.card}>
           <Card.Content>
             <View style={styles.cardHeader}>
-              <MaterialIcons name="timer" size={24} color="#283750" />
+              <MaterialIcons name="access-time" size={24} color="#283750" />
               <Text style={styles.cardTitle}>Configuración de Timer</Text>
             </View>
             
