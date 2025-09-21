@@ -198,14 +198,19 @@ const ManejoCrisisScreen: React.FC<ManejoCrisisScreenProps> = ({ navigation }) =
         `Has completado la técnica "${currentTechnique.name}". Esperamos que te sientas mejor.`,
         [
           { text: 'Volver', onPress: () => navigation.goBack() },
-          { text: 'Otra Técnica', onPress: () => resetSession() }
+          { text: 'Otra Técnica', onPress: () => resetSessionOnly() }
         ]
       );
     } catch (error) {
       Alert.alert("Error", "No se pudo guardar la sesión.", [{ text: 'OK' }]);
     }
+  };
 
-    resetSession();
+  const resetSessionOnly = () => {
+    setCurrentTechnique(null);
+    setCurrentStep(0);
+    setSessionStarted(false);
+    // Mantener evaluationCompleted y datos de evaluación
   };
 
   const resetSession = () => {
@@ -320,7 +325,7 @@ const ManejoCrisisScreen: React.FC<ManejoCrisisScreenProps> = ({ navigation }) =
             data-testid="button-complete-evaluation"
           >
             <MaterialIcons name="arrow-forward" size={20} color="#FFFFFF" />
-            <Text style={styles.continueButtonText}>Ver Técnicas Recomendadas</Text>
+            <Text style={styles.continueButtonText}>Ver Técnicas Disponibles</Text>
           </Button>
           
           <View style={styles.bottomSpacing} />
@@ -354,7 +359,7 @@ const ManejoCrisisScreen: React.FC<ManejoCrisisScreenProps> = ({ navigation }) =
               <View style={styles.stepActions}>
                 <Button
                   mode="outlined"
-                  onPress={resetSession}
+                  onPress={resetSessionOnly}
                   style={styles.cancelButton}
                   textColor="#D32F2F"
                   data-testid="button-cancel-session"
