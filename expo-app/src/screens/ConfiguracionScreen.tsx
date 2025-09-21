@@ -1,17 +1,78 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, Alert } from 'react-native';
 import { Card, Button, TextInput, Switch, Dialog, Portal, Divider } from 'react-native-paper';
 import { MaterialIcons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useSyncManager } from '../hooks/useSyncManager';
+
+interface UserProfile {
+  name: string;
+  age: string;
+  weight: string;
+  height: string;
+  primarySport: string;
+  goal: string;
+}
 
 const ConfiguracionScreen = () => {
   const { syncStatus, generateDeviceCode, linkDevice, unlinkDevice } = useSyncManager();
   
   const [linkCodeDialogVisible, setLinkCodeDialogVisible] = useState(false);
   const [generateCodeDialogVisible, setGenerateCodeDialogVisible] = useState(false);
+  const [profileDialogVisible, setProfileDialogVisible] = useState(false);
   const [linkCode, setLinkCode] = useState('');
   const [deviceName, setDeviceName] = useState('Mi Dispositivo');
   const [generatedCode, setGeneratedCode] = useState('');
+
+  // Profile states
+  const [userProfile, setUserProfile] = useState<UserProfile>({
+    name: '',
+    age: '',
+    weight: '',
+    height: '',
+    primarySport: '',
+    goal: ''
+  });
+
+  const [tempProfile, setTempProfile] = useState<UserProfile>(userProfile);
+
+  useEffect(() => {
+    loadUserProfile();
+  }, []);
+
+  const loadUserProfile = async () => {
+    try {
+      const storedProfile = await AsyncStorage.getItem('user-profile');
+      if (storedProfile) {
+        const profile = JSON.parse(storedProfile);
+        setUserProfile(profile);
+        setTempProfile(profile);
+      }
+    } catch (error) {
+      console.error('Error loading user profile:', error);
+    }
+  };
+
+  const saveUserProfile = async (profile: UserProfile) => {
+    try {
+      await AsyncStorage.setItem('user-profile', JSON.stringify(profile));
+      setUserProfile(profile);
+      setTempProfile(profile);
+    } catch (error) {
+      console.error('Error saving user profile:', error);
+    }
+  };
+
+  const handleSaveProfile = () => {
+    saveUserProfile(tempProfile);
+    setProfileDialogVisible(false);
+    Alert.alert('Éxito', 'Perfil actualizado correctamente');
+  };
+
+  const openProfileDialog = () => {
+    setTempProfile(userProfile);
+    setProfileDialogVisible(true);
+  };
 
   const handleGenerateCode = () => {
     const code = generateDeviceCode();
@@ -50,6 +111,65 @@ const ConfiguracionScreen = () => {
     <View style={styles.container}>
       <ScrollView style={styles.scrollContainer}>
         
+        {/* Profile Section */}
+        <Card style={styles.card}>
+          <Card.Content>
+            <View style={styles.cardHeader}>
+              <MaterialIcons name="person" size={24} color="#283750" />
+              <Text style={styles.cardTitle}>Perfil de Usuario</Text>
+            </View>
+            
+            <View style={styles.profileSection}>
+              {userProfile.name ? (
+                <>
+                  <View style={styles.profileRow}>
+                    <Text style={styles.profileLabel}>Nombre:</Text>
+                    <Text style={styles.profileValue}>{userProfile.name || 'No configurado'}</Text>
+                  </View>
+                  <View style={styles.profileRow}>
+                    <Text style={styles.profileLabel}>Edad:</Text>
+                    <Text style={styles.profileValue}>{userProfile.age ? `${userProfile.age} años` : 'No configurado'}</Text>
+                  </View>
+                  <View style={styles.profileRow}>
+                    <Text style={styles.profileLabel}>Peso:</Text>
+                    <Text style={styles.profileValue}>{userProfile.weight ? `${userProfile.weight} kg` : 'No configurado'}</Text>
+                  </View>
+                  <View style={styles.profileRow}>
+                    <Text style={styles.profileLabel}>Altura:</Text>
+                    <Text style={styles.profileValue}>{userProfile.height ? `${userProfile.height} cm` : 'No configurado'}</Text>
+                  </View>
+                  <View style={styles.profileRow}>
+                    <Text style={styles.profileLabel}>Deporte Principal:</Text>
+                    <Text style={styles.profileValue}>{userProfile.primarySport || 'No configurado'}</Text>
+                  </View>
+                  <View style={styles.profileRow}>
+                    <Text style={styles.profileLabel}>Objetivo:</Text>
+                    <Text style={styles.profileValue}>{userProfile.goal || 'No configurado'}</Text>
+                  </View>
+                </>
+              ) : (
+                <Text style={styles.emptyProfile}>
+                  No hay información de perfil configurada. Configura tu perfil para una experiencia personalizada.
+                </Text>
+              )}
+            </View>
+            
+            <Divider style={styles.divider} />
+            
+            <Button
+              mode="contained"
+              onPress={openProfileDialog}
+              style={styles.profileButton}
+              buttonColor="#283750"
+              icon={({ size, color }) => (
+                <MaterialIcons name="edit" size={size} color={color} />
+              )}
+            >
+              {userProfile.name ? 'Editar Perfil' : 'Configurar Perfil'}
+            </Button>
+          </Card.Content>
+        </Card>
+
         {/* Sync Section */}
         <Card style={styles.card}>
           <Card.Content>
@@ -234,6 +354,77 @@ const ConfiguracionScreen = () => {
           </Dialog.Actions>
         </Dialog>
       </Portal>
+
+      {/* Profile Dialog */}
+      <Portal>
+        <Dialog visible={profileDialogVisible} onDismiss={() => setProfileDialogVisible(false)}>
+          <Dialog.Title>Configurar Perfil</Dialog.Title>
+          <Dialog.ScrollArea style={styles.dialogScrollArea}>
+            <ScrollView>
+              <Dialog.Content>
+                <TextInput
+                  mode="outlined"
+                  label="Nombre completo"
+                  value={tempProfile.name}
+                  onChangeText={(text) => setTempProfile({...tempProfile, name: text})}
+                  style={styles.dialogInput}
+                />
+                
+                <TextInput
+                  mode="outlined"
+                  label="Edad"
+                  value={tempProfile.age}
+                  onChangeText={(text) => setTempProfile({...tempProfile, age: text})}
+                  keyboardType="numeric"
+                  style={styles.dialogInput}
+                />
+                
+                <TextInput
+                  mode="outlined"
+                  label="Peso (kg)"
+                  value={tempProfile.weight}
+                  onChangeText={(text) => setTempProfile({...tempProfile, weight: text})}
+                  keyboardType="numeric"
+                  style={styles.dialogInput}
+                />
+                
+                <TextInput
+                  mode="outlined"
+                  label="Altura (cm)"
+                  value={tempProfile.height}
+                  onChangeText={(text) => setTempProfile({...tempProfile, height: text})}
+                  keyboardType="numeric"
+                  style={styles.dialogInput}
+                />
+                
+                <TextInput
+                  mode="outlined"
+                  label="Deporte principal"
+                  value={tempProfile.primarySport}
+                  onChangeText={(text) => setTempProfile({...tempProfile, primarySport: text})}
+                  placeholder="Ej: Judo, Karate, Boxeo"
+                  style={styles.dialogInput}
+                />
+                
+                <TextInput
+                  mode="outlined"
+                  label="Objetivo principal"
+                  value={tempProfile.goal}
+                  onChangeText={(text) => setTempProfile({...tempProfile, goal: text})}
+                  placeholder="Ej: Competir, Mantenerme en forma, Aprender"
+                  multiline
+                  numberOfLines={2}
+                  style={styles.dialogInput}
+                />
+              </Dialog.Content>
+            </ScrollView>
+          </Dialog.ScrollArea>
+          <Dialog.Actions>
+            <Button onPress={() => setProfileDialogVisible(false)}>Cancelar</Button>
+            <Button onPress={handleSaveProfile} mode="contained">Guardar</Button>
+          </Dialog.Actions>
+        </Dialog>
+      </Portal>
     </View>
   );
 };
@@ -350,6 +541,40 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#6B7280',
     textAlign: 'center',
+  },
+  profileSection: {
+    marginBottom: 16,
+  },
+  profileRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  profileLabel: {
+    fontSize: 14,
+    color: '#6B7280',
+    fontWeight: '500',
+  },
+  profileValue: {
+    fontSize: 14,
+    color: '#283750',
+    fontWeight: '600',
+    flex: 1,
+    textAlign: 'right',
+  },
+  emptyProfile: {
+    fontSize: 14,
+    color: '#6B7280',
+    textAlign: 'center',
+    lineHeight: 20,
+    fontStyle: 'italic',
+  },
+  profileButton: {
+    borderRadius: 8,
+  },
+  dialogScrollArea: {
+    maxHeight: 400,
   },
 });
 
