@@ -58,6 +58,33 @@ const Configuracion = () => {
   // Estados para sincronización
   const [linkCodeInput, setLinkCodeInput] = useState("");
 
+  // Funciones de validación
+  const validateNumericInput = (value: string, allowSpecialChars = false) => {
+    if (allowSpecialChars) {
+      // Para categorías de competición: permite números, kg, +, -, espacios
+      return /^[0-9+\-kg\s]*$/i.test(value);
+    }
+    // Para códigos: solo números
+    return /^\d*$/.test(value);
+  };
+
+  const validateCompetitionCategory = (value: string) => {
+    if (!value) return true; // Permitir vacío
+    // Formatos válidos: "73kg", "-73kg", "+100kg", "73 kg", etc.
+    return /^[+\-]?\d+(\s*kg)?$/i.test(value.trim());
+  };
+
+  const validateSyncCode = (value: string) => {
+    // Formato válido: SPORT-A8F2-B1C3 (letras, números y guiones)
+    return /^[A-Z0-9\-]*$/.test(value);
+  };
+
+  const validateEmail = (email: string) => {
+    if (!email) return true; // Permitir vacío
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
   useEffect(() => {
     if (userProfile) {
       setProfileData({
@@ -451,7 +478,18 @@ const Configuracion = () => {
                         type="email"
                         value={profileData.email}
                         onChange={(e) => setProfileData(prev => ({ ...prev, email: e.target.value }))}
+                        onBlur={(e) => {
+                          const value = e.target.value.trim();
+                          if (value && !validateEmail(value)) {
+                            toast({
+                              title: "Email inválido",
+                              description: "Ingresa una dirección de correo electrónico válida",
+                              variant: "destructive",
+                            });
+                          }
+                        }}
                         placeholder="tu@correo.com"
+                        data-testid="input-email"
                       />
                     </div>
 
@@ -502,9 +540,30 @@ const Configuracion = () => {
                       <Input
                         id="competitionCategory"
                         value={profileData.competitionCategory}
-                        onChange={(e) => setProfileData(prev => ({ ...prev, competitionCategory: e.target.value }))}
-                        placeholder="Ej: -73kg, +100kg, etc."
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          // Solo permitir entrada si es válida o está vacía
+                          if (value === '' || validateNumericInput(value, true)) {
+                            setProfileData(prev => ({ ...prev, competitionCategory: value }));
+                          }
+                        }}
+                        onBlur={(e) => {
+                          // Validación final al perder el foco
+                          const value = e.target.value.trim();
+                          if (value && !validateCompetitionCategory(value)) {
+                            toast({
+                              title: "Formato inválido",
+                              description: "Ingresa una categoría válida (ej: 73kg, -73kg, +100kg)",
+                              variant: "destructive",
+                            });
+                          }
+                        }}
+                        placeholder="Ej: -73kg, +100kg, 73kg"
+                        data-testid="input-competition-category"
                       />
+                      <p className="text-xs text-muted-foreground">
+                        Formatos válidos: 73kg, -73kg, +100kg
+                      </p>
                     </div>
                   </div>
 
@@ -662,7 +721,23 @@ const Configuracion = () => {
                   <Input
                     placeholder="SPORT-A8F2-B1C3"
                     value={linkCodeInput}
-                    onChange={(e) => setLinkCodeInput(e.target.value.toUpperCase())}
+                    onChange={(e) => {
+                      const value = e.target.value.toUpperCase();
+                      // Solo permitir caracteres válidos para códigos de sincronización
+                      if (validateSyncCode(value)) {
+                        setLinkCodeInput(value);
+                      }
+                    }}
+                    onBlur={(e) => {
+                      const value = e.target.value.trim();
+                      if (value && !value.match(/^[A-Z0-9]{4,6}-[A-Z0-9]{4}-[A-Z0-9]{4}$/)) {
+                        toast({
+                          title: "Formato de código inválido",
+                          description: "El código debe tener el formato: SPORT-A8F2-B1C3",
+                          variant: "destructive",
+                        });
+                      }
+                    }}
                     className="font-mono"
                     data-testid="input-link-code"
                   />
