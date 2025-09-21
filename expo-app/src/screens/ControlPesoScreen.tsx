@@ -4,6 +4,7 @@ import { Card, Button, TextInput, Dialog, Portal, SegmentedButtons, Chip, IconBu
 import { MaterialIcons } from '@expo/vector-icons';
 import { LineChart } from 'react-native-chart-kit';
 import { useCrudStorage } from '../hooks/useCrudStorage';
+import { transformLegacyWeightEntry, transformLegacyWeightGoal, transformLegacyNutritionEntry } from '../utils/legacyTransformations';
 import EntryList from '../components/EntryList';
 import EntryFormModal from '../components/EntryFormModal';
 import ConfirmDeleteDialog from '../components/ConfirmDeleteDialog';
@@ -45,17 +46,20 @@ interface NutritionEntry {
 const ControlPesoScreen = () => {
   const { items: weightEntries, isLoading: weightLoading, create: createWeight, update: updateWeight, remove: removeWeight } = useCrudStorage<WeightEntry>({
     storageKey: 'expo:weight:entries',
-    remotePayloadKey: 'weightEntries'
+    remotePayloadKey: 'weightEntries',
+    transformLegacyItem: transformLegacyWeightEntry
   });
   
   const { items: weightGoals, isLoading: goalsLoading, create: createGoal, update: updateGoal, remove: removeGoal } = useCrudStorage<WeightGoal>({
     storageKey: 'expo:weight:goals',
-    remotePayloadKey: 'weightGoals'
+    remotePayloadKey: 'weightGoals',
+    transformLegacyItem: transformLegacyWeightGoal
   });
   
   const { items: nutritionEntries, isLoading: nutritionLoading, create: createNutrition, update: updateNutrition, remove: removeNutrition } = useCrudStorage<NutritionEntry>({
     storageKey: 'expo:weight:nutrition',
-    remotePayloadKey: 'nutritionEntries'
+    remotePayloadKey: 'nutritionEntries',
+    transformLegacyItem: transformLegacyNutritionEntry
   });
 
   const [activeTab, setActiveTab] = useState('peso');

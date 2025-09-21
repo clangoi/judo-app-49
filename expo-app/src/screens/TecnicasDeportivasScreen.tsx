@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ScrollView, Alert, FlatList } from 'react-nativ
 import { Card, Button, TextInput, Dialog, Portal, SegmentedButtons, Chip, IconButton, FAB, Searchbar } from 'react-native-paper';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useCrudStorage } from '../hooks/useCrudStorage';
+import { transformLegacyTechnique } from '../utils/legacyTransformations';
 import EntryList from '../components/EntryList';
 import EntryFormModal from '../components/EntryFormModal';
 import ConfirmDeleteDialog from '../components/ConfirmDeleteDialog';
@@ -28,8 +29,9 @@ interface Technique {
 
 const TecnicasDeportivasScreen = () => {
   const { items: techniques, isLoading, create, update, remove } = useCrudStorage<Technique>({
-    storageKey: 'expo:training:techniques.library',
-    remotePayloadKey: 'martialTechniques'
+    storageKey: 'expo:tecnicas:techniques',
+    remotePayloadKey: 'martialTechniques',
+    transformLegacyItem: transformLegacyTechnique
   });
   
   const [filteredTechniques, setFilteredTechniques] = useState<Technique[]>([]);

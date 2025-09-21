@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ScrollView, Alert, Dimensions } from 'react-nat
 import { Card, Button, TextInput, Dialog, Portal, SegmentedButtons, Chip, IconButton, FAB, RadioButton } from 'react-native-paper';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useCrudStorage } from '../hooks/useCrudStorage';
+import { transformLegacySportsSession } from '../utils/legacyTransformations';
 import EntryList from '../components/EntryList';
 import EntryFormModal from '../components/EntryFormModal';
 import ConfirmDeleteDialog from '../components/ConfirmDeleteDialog';
@@ -37,8 +38,9 @@ interface SportsSession {
 
 const EntrenamientoDeportivoScreen = () => {
   const { items: sessions, isLoading, create, update, remove } = useCrudStorage<SportsSession>({
-    storageKey: 'expo:training:sports.sessions',
-    remotePayloadKey: 'sportsSessions'
+    storageKey: 'expo:deportivo:sessions',
+    remotePayloadKey: 'sportsSessions',
+    transformLegacyItem: transformLegacySportsSession
   });
   
   const [activeTab, setActiveTab] = useState('entrenamientos');

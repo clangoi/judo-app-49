@@ -2,10 +2,12 @@ import { useState, useEffect, useCallback } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useSyncManager } from './useSyncManager';
 import { generateId } from '../utils/generateId';
+import { migrateLegacyData } from '../utils/migrateLegacyData';
 
 interface CrudStorageOptions {
   storageKey: string;
   remotePayloadKey: string;
+  transformLegacyItem?: (item: any) => any;
 }
 
 interface CrudItem {
@@ -15,7 +17,7 @@ interface CrudItem {
 }
 
 export function useCrudStorage<T extends CrudItem>(options: CrudStorageOptions) {
-  const { storageKey, remotePayloadKey } = options;
+  const { storageKey, remotePayloadKey, transformLegacyItem } = options;
   const { updateRemoteData } = useSyncManager();
   
   const [items, setItems] = useState<T[]>([]);
@@ -27,12 +29,22 @@ export function useCrudStorage<T extends CrudItem>(options: CrudStorageOptions) 
     try {
       setIsLoading(true);
       setError(null);
-      const stored = await AsyncStorage.getItem(storageKey);
-      if (stored) {
-        const parsedItems = JSON.parse(stored);
-        setItems(parsedItems);
+      
+      // First, attempt to migrate legacy data
+      const migratedItems = await migrateLegacyData<T>(storageKey, transformLegacyItem);
+      
+      if (migratedItems.length > 0) {
+        // Use migrated data
+        setItems(migratedItems);
       } else {
-        setItems([]);
+        // Load from current storage key
+        const stored = await AsyncStorage.getItem(storageKey);
+        if (stored) {
+          const parsedItems = JSON.parse(stored);
+          setItems(parsedItems);
+        } else {
+          setItems([]);
+        }
       }
     } catch (err) {
       setError('Error loading data');
@@ -40,7 +52,7 @@ export function useCrudStorage<T extends CrudItem>(options: CrudStorageOptions) 
     } finally {
       setIsLoading(false);
     }
-  }, [storageKey]);
+  }, [storageKey, transformLegacyItem]);
 
   // Save items to storage and sync
   const saveToStorage = useCallback(async (newItems: T[]) => {

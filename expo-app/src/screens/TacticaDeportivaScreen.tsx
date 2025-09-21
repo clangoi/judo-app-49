@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ScrollView, Alert, FlatList } from 'react-nativ
 import { Card, Button, TextInput, Dialog, Portal, SegmentedButtons, Chip, IconButton, FAB } from 'react-native-paper';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useCrudStorage } from '../hooks/useCrudStorage';
+import { transformLegacyTacticalPlan, transformLegacyOpponentAnalysis, transformLegacyTrainingDrill } from '../utils/legacyTransformations';
 import EntryList from '../components/EntryList';
 import EntryFormModal from '../components/EntryFormModal';
 import ConfirmDeleteDialog from '../components/ConfirmDeleteDialog';
@@ -52,18 +53,21 @@ interface TrainingDrill {
 
 const TacticaDeportivaScreen = () => {
   const { items: tacticalPlans, isLoading: plansLoading, create: createPlan, update: updatePlan, remove: removePlan } = useCrudStorage<TacticalPlan>({
-    storageKey: 'expo:tactics:plans',
-    remotePayloadKey: 'tacticalPlans'
+    storageKey: 'expo:tactica:plans',
+    remotePayloadKey: 'tacticalPlans',
+    transformLegacyItem: transformLegacyTacticalPlan
   });
   
   const { items: opponentAnalyses, isLoading: opponentsLoading, create: createOpponent, update: updateOpponent, remove: removeOpponent } = useCrudStorage<OpponentAnalysis>({
-    storageKey: 'expo:tactics:opponents',
-    remotePayloadKey: 'opponentAnalyses'
+    storageKey: 'expo:tactica:opponents',
+    remotePayloadKey: 'opponentAnalyses',
+    transformLegacyItem: transformLegacyOpponentAnalysis
   });
   
   const { items: trainingDrills, isLoading: drillsLoading, create: createDrill, update: updateDrill, remove: removeDrill } = useCrudStorage<TrainingDrill>({
-    storageKey: 'expo:tactics:drills',
-    remotePayloadKey: 'tacticalDrills'
+    storageKey: 'expo:tactica:drills',
+    remotePayloadKey: 'tacticalDrills',
+    transformLegacyItem: transformLegacyTrainingDrill
   });
 
   const [activeTab, setActiveTab] = useState('planes');

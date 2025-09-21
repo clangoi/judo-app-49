@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ScrollView, Alert, Dimensions } from 'react-nat
 import { Card, Button, TextInput, Dialog, Portal, SegmentedButtons, Chip, IconButton, FAB } from 'react-native-paper';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useCrudStorage } from '../hooks/useCrudStorage';
+import { transformLegacyPhysicalExercise } from '../utils/legacyTransformations';
 import EntryList from '../components/EntryList';
 import EntryFormModal from '../components/EntryFormModal';
 import ConfirmDeleteDialog from '../components/ConfirmDeleteDialog';
@@ -34,8 +35,9 @@ interface WorkoutSession {
 
 const PreparacionFisicaScreen = () => {
   const { items: sessions, isLoading, create, update, remove } = useCrudStorage<WorkoutSession>({
-    storageKey: 'expo:training:workouts.sessions',
-    remotePayloadKey: 'workoutSessions'
+    storageKey: 'expo:fisica:exercises',
+    remotePayloadKey: 'workoutSessions',
+    transformLegacyItem: transformLegacyPhysicalExercise
   });
   
   const [activeTab, setActiveTab] = useState('rutinas');
