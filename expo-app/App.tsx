@@ -17,6 +17,7 @@ import CheckinRapidoScreen from './src/screens/CheckinRapidoScreen';
 import BienestarScreen from './src/screens/BienestarScreen';
 import ManejoCrisisScreen from './src/screens/ManejoCrisisScreen';
 import GraficosAnalisisScreen from './src/screens/GraficosAnalisisScreen';
+import EvaluacionProfundaScreen from './src/screens/EvaluacionProfundaScreen';
 import PreparacionFisicaScreen from './src/screens/PreparacionFisicaScreen';
 import EntrenamientoDeportivoScreen from './src/screens/EntrenamientoDeportivoScreen';
 import TecnicasDeportivasScreen from './src/screens/TecnicasDeportivasScreen';
@@ -68,6 +69,13 @@ function InicioStack() {
       <Stack.Screen
         name="GraficosAnalisis"
         component={GraficosAnalisisScreen}
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="EvaluacionProfunda"
+        component={EvaluacionProfundaScreen}
         options={{
           headerShown: false,
         }}
