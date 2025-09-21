@@ -2,21 +2,16 @@
  * Legacy data transformation functions for migrating old data structures to new ones
  */
 
-// Physical exercises legacy transformation
-export function transformLegacyPhysicalExercise(legacyItem: any) {
+// Physical workout session legacy transformation
+export function transformLegacyWorkoutSession(legacyItem: any) {
   return {
     ...legacyItem,
-    // Ensure all required fields exist with defaults
-    exerciseName: legacyItem.exerciseName || legacyItem.name || 'Ejercicio',
-    sets: legacyItem.sets || 0,
-    reps: legacyItem.reps || 0,
-    weight: legacyItem.weight || 0,
+    date: legacyItem.date || new Date().toISOString(),
+    type: legacyItem.type || 'full',
+    exercises: legacyItem.exercises || [],
     duration: legacyItem.duration || 0,
-    intensity: legacyItem.intensity || 'medio',
-    notes: legacyItem.notes || '',
-    restTime: legacyItem.restTime || 0,
-    // Migration might include legacy date field
-    date: legacyItem.date || new Date().toISOString()
+    intensity: legacyItem.intensity || 3,
+    notes: legacyItem.notes || ''
   };
 }
 
@@ -82,10 +77,11 @@ export function transformLegacyTrainingDrill(legacyItem: any) {
   return {
     ...legacyItem,
     name: legacyItem.name || 'Ejercicio táctico',
+    category: legacyItem.category || 'tactical',
     description: legacyItem.description || '',
     duration: legacyItem.duration || 0,
-    intensity: legacyItem.intensity || 'medio',
-    equipment: legacyItem.equipment || [],
+    intensity: legacyItem.intensity || 3,
+    equipment: legacyItem.equipment || legacyItem.materials || [],
     instructions: legacyItem.instructions || [],
     notes: legacyItem.notes || ''
   };

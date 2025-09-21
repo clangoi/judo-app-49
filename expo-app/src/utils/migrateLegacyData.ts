@@ -12,7 +12,7 @@ interface CrudItem {
  */
 const LEGACY_KEY_MAPPING: Record<string, string> = {
   // Physical Training
-  'physical-exercises': 'expo:fisica:exercises',
+  'workout-sessions': 'expo:fisica:sessions',
   
   // Sports Training 
   'sports-sessions': 'expo:deportivo:sessions',

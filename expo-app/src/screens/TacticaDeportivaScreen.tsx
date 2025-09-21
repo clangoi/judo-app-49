@@ -30,12 +30,13 @@ interface OpponentAnalysis {
   updatedAt: string;
   name: string;
   sport: string;
+  height: string;
+  weight: string;
+  style: string;
   strengths: string[];
   weaknesses: string[];
-  preferredTechniques: string[];
-  tacticalNotes: string;
-  gameplan: string;
-  result?: 'win' | 'loss' | 'draw' | 'pending';
+  notes: string;
+  isFavorite: boolean;
 }
 
 interface TrainingDrill {
@@ -47,8 +48,9 @@ interface TrainingDrill {
   description: string;
   duration: number; // en minutos
   intensity: 1 | 2 | 3 | 4 | 5;
-  materials: string[];
+  equipment: string[];
   instructions: string[];
+  notes: string;
 }
 
 const TacticaDeportivaScreen = () => {
@@ -97,11 +99,13 @@ const TacticaDeportivaScreen = () => {
   const [formOpponent, setFormOpponent] = useState<Partial<OpponentAnalysis>>({
     name: '',
     sport: '',
+    height: '',
+    weight: '',
+    style: '',
     strengths: [''],
     weaknesses: [''],
-    preferredTechniques: [''],
-    tacticalNotes: '',
-    gameplan: ''
+    notes: '',
+    isFavorite: false
   });
   
   const [formDrill, setFormDrill] = useState<Partial<TrainingDrill>>({
@@ -110,8 +114,9 @@ const TacticaDeportivaScreen = () => {
     description: '',
     duration: 15,
     intensity: 3,
-    materials: [''],
-    instructions: ['']
+    equipment: [''],
+    instructions: [''],
+    notes: ''
   });
 
   // Initialize sample data
