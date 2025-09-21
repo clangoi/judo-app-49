@@ -14,7 +14,7 @@ import DeporteScreen from './src/screens/DeporteScreen';
 import ConfiguracionScreen from './src/screens/ConfiguracionScreen';
 import MentalCheckScreen from './src/screens/MentalCheckScreen';
 import CheckinRapidoScreen from './src/screens/CheckinRapidoScreen';
-import TecnicasRespiracionScreen from './src/screens/TecnicasRespiracionScreen';
+import BienestarScreen from './src/screens/BienestarScreen';
 import ManejoCrisisScreen from './src/screens/ManejoCrisisScreen';
 
 const Tab = createBottomTabNavigator();
@@ -44,8 +44,8 @@ function InicioStack() {
         }}
       />
       <Stack.Screen
-        name="TecnicasRespiracion"
-        component={TecnicasRespiracionScreen}
+        name="Bienestar"
+        component={BienestarScreen}
         options={{
           headerShown: false,
         }}
