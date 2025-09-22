@@ -87,7 +87,7 @@ const TacticaDeportivaScreen = () => {
   });
 
   const [activeTab, setActiveTab] = useState('planes');
-  const [selectedItem, setSelectedItem] = useState<TacticalPlan | OpponentAnalysis | null>(null);
+  const [selectedItem, setSelectedItem] = useState<TacticalPlan | OpponentAnalysis | TrainingDrill | null>(null);
   const [detailDialogVisible, setDetailDialogVisible] = useState(false);
   
   // CRUD states
@@ -211,16 +211,21 @@ const TacticaDeportivaScreen = () => {
         {
           name: 'Drill de Cambio de Ritmo',
           category: 'tactical',
+          type: 'transition',
           description: 'Práctica de variación de ritmo en el combate',
           duration: 15,
           intensity: 3,
-          materials: ['Compañero de entrenamiento', 'Cronómetro'],
+          equipment: ['Cronómetro'],
+          materials: ['Compañero de entrenamiento'],
           instructions: [
             'Comenzar con ritmo lento por 30 segundos',
             'Cambiar a ritmo explosivo por 10 segundos',
             'Volver a ritmo lento por 20 segundos',
             'Repetir la secuencia'
-          ]
+          ],
+          notes: 'Ejercicio fundamental para mejorar el control del ritmo',
+          videoUrl: '',
+          youtubeUrl: ''
         }
       ];
 
@@ -236,6 +241,7 @@ const TacticaDeportivaScreen = () => {
 
   // CRUD Operations
   const handleCreate = (type: 'plan' | 'opponent' | 'drill') => {
+    setFormType(type);
     setEditMode(false);
     setEditingItem(null);
     
@@ -255,21 +261,31 @@ const TacticaDeportivaScreen = () => {
       setFormOpponent({
         name: '',
         sport: '',
+        height: '',
+        weight: '',
+        style: '',
         strengths: [''],
         weaknesses: [''],
         preferredTechniques: [''],
         tacticalNotes: '',
-        gameplan: ''
+        gameplan: '',
+        notes: '',
+        isFavorite: false
       });
     } else {
       setFormDrill({
         name: '',
         category: 'tactical',
+        type: 'offensive',
         description: '',
         duration: 15,
         intensity: 3,
+        equipment: [''],
         materials: [''],
-        instructions: ['']
+        instructions: [''],
+        notes: '',
+        videoUrl: '',
+        youtubeUrl: ''
       });
     }
     
@@ -1471,6 +1487,51 @@ const TacticaDeportivaScreen = () => {
                   <Text style={styles.gameplanText}>{selectedItem.gameplan}</Text>
                 </View>
               )}
+              
+              {selectedItem && 'category' in selectedItem && (
+                <View>
+                  <Text style={styles.dialogDescription}>{selectedItem.description}</Text>
+                  
+                  <Text style={styles.sectionSubtitle}>Categoría: {selectedItem.category}</Text>
+                  <Text style={styles.sectionSubtitle}>Duración: {selectedItem.duration} minutos</Text>
+                  <Text style={styles.sectionSubtitle}>Intensidad: {selectedItem.intensity}/5</Text>
+                  
+                  {selectedItem.type && (
+                    <Text style={styles.sectionSubtitle}>Tipo: {selectedItem.type}</Text>
+                  )}
+                  
+                  {selectedItem.equipment && selectedItem.equipment.length > 0 && (
+                    <>
+                      <Text style={styles.sectionSubtitle}>Equipos:</Text>
+                      {selectedItem.equipment.map((equipment, index) => (
+                        <Text key={index} style={styles.listItem}>• {equipment}</Text>
+                      ))}
+                    </>
+                  )}
+                  
+                  {selectedItem.materials && selectedItem.materials.length > 0 && (
+                    <>
+                      <Text style={styles.sectionSubtitle}>Materiales:</Text>
+                      {selectedItem.materials.map((material, index) => (
+                        <Text key={index} style={styles.listItem}>• {material}</Text>
+                      ))}
+                    </>
+                  )}
+                  
+                  {selectedItem.instructions && selectedItem.instructions.length > 0 && (
+                    <>
+                      <Text style={styles.sectionSubtitle}>Instrucciones:</Text>
+                      {selectedItem.instructions.map((instruction, index) => (
+                        <Text key={index} style={styles.listItem}>• {instruction}</Text>
+                      ))}
+                    </>
+                  )}
+                  
+                  {selectedItem.youtubeUrl && (
+                    <Text style={styles.sectionSubtitle}>Video: {selectedItem.youtubeUrl}</Text>
+                  )}
+                </View>
+              )}
             </ScrollView>
           </Dialog.ScrollArea>
           <Dialog.Actions>
@@ -1485,13 +1546,10 @@ const TacticaDeportivaScreen = () => {
         style={styles.fab}
         onPress={() => {
           if (activeTab === 'planes') {
-            setEditingItem({ objectives: [] } as TacticalPlan);
             handleCreate('plan');
           } else if (activeTab === 'rivales') {
-            setEditingItem({ strengths: [] } as OpponentAnalysis);
             handleCreate('opponent');
           } else {
-            setEditingItem({ materials: [] } as TrainingDrill);
             handleCreate('drill');
           }
         }}
