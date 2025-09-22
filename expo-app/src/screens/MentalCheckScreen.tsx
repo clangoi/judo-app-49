@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { View, Text, StyleSheet, ScrollView, Alert } from 'react-native';
-import { Card, Button, SegmentedButtons } from 'react-native-paper';
+import { View, Text, StyleSheet, ScrollView, Alert, TouchableOpacity } from 'react-native';
+import { Card, Button, SegmentedButtons, TextInput, Chip } from 'react-native-paper';
 import { MaterialIcons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -24,6 +24,9 @@ interface CheckinData {
   contextNote: string;
   timeOfDay: string;
   dayOfWeek: string;
+  // Nuevos campos para check-ins de texto libre
+  mentalStateText?: string;
+  type?: string;
 }
 
 interface BienestarData {
@@ -65,6 +68,11 @@ const MentalCheckScreen: React.FC<MentalCheckScreenProps> = ({ navigation, route
   const [bienestarData, setBienestarData] = useState<BienestarData[]>([]);
   const [crisisData, setCrisisData] = useState<CrisisData[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  
+  // Estados para historial de check-ins
+  const [searchText, setSearchText] = useState('');
+  const [dateFilter, setDateFilter] = useState<'all' | 'week' | 'month'>('all');
+  const [showHistoryDetails, setShowHistoryDetails] = useState<string[]>([]);
   const mentalHealthOptions = [
     {
       title: "Check-in Rápido",
@@ -287,6 +295,204 @@ ${getMostUsedTechniquesForReport()}
     return uniqueDays.size;
   };
 
+  // Funciones para el historial de check-ins
+  const getFilteredCheckins = () => {
+    let filtered = checkinData;
+    
+    // Filtrar por fecha
+    if (dateFilter !== 'all') {
+      const now = new Date();
+      const cutoffDate = new Date();
+      
+      if (dateFilter === 'week') {
+        cutoffDate.setDate(now.getDate() - 7);
+      } else if (dateFilter === 'month') {
+        cutoffDate.setDate(now.getDate() - 30);
+      }
+      
+      filtered = filtered.filter(item => new Date(item.timestamp) >= cutoffDate);
+    }
+    
+    // Filtrar por texto de búsqueda
+    if (searchText.trim()) {
+      const searchLower = searchText.toLowerCase();
+      filtered = filtered.filter(item => {
+        const textToSearch = (item.mentalStateText || item.quickNote || '').toLowerCase();
+        return textToSearch.includes(searchLower);
+      });
+    }
+    
+    // Ordenar por fecha (más reciente primero)
+    return filtered.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+  };
+
+  const formatDate = (timestamp: string) => {
+    const date = new Date(timestamp);
+    const now = new Date();
+    const diffTime = now.getTime() - date.getTime();
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffDays === 0) {
+      return `Hoy, ${date.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}`;
+    } else if (diffDays === 1) {
+      return `Ayer, ${date.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}`;
+    } else if (diffDays < 7) {
+      return `Hace ${diffDays} días, ${date.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}`;
+    } else {
+      return date.toLocaleDateString('es-ES', { 
+        day: '2-digit', 
+        month: '2-digit', 
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    }
+  };
+
+  const toggleHistoryDetails = (id: string) => {
+    setShowHistoryDetails(prev => 
+      prev.includes(id) 
+        ? prev.filter(item => item !== id)
+        : [...prev, id]
+    );
+  };
+
+  const truncateText = (text: string, maxLength: number = 100) => {
+    if (text.length <= maxLength) return text;
+    return text.substring(0, maxLength) + '...';
+  };
+
+  const renderCheckinItem = (checkin: CheckinData) => {
+    const isExpanded = showHistoryDetails.includes(checkin.id);
+    const displayText = checkin.mentalStateText || checkin.quickNote || 'Sin texto registrado';
+    const shouldTruncate = displayText.length > 100;
+    
+    return (
+      <Card key={checkin.id} style={styles.historyCard}>
+        <Card.Content>
+          <View style={styles.historyHeader}>
+            <Text style={styles.historyDate}>{formatDate(checkin.timestamp)}</Text>
+            {checkin.type === 'quick_text' && (
+              <Chip textStyle={styles.chipText} style={styles.typeChip}>
+                Texto libre
+              </Chip>
+            )}
+          </View>
+          
+          <TouchableOpacity
+            onPress={() => shouldTruncate && toggleHistoryDetails(checkin.id)}
+            disabled={!shouldTruncate}
+          >
+            <Text style={styles.historyText}>
+              {isExpanded || !shouldTruncate ? displayText : truncateText(displayText)}
+            </Text>
+            
+            {shouldTruncate && (
+              <Text style={styles.expandText}>
+                {isExpanded ? 'Ver menos' : 'Ver más'}
+              </Text>
+            )}
+          </TouchableOpacity>
+          
+          {(checkin.contextNote && checkin.contextNote.trim()) && (
+            <View style={styles.contextContainer}>
+              <Text style={styles.contextLabel}>Contexto:</Text>
+              <Text style={styles.contextText}>{checkin.contextNote}</Text>
+            </View>
+          )}
+        </Card.Content>
+      </Card>
+    );
+  };
+
+  const renderHistorialSection = () => {
+    const filteredCheckins = getFilteredCheckins();
+    
+    return (
+      <Card style={styles.analyticsCard}>
+        <Card.Content>
+          <Text style={styles.analyticsSectionTitle}>📝 Historial de Check-ins</Text>
+          
+          {/* Búsqueda */}
+          <TextInput
+            mode="outlined"
+            value={searchText}
+            onChangeText={setSearchText}
+            placeholder="Buscar en tus check-ins..."
+            left={<TextInput.Icon icon="magnify" />}
+            style={styles.searchInput}
+            data-testid="input-search-checkins"
+          />
+          
+          {/* Filtros de fecha */}
+          <View style={styles.filterContainer}>
+            <Text style={styles.filterLabel}>Período:</Text>
+            <View style={styles.filterChips}>
+              <Chip
+                selected={dateFilter === 'all'}
+                onPress={() => setDateFilter('all')}
+                style={styles.filterChip}
+                textStyle={styles.filterChipText}
+              >
+                Todo
+              </Chip>
+              <Chip
+                selected={dateFilter === 'week'}
+                onPress={() => setDateFilter('week')}
+                style={styles.filterChip}
+                textStyle={styles.filterChipText}
+              >
+                Última semana
+              </Chip>
+              <Chip
+                selected={dateFilter === 'month'}
+                onPress={() => setDateFilter('month')}
+                style={styles.filterChip}
+                textStyle={styles.filterChipText}
+              >
+                Último mes
+              </Chip>
+            </View>
+          </View>
+          
+          {/* Resultados */}
+          <View style={styles.historyResults}>
+            <Text style={styles.resultsCount}>
+              {filteredCheckins.length === 0
+                ? 'No se encontraron check-ins'
+                : `${filteredCheckins.length} check-in${filteredCheckins.length !== 1 ? 's' : ''} encontrado${filteredCheckins.length !== 1 ? 's' : ''}`
+              }
+            </Text>
+            
+            {filteredCheckins.length === 0 && (
+              <View style={styles.emptyState}>
+                <MaterialIcons name="psychology" size={48} color="#E0E0E0" />
+                <Text style={styles.emptyStateText}>
+                  {searchText.trim() 
+                    ? 'No se encontraron check-ins que coincidan con tu búsqueda.'
+                    : 'Aún no hay check-ins registrados.'
+                  }
+                </Text>
+                {!searchText.trim() && (
+                  <Button
+                    mode="contained"
+                    onPress={() => navigation.navigate('CheckinRapido')}
+                    style={styles.quickActionButton}
+                    buttonColor="#283750"
+                  >
+                    Hacer mi primer check-in
+                  </Button>
+                )}
+              </View>
+            )}
+            
+            {filteredCheckins.map(renderCheckinItem)}
+          </View>
+        </Card.Content>
+      </Card>
+    );
+  };
+
   const getGreeting = () => {
     const hour = new Date().getHours();
     if (hour < 12) return "Buenos días";
@@ -415,6 +621,9 @@ ${getMostUsedTechniquesForReport()}
             </Card.Content>
           </Card>
         )}
+
+        {/* Nueva sección: Historial de Check-ins */}
+        {renderHistorialSection()}
 
         <Card style={styles.analyticsCard}>
           <Card.Content>
@@ -628,6 +837,107 @@ const styles = StyleSheet.create({
   loadingText: {
     fontSize: 16,
     color: '#6B7280',
+  },
+  // Estilos para historial de check-ins
+  searchInput: {
+    marginBottom: 16,
+  },
+  filterContainer: {
+    marginBottom: 16,
+  },
+  filterLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#283750',
+    marginBottom: 8,
+  },
+  filterChips: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  filterChip: {
+    marginRight: 8,
+    marginBottom: 4,
+  },
+  filterChipText: {
+    fontSize: 12,
+  },
+  historyResults: {
+    marginTop: 16,
+  },
+  resultsCount: {
+    fontSize: 14,
+    color: '#666666',
+    marginBottom: 12,
+    fontWeight: '500',
+  },
+  historyCard: {
+    marginBottom: 12,
+    backgroundColor: '#FAFAFA',
+    borderRadius: 8,
+  },
+  historyHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  historyDate: {
+    fontSize: 12,
+    color: '#666666',
+    fontWeight: '500',
+  },
+  typeChip: {
+    backgroundColor: '#E3F2FD',
+    height: 24,
+  },
+  chipText: {
+    fontSize: 10,
+    color: '#1976D2',
+  },
+  historyText: {
+    fontSize: 14,
+    color: '#283750',
+    lineHeight: 20,
+  },
+  expandText: {
+    fontSize: 12,
+    color: '#1976D2',
+    marginTop: 4,
+    fontWeight: '500',
+  },
+  contextContainer: {
+    marginTop: 8,
+    padding: 8,
+    backgroundColor: '#F5F5F5',
+    borderRadius: 6,
+  },
+  contextLabel: {
+    fontSize: 12,
+    color: '#666666',
+    fontWeight: '600',
+    marginBottom: 2,
+  },
+  contextText: {
+    fontSize: 12,
+    color: '#666666',
+    lineHeight: 16,
+  },
+  emptyState: {
+    alignItems: 'center',
+    padding: 24,
+  },
+  emptyStateText: {
+    fontSize: 14,
+    color: '#888888',
+    textAlign: 'center',
+    marginTop: 12,
+    marginBottom: 16,
+    lineHeight: 20,
+  },
+  quickActionButton: {
+    marginTop: 8,
   },
 });
 
