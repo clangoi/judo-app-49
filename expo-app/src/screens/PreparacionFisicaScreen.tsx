@@ -7,6 +7,7 @@ import { transformLegacyWorkoutSession } from '../utils/legacyTransformations';
 import EntryList from '../components/EntryList';
 import EntryFormModal from '../components/EntryFormModal';
 import ConfirmDeleteDialog from '../components/ConfirmDeleteDialog';
+import FloatingTimer from '../components/FloatingTimer';
 
 interface Exercise {
   id: string;
@@ -79,6 +80,9 @@ const PreparacionFisicaScreen = () => {
   const [sessionToDelete, setSessionToDelete] = useState<WorkoutSession | null>(null);
   const [editMode, setEditMode] = useState(false);
   const [exerciseSelectorVisible, setExerciseSelectorVisible] = useState(false);
+  
+  // Floating timer state
+  const [floatingTimerVisible, setFloatingTimerVisible] = useState(false);
 
   // Form states
   const [formSession, setFormSession] = useState<Partial<WorkoutSession>>({
@@ -105,6 +109,9 @@ const PreparacionFisicaScreen = () => {
     setSelectedExercises([]);
     setEditMode(false);
     setNewSessionVisible(true);
+    
+    // Show floating timer when starting workout
+    setFloatingTimerVisible(true);
   };
 
   const editSession = (session: WorkoutSession) => {
@@ -176,6 +183,8 @@ const PreparacionFisicaScreen = () => {
       const sessionData = {
         ...formSession,
         date: formSession.date || new Date().toISOString(),
+        type: formSession.type || 'full',
+        exercises: formSession.exercises || selectedExercises,
         duration: formSession.duration || Math.floor(Math.random() * 60) + 30 // Placeholder duration
       };
 
@@ -207,6 +216,8 @@ const PreparacionFisicaScreen = () => {
       setSelectedExercises([]);
       setNewSessionVisible(false);
       setEditMode(false);
+      // Hide floating timer when workout is completed
+      setFloatingTimerVisible(false);
     } catch (error) {
       Alert.alert('Error', 'No se pudo guardar el entrenamiento. Inténtalo de nuevo.');
     }
@@ -389,6 +400,8 @@ const PreparacionFisicaScreen = () => {
             duration: 0
           });
           setEditMode(false);
+          // Hide floating timer when session is dismissed
+          setFloatingTimerVisible(false);
         }}
         onSubmit={saveWorkoutSession}
         title={editMode ? 'Editar Entrenamiento' : 'Nuevo Entrenamiento Personalizado'}
@@ -531,6 +544,12 @@ const PreparacionFisicaScreen = () => {
         </View>
         </Modal>
       </Portal>
+      
+      {/* Floating Timer - Rendered in Portal to appear above all modals */}
+      <FloatingTimer
+        visible={floatingTimerVisible}
+        onClose={() => setFloatingTimerVisible(false)}
+      />
     </View>
   );
 };

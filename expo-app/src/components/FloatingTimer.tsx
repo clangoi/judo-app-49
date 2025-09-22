@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { View, Text, StyleSheet, Animated, PanResponder, Dimensions } from 'react-native';
-import { IconButton, Surface } from 'react-native-paper';
+import { IconButton, Surface, Portal } from 'react-native-paper';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTimerContext } from '../hooks/useTimerContext';
 
@@ -14,6 +14,7 @@ interface FloatingTimerProps {
 const FloatingTimer: React.FC<FloatingTimerProps> = ({ visible, onClose }) => {
   const { state, actions } = useTimerContext();
   const [isExpanded, setIsExpanded] = useState(false);
+  const [bubbleSize, setBubbleSize] = useState({ width: 80, height: 80 });
   
   // Position state for dragging
   const pan = useRef(new Animated.ValueXY({
@@ -21,15 +22,15 @@ const FloatingTimer: React.FC<FloatingTimerProps> = ({ visible, onClose }) => {
     y: 80
   })).current;
   
+  // Keep track of current position
+  const currentPosition = useRef({ x: screenWidth - 100, y: 80 });
+  
   // Pan responder for dragging
   const panResponder = useRef(
     PanResponder.create({
       onMoveShouldSetPanResponder: () => true,
       onPanResponderGrant: () => {
-        pan.setOffset({
-          x: pan.x._value,
-          y: pan.y._value,
-        });
+        pan.setOffset(currentPosition.current);
       },
       onPanResponderMove: Animated.event(
         [null, { dx: pan.x, dy: pan.y }],
@@ -38,9 +39,14 @@ const FloatingTimer: React.FC<FloatingTimerProps> = ({ visible, onClose }) => {
       onPanResponderRelease: (evt, gestureState) => {
         pan.flattenOffset();
         
-        // Keep timer within screen bounds
-        const newX = Math.max(10, Math.min(screenWidth - 80, pan.x._value));
-        const newY = Math.max(50, Math.min(screenHeight - 100, pan.y._value));
+        // Calculate new position with dynamic bubble size
+        const maxX = screenWidth - bubbleSize.width - 10;
+        const maxY = screenHeight - bubbleSize.height - 10;
+        const newX = Math.max(10, Math.min(maxX, currentPosition.current.x + gestureState.dx));
+        const newY = Math.max(50, Math.min(maxY, currentPosition.current.y + gestureState.dy));
+        
+        // Update position reference
+        currentPosition.current = { x: newX, y: newY };
         
         Animated.spring(pan, {
           toValue: { x: newX, y: newY },
@@ -104,23 +110,38 @@ const FloatingTimer: React.FC<FloatingTimerProps> = ({ visible, onClose }) => {
     }
   };
   
+  const handleClose = () => {
+    // Pause timer when closing to prevent running in background
+    if (state.isRunning) {
+      actions.pauseTimer();
+    }
+    onClose();
+  };
+  
   if (!visible) return null;
   
   return (
-    <Animated.View
-      style={[
-        styles.container,
-        {
-          transform: [{ translateX: pan.x }, { translateY: pan.y }],
-        },
-      ]}
-      {...panResponder.panHandlers}
-    >
-      <Surface style={[
-        styles.bubble,
-        isExpanded && styles.expandedBubble,
-        { borderColor: getPhaseColor() }
-      ]}>
+    <Portal>
+      <Animated.View
+        style={[
+          styles.container,
+          {
+            transform: [{ translateX: pan.x }, { translateY: pan.y }],
+          },
+        ]}
+        {...panResponder.panHandlers}
+      >
+        <Surface 
+          style={[
+            styles.bubble,
+            isExpanded && styles.expandedBubble,
+            { borderColor: getPhaseColor() }
+          ]}
+          onLayout={(event) => {
+            const { width, height } = event.nativeEvent.layout;
+            setBubbleSize({ width, height });
+          }}
+        >
         {/* Compact view */}
         {!isExpanded && (
           <View style={styles.compactContent}>
@@ -207,14 +228,15 @@ const FloatingTimer: React.FC<FloatingTimerProps> = ({ visible, onClose }) => {
                   <MaterialIcons name="close" size={size} color={color} />
                 )}
                 mode="outlined"
-                onPress={onClose}
+                onPress={handleClose}
                 style={styles.controlButton}
               />
             </View>
           </View>
         )}
-      </Surface>
-    </Animated.View>
+        </Surface>
+      </Animated.View>
+    </Portal>
   );
 };
 
