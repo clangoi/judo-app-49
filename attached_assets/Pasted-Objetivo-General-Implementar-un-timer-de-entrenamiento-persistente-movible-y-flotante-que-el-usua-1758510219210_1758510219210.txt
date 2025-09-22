@@ -1,0 +1,41 @@
+Objetivo General:
+Implementar un timer de entrenamiento persistente, movible y flotante que el usuario pueda configurar para mantener visible durante toda la sesión de preparación física. Debe aparecer como una burbuja flotante en la esquina superior derecha (por defecto) mientras el usuario navega entre ejercicios o espera instrucciones, garantizando seguimiento visual constante del tiempo sin interrumpir la experiencia. 
+
+Requisitos Específicos: 
+
+Visibilidad automática al iniciar entrenamiento:
+Al comenzar cualquier rutina de preparación física, el timer debe activarse y mostrarse automáticamente en pantalla.
+No debe requerir acción adicional del usuario para hacerlo visible (a menos que lo haya desactivado previamente en preferencias).
+Diseño como burbuja flotante:
+El timer debe presentarse como un elemento tipo “burbuja” o “widget flotante”, con fondo semitransparente y bordes redondeados para integrarse visualmente sin obstruir contenido.
+Ubicación por defecto: esquina superior derecha de la pantalla (responsive en móvil y web).
+Debe incluir:
+Tiempo restante o transcurrido (según configuración del entrenamiento)
+Botón de pausa/reanudar (ícono intuitivo)
+Botón de cierre/ocultar (opcional, si el usuario desea minimizarlo)
+Arrastrable (movible) por el usuario:
+El usuario debe poder tocar/mantener presionado y arrastrar la burbuja a cualquier posición de la pantalla.
+La nueva posición debe mantenerse durante toda la sesión activa (no necesita persistir entre sesiones, a menos que se defina como mejora futura).
+Comportamiento durante navegación entre ejercicios:
+El timer debe mantenerse visible y funcionando en primer plano incluso cuando el usuario:
+Cambia de ejercicio
+Desplaza la pantalla
+Abre instrucciones o videos
+Interactúa con otros controles del entrenamiento
+Solo debe ocultarse si:
+El usuario lo cierra manualmente (si se implementa botón de cierre)
+Finaliza el entrenamiento completo
+Configuración previa (opcional pero recomendada):
+En ajustes del perfil o del entrenamiento, permitir al usuario:
+Activar/desactivar la burbuja flotante por defecto
+Elegir posición inicial (superior derecha, superior izquierda, inferior derecha, etc.)
+Ajustar tamaño (pequeño / mediano)
+Compatibilidad y rendimiento:
+Debe funcionar sin degradar el rendimiento en dispositivos móviles (Android/iOS) y web.
+No debe interferir con scroll, botones u otros elementos interactivos.
+En caso de superposición accidental, el usuario siempre puede moverlo.
+Resultado Esperado:
+Durante cualquier sesión de preparación física, el usuario ve un timer flotante en la esquina superior derecha (o donde lo haya posicionado), que sigue activo y visible mientras avanza en los ejercicios. Puede pausarlo, moverlo o cerrarlo según necesite, sin perder el control del tiempo de su entrenamiento. 
+
+Nota clave:
+Este componente mejora significativamente la experiencia de usuario al entrenar: elimina la necesidad de volver a la pantalla principal para ver el tiempo, reduce la ansiedad por perder el control del cronómetro y permite mayor concentración en la ejecución de los ejercicios. 
