@@ -153,8 +153,8 @@ const EntrenamientoDeportivoScreen = () => {
       id: `${Date.now()}-${Math.random()}`,
       name: drill.name,
       type: drill.type,
-      duration: 15, // Default duration
-      intensity: drill.intensity,
+      duration: drill.defaultDuration || drill.duration || 15, // Use template default or fallback
+      intensity: drill.defaultIntensity || drill.intensity || 3,
       description: drill.description,
       completed: false
     };
@@ -208,6 +208,83 @@ const EntrenamientoDeportivoScreen = () => {
     }
   };
 
+  // Custom drill management functions
+  const createCustomDrill = () => {
+    setFormDrill({
+      name: '',
+      type: 'technique',
+      defaultDuration: 15,
+      defaultIntensity: 3,
+      description: ''
+    });
+    setEditingDrill(null);
+    setDrillFormVisible(true);
+  };
+
+  const editCustomDrill = (drill: DrillTemplate) => {
+    setFormDrill({
+      name: drill.name,
+      type: drill.type,
+      defaultDuration: drill.defaultDuration,
+      defaultIntensity: drill.defaultIntensity,
+      description: drill.description
+    });
+    setEditingDrill(drill);
+    setDrillFormVisible(true);
+  };
+
+  const saveCustomDrill = async () => {
+    if (!formDrill.name?.trim()) {
+      Alert.alert('Error', 'El nombre del ejercicio es obligatorio');
+      return;
+    }
+
+    try {
+      const drillData = {
+        name: formDrill.name.trim(),
+        type: formDrill.type!,
+        defaultDuration: formDrill.defaultDuration || 15,
+        defaultIntensity: formDrill.defaultIntensity || 3,
+        description: formDrill.description?.trim() || ''
+      };
+
+      if (editingDrill) {
+        await updateDrill(editingDrill.id, drillData);
+        Alert.alert('¡Ejercicio Actualizado!', 'Los cambios han sido guardados exitosamente.');
+      } else {
+        await createDrill(drillData);
+        Alert.alert('¡Ejercicio Creado!', 'El nuevo ejercicio ha sido guardado exitosamente.');
+      }
+
+      setDrillFormVisible(false);
+      setEditingDrill(null);
+    } catch (error) {
+      Alert.alert('Error', 'Hubo un problema al guardar el ejercicio. Inténtalo de nuevo.');
+    }
+  };
+
+  const deleteCustomDrill = async (drill: DrillTemplate) => {
+    Alert.alert(
+      'Eliminar Ejercicio',
+      `¿Estás seguro de que quieres eliminar "${drill.name}"? Esta acción no se puede deshacer.`,
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        { 
+          text: 'Eliminar', 
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await removeDrill(drill.id);
+              Alert.alert('Ejercicio Eliminado', 'El ejercicio ha sido eliminado exitosamente.');
+            } catch (error) {
+              Alert.alert('Error', 'Hubo un problema al eliminar el ejercicio.');
+            }
+          }
+        }
+      ]
+    );
+  };
+
   const completeDrill = (drillId: string) => {
     if (!selectedSession || !formSession) return;
 
@@ -232,7 +309,16 @@ const EntrenamientoDeportivoScreen = () => {
 
     try {
       const sessionData = {
-        ...formSession,
+        date: formSession.date || new Date().toISOString(),
+        sessionType: formSession.sessionType || 'training',
+        sport: formSession.sport || 'judo',
+        drills: formSession.drills || [],
+        intensity: formSession.intensity || 3,
+        partner: formSession.partner,
+        opponent: formSession.opponent,
+        result: formSession.result,
+        notes: formSession.notes,
+        injuries: formSession.injuries || [],
         duration: formSession.duration || selectedSession.drills.reduce((sum, drill) => sum + drill.duration, 0)
       };
 
@@ -572,6 +658,79 @@ const EntrenamientoDeportivoScreen = () => {
           <Dialog.Title>Seleccionar Ejercicio</Dialog.Title>
           <Dialog.ScrollArea>
             <ScrollView style={styles.drillSelectorContent}>
+              
+              {/* Create New Exercise Button */}
+              <Button
+                mode="contained"
+                style={[styles.addButton, { marginBottom: 16 }]}
+                buttonColor="#10B981"
+                onPress={createCustomDrill}
+                icon={({ size, color }) => (
+                  <MaterialIcons name="add" size={size} color={color} />
+                )}
+              >
+                Crear Nuevo Ejercicio
+              </Button>
+
+              {/* Custom Drills Section */}
+              {customDrills.length > 0 && (
+                <>
+                  <Text style={styles.sectionHeaderText}>Tus Ejercicios</Text>
+                  {customDrills.map((drill) => (
+                    <Card key={drill.id} style={[styles.drillSelectorCard, { borderLeftWidth: 4, borderLeftColor: '#10B981' }]}>
+                      <Card.Content>
+                        <View style={styles.drillSelectorHeader}>
+                          <Text style={styles.drillSelectorName}>{drill.name}</Text>
+                          <View style={styles.drillActionButtons}>
+                            <IconButton
+                              icon="pencil"
+                              size={16}
+                              onPress={() => editCustomDrill(drill)}
+                              style={styles.drillActionButton}
+                            />
+                            <IconButton
+                              icon="delete"
+                              size={16}
+                              onPress={() => deleteCustomDrill(drill)}
+                              style={styles.drillActionButton}
+                            />
+                            <Chip style={{
+                              backgroundColor: drill.type === 'technique' ? '#E0F2FE' :
+                                             drill.type === 'sparring' ? '#FEF3C7' :
+                                             drill.type === 'conditioning' ? '#F0FDF4' : '#F3E8FF'
+                            }}>
+                              <Text style={{
+                                color: drill.type === 'technique' ? '#0369A1' :
+                                      drill.type === 'sparring' ? '#92400E' :
+                                      drill.type === 'conditioning' ? '#166534' : '#7C3AED'
+                              }}>{drill.type}</Text>
+                            </Chip>
+                          </View>
+                        </View>
+                        {drill.description && (
+                          <Text style={styles.drillSelectorDescription}>{drill.description}</Text>
+                        )}
+                        <View style={styles.drillSelectorStats}>
+                          <Text style={styles.drillSelectorIntensity}>
+                            Duración: {drill.defaultDuration} min • Intensidad: {drill.defaultIntensity}/5
+                          </Text>
+                        </View>
+                        <Button
+                          mode="contained"
+                          style={styles.addButton}
+                          buttonColor="#283750"
+                          onPress={() => addDrillToSession(drill)}
+                        >
+                          Agregar
+                        </Button>
+                      </Card.Content>
+                    </Card>
+                  ))}
+                </>
+              )}
+
+              {/* Suggested Drills Section */}
+              <Text style={styles.sectionHeaderText}>Ejercicios Sugeridos</Text>
               {availableDrills.map((drill, index) => (
                 <Card key={index} style={styles.drillSelectorCard}>
                   <Card.Content>
@@ -611,6 +770,85 @@ const EntrenamientoDeportivoScreen = () => {
           </Dialog.Actions>
         </Dialog>
       </Portal>
+
+      {/* Drill Form Modal */}
+      <EntryFormModal
+        visible={drillFormVisible}
+        title={editingDrill ? 'Editar Ejercicio' : 'Nuevo Ejercicio'}
+        onSubmit={saveCustomDrill}
+        onCancel={() => {
+          setDrillFormVisible(false);
+          setEditingDrill(null);
+        }}
+        isLoading={isDrillsLoading}
+      >
+        <ScrollView style={styles.formScrollView}>
+          <View style={styles.formFields}>
+            <TextInput
+              mode="outlined"
+              label="Nombre del ejercicio"
+              value={formDrill.name || ''}
+              onChangeText={(text) => setFormDrill(prev => ({ ...prev, name: text }))}
+              style={styles.formInput}
+              placeholder="Ej: Flexiones, Squats, Técnica de golpeo..."
+            />
+
+            <Text style={styles.fieldLabel}>Tipo de ejercicio</Text>
+            <View style={styles.chipContainer}>
+              {[
+                { label: 'Técnica', value: 'technique' },
+                { label: 'Sparring', value: 'sparring' },
+                { label: 'Acondicionamiento', value: 'conditioning' },
+                { label: 'Táctico', value: 'tactical' }
+              ].map((type) => (
+                <Chip
+                  key={type.value}
+                  selected={formDrill.type === type.value}
+                  onPress={() => setFormDrill(prev => ({ ...prev, type: type.value as any }))}
+                  style={styles.selectionChip}
+                >
+                  {type.label}
+                </Chip>
+              ))}
+            </View>
+
+            <TextInput
+              mode="outlined"
+              label="Duración por defecto (minutos)"
+              value={formDrill.defaultDuration?.toString() || ''}
+              onChangeText={(text) => setFormDrill(prev => ({ ...prev, defaultDuration: parseInt(text) || 15 }))}
+              keyboardType="numeric"
+              style={styles.formInput}
+              placeholder="15"
+            />
+
+            <Text style={styles.fieldLabel}>Intensidad por defecto: {formDrill.defaultIntensity || 3}/5</Text>
+            <View style={styles.chipContainer}>
+              {[1, 2, 3, 4, 5].map((level) => (
+                <Chip
+                  key={level}
+                  selected={formDrill.defaultIntensity === level}
+                  onPress={() => setFormDrill(prev => ({ ...prev, defaultIntensity: level as any }))}
+                  style={styles.selectionChip}
+                >
+                  {level}
+                </Chip>
+              ))}
+            </View>
+
+            <TextInput
+              mode="outlined"
+              label="Descripción (opcional)"
+              value={formDrill.description || ''}
+              onChangeText={(text) => setFormDrill(prev => ({ ...prev, description: text }))}
+              multiline
+              numberOfLines={3}
+              style={styles.formInput}
+              placeholder="Describe el ejercicio, técnica o procedimiento..."
+            />
+          </View>
+        </ScrollView>
+      </EntryFormModal>
 
       {/* Delete Confirmation Dialog */}
       <ConfirmDeleteDialog
@@ -899,6 +1137,38 @@ const styles = StyleSheet.create({
   },
   addButton: {
     borderRadius: 6,
+  },
+  sectionHeaderText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#283750',
+    marginVertical: 12,
+    paddingHorizontal: 8,
+  },
+  drillActionButtons: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  drillActionButton: {
+    margin: 0,
+    padding: 0,
+  },
+  fieldLabel: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#283750',
+    marginBottom: 8,
+  },
+  chipContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginBottom: 16,
+  },
+  selectionChip: {
+    marginRight: 8,
+    marginBottom: 4,
   },
 });
 

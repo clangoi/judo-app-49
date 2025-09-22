@@ -1,0 +1,47 @@
+Objetivo General:
+Corregir y restaurar completamente la funcionalidad de la sección “Táctica y Estrategia”, donde actualmente ninguno de los componentes clave funciona: ni el registro de planes generales, ni el registro de planes por rivales, ni la creación de ejercicios tácticos. El objetivo es entregar un módulo estable, usable y centrado en la planificación estratégica del usuario. 
+
+Requisitos Específicos: 
+
+Reparar tarjetas de “Registrar Planes Generales”:
+Actualmente, las tarjetas o botones que permiten acceder al formulario de creación de planes generales (ej: “Plan de Temporada”, “Plan de Pretemporada”, “Plan de Desarrollo Táctico”) no responden al clic o no cargan la interfaz.
+Debe restablecerse su funcionalidad: al hacer clic, debe abrirse un formulario con campos como:
+Nombre del plan (obligatorio)
+Objetivo general (texto largo, obligatorio)
+Duración o período (selector de fechas o texto, opcional)
+Ejercicios tácticos asociados (selector de ejercicios ya creados o botón para crear nuevos — ver punto 3)
+Notas adicionales (opcional)
+El plan debe poder guardarse y aparecer en una lista o biblioteca personal.
+Reparar tarjetas de “Registrar Planes por Rivales”:
+Las tarjetas o accesos para crear planes específicos por rival (ej: “Plan vs. Equipo X”, “Análisis de Rival Y”) tampoco funcionan.
+Al hacer clic, debe abrirse un formulario con campos como:
+Nombre del rival (obligatorio)
+Análisis del rival (texto largo, obligatorio — fortalezas, debilidades, patrones)
+Estrategias propuestas (texto o checklist, obligatorio)
+Ejercicios tácticos a implementar (selector + creación rápida — ver punto 3)
+Fecha del encuentro o período de preparación (opcional)
+El plan debe guardarse y poder asociarse visualmente al rival correspondiente.
+Habilitar creación de ejercicios tácticos/estratégicos:
+Actualmente, no es posible crear nuevos ejercicios dentro de esta sección, lo cual rompe el flujo de definición de tácticas.
+Debe implementarse un botón claro: “+ Crear nuevo ejercicio táctico” (visible tanto en planes generales como por rivales).
+El formulario de creación debe incluir:
+Nombre del ejercicio (obligatorio)
+Descripción detallada (obligatorio — incluye objetivos, roles, movimientos, etc.)
+Tipo de ejercicio (selector predefinido: “Ofensivo”, “Defensivo”, “Transición”, “Posicional”, “Contraataque”, “Set Play”, etc.)
+Video o diagrama de apoyo (opcional — URL de YouTube o subida de archivo)
+Duración estimada o repeticiones (opcional)
+El ejercicio creado debe guardarse en una biblioteca táctica personal y estar disponible para ser reutilizado en cualquier plan.
+Validaciones y UX mínimas:
+Todos los formularios deben tener validación de campos obligatorios antes de guardar.
+La interfaz debe ser intuitiva: tarjetas visibles, botones con feedback visual, carga de formularios sin errores.
+Si hay dependencias con otros módulos (como ejercicios físicos o técnicos), deben manejarse con claridad — pero no bloquear la funcionalidad táctica.
+Resultado Esperado:
+El usuario puede: 
+
+Crear planes generales de estrategia con ejercicios tácticos asociados.
+Crear planes específicos por rival, con análisis y ejercicios personalizados.
+Crear nuevos ejercicios tácticos en cualquier momento, desde cualquier plan, y reutilizarlos después.
+Todo funciona sin errores, con una interfaz clara y consistente.
+Nota clave:
+Esta sección es crítica para la planificación deportiva avanzada. No es un módulo secundario: debe ser robusto, confiable y centrado en la toma de decisiones estratégicas del entrenador o usuario.
+La creación de ejercicios tácticos es el corazón del sistema — sin ella, los planes carecen de contenido ejecutable. 
