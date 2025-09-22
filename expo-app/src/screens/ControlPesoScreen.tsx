@@ -100,28 +100,6 @@ const ControlPesoScreen = () => {
 
   const screenData = Dimensions.get('window');
 
-  // Initialize sample data if needed
-  const initializeSampleData = async () => {
-    if (weightEntries.length === 0 && !weightLoading) {
-      const sampleWeightEntries: Omit<WeightEntry, 'id' | 'createdAt' | 'updatedAt'>[] = [
-        {
-          date: new Date().toISOString(),
-          weight: 70.5,
-          bodyFat: 15.2,
-          muscleMass: 32.1,
-          notes: 'Pesaje inicial'
-        }
-      ];
-
-      for (const entry of sampleWeightEntries) {
-        await createWeight(entry);
-      }
-    }
-  };
-
-  useEffect(() => {
-    initializeSampleData();
-  }, [weightEntries.length, weightLoading]);
 
   // CRUD Operations
   const handleCreate = (type: 'weight' | 'goal' | 'nutrition') => {
@@ -329,7 +307,7 @@ const ControlPesoScreen = () => {
     // Assuming average height of 170cm for calculation - in a real app this would be configurable
     const height = 1.70; // meters
     const currentWeight = weightEntries[0]?.weight || 0;
-    if (currentWeight === 0) return 0;
+    if (currentWeight === 0) return '0.0';
     
     return (currentWeight / (height * height)).toFixed(1);
   };
