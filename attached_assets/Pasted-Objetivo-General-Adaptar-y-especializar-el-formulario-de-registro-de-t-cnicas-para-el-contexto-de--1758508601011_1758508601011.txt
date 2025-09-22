@@ -1,0 +1,48 @@
+Objetivo General:
+Adaptar y especializar el formulario de registro de técnicas para el contexto de Judo, definiendo campos alineados a su sistema de grados (cinturones) y tipos de técnicas propias de la disciplina. Solo los campos “Nombre” y “Descripción” serán obligatorios; el resto será opcional para permitir flexibilidad en el registro sin sacrificar estructura. 
+
+Requisitos Específicos: 
+
+Campos del formulario de registro de técnica (Judo):
+El formulario debe incluir exclusivamente los siguientes campos, con las especificaciones indicadas: 
+Nombre de la Técnica (texto, obligatorio)
+→ Ej: “O-soto-gari”, “Uchi-mata”, “Kesa-gatame” 
+Descripción (área de texto largo, obligatorio)
+→ Explicación general de la técnica, su propósito, contexto de uso y variantes básicas. 
+Grado (Cinturón) (selector opcional con los grados de Judo)
+→ Opciones predefinidas:
+Blanco, Amarillo, Naranja, Verde, Azul, Marrón, Negro (1er Dan), Negro (2do Dan), Negro (3er Dan+)
+→ Este campo ayuda a clasificar la técnica según el nivel de dominio requerido. 
+Puntos Clave (área de texto o lista, opcional)
+→ Elementos esenciales para ejecutar correctamente la técnica: postura, agarre, desplazamiento, timing, etc. 
+Errores Comunes (área de texto o lista, opcional)
+→ Fallos típicos que cometen los practicantes y cómo corregirlos. 
+Video de YouTube (opcional) (campo de URL, validado para YouTube, no obligatorio)
+→ Enlace a demostración o tutorial externo. 
+Video (opcional) (campo para subir archivo de video local o enlace interno, no obligatorio)
+→ Demostración propia o material de apoyo multimedia. 
+Tipo (selector con tipos predefinidos de técnicas de Judo, opcional)
+→ Opciones predefinidas:
+Nage-waza (Técnicas de Proyección),
+Katame-waza (Técnicas de Control),
+Atemi-waza (Golpes — solo en kata),
+Kata (Formas preestablecidas),
+Ukemi (Caídas),
+Randori (Entrenamiento libre),
+Otros 
+Eliminar definitivamente la categoría “Deporte”:
+Este campo no debe existir en ningún lugar del formulario ni en la estructura de datos.
+Si ya existía en versiones anteriores, debe ser eliminado de la interfaz, lógica y base de datos (con migración si es necesario).
+Validaciones y UX:
+Únicamente Nombre y Descripción deben ser obligatorios para guardar la técnica.
+Todos los demás campos deben estar claramente marcados como “(opcional)” en la interfaz.
+Los selectores (“Grado” y “Tipo”) deben mostrar una opción por defecto vacía o “Seleccionar...” para no forzar selección.
+La interfaz debe ser intuitiva, con etiquetas claras y agrupación lógica de campos (ej: información básica, detalles técnicos, recursos multimedia).
+Resultado Esperado:
+El usuario puede registrar una técnica de Judo con solo nombre y descripción, y enriquecerla opcionalmente con grado, tipo, puntos clave, errores, y videos.
+La clasificación por cinturón y tipo de técnica permite filtrar, buscar y organizar el contenido según el nivel del practicante y la naturaleza de la técnica.
+No existe rastro del campo “Deporte”, y toda la estructura está alineada al contexto técnico y pedagógico del Judo. 
+
+Nota clave:
+Este formulario está diseñado para ser flexible pero estructurado: permite registros rápidos (solo nombre + descripción) y también registros completos para instructores o avanzados.
+La taxonomía de grados y tipos sigue el estándar internacional de Judo para garantizar coherencia técnica y pedagógica. 
