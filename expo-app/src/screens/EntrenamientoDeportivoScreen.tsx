@@ -776,7 +776,7 @@ const EntrenamientoDeportivoScreen = () => {
         visible={drillFormVisible}
         title={editingDrill ? 'Editar Ejercicio' : 'Nuevo Ejercicio'}
         onSubmit={saveCustomDrill}
-        onCancel={() => {
+        onDismiss={() => {
           setDrillFormVisible(false);
           setEditingDrill(null);
         }}
