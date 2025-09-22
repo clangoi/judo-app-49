@@ -272,9 +272,17 @@ const TecnicasDeportivasScreen = () => {
 
     try {
       const techniqueData = {
-        ...formTechnique,
+        name: formTechnique.name!,
+        description: formTechnique.description!,
+        category: formTechnique.category,
+        grade: formTechnique.grade,
         keyPoints: formTechnique.keyPoints?.filter(point => point.trim() !== '') || [],
-        commonErrors: formTechnique.commonErrors?.filter(error => error.trim() !== '') || []
+        commonErrors: formTechnique.commonErrors?.filter(error => error.trim() !== '') || [],
+        videoUrl: formTechnique.videoUrl,
+        videoFile: formTechnique.videoFile,
+        isFavorite: formTechnique.isFavorite || false,
+        timesLearned: formTechnique.timesLearned || 0,
+        mastery: formTechnique.mastery || 1
       };
 
       if (editMode && selectedTechnique?.id) {
@@ -348,9 +356,6 @@ const TecnicasDeportivasScreen = () => {
             <Text style={[styles.masteryText, { color: getMasteryColor(item.mastery) }]}>
               {getMasteryLabel(item.mastery)}
             </Text>
-          </Chip>
-          <Chip style={styles.difficultyChip}>
-            <Text>Dificultad {item.difficulty}/5</Text>
           </Chip>
           <Chip style={styles.practiceChip}>
             <Text>{item.timesLearned} prácticas</Text>
@@ -536,9 +541,6 @@ const TecnicasDeportivasScreen = () => {
                       <Text style={[styles.masteryText, { color: getMasteryColor(selectedTechnique.mastery) }]}>
                         {getMasteryLabel(selectedTechnique.mastery)}
                       </Text>
-                    </Chip>
-                    <Chip style={styles.difficultyChip}>
-                      <Text>Dificultad {selectedTechnique.difficulty}/5</Text>
                     </Chip>
                   </View>
 
@@ -1026,14 +1028,6 @@ const styles = StyleSheet.create({
   selectionChip: {
     marginRight: 8,
     marginBottom: 4,
-  },
-  difficultyContainer: {
-    flexDirection: 'row',
-    gap: 8,
-    marginBottom: 16,
-  },
-  difficultyChip: {
-    minWidth: 40,
   },
   stepInputContainer: {
     flexDirection: 'row',
