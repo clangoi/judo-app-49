@@ -19,6 +19,17 @@ interface TrainingDrill {
   notes?: string;
 }
 
+interface DrillTemplate {
+  id: string;
+  createdAt: string;
+  updatedAt: string;
+  name: string;
+  type: 'technique' | 'sparring' | 'conditioning' | 'tactical';
+  defaultDuration: number; // en minutos
+  defaultIntensity: 1 | 2 | 3 | 4 | 5;
+  description?: string;
+}
+
 interface SportsSession {
   id: string;
   createdAt: string;
@@ -79,6 +90,17 @@ const EntrenamientoDeportivoScreen = () => {
     transformLegacyItem: transformLegacySportsSession
   });
 
+  const { 
+    items: customDrills, 
+    isLoading: isDrillsLoading, 
+    create: createDrill, 
+    update: updateDrill, 
+    remove: removeDrill 
+  } = useCrudStorage<DrillTemplate>({
+    storageKey: 'expo:deportivo:customDrills',
+    remotePayloadKey: 'customSportsDrills'
+  });
+
   
   const [activeTab, setActiveTab] = useState('entrenamientos');
   const [newSessionVisible, setNewSessionVisible] = useState(false);
@@ -87,6 +109,8 @@ const EntrenamientoDeportivoScreen = () => {
   const [sessionToDelete, setSessionToDelete] = useState<SportsSession | null>(null);
   const [editMode, setEditMode] = useState(false);
   const [showDrillSelector, setShowDrillSelector] = useState(false);
+  const [drillFormVisible, setDrillFormVisible] = useState(false);
+  const [editingDrill, setEditingDrill] = useState<DrillTemplate | null>(null);
 
   // Form states
   const [formSession, setFormSession] = useState<Partial<SportsSession>>({
@@ -96,6 +120,14 @@ const EntrenamientoDeportivoScreen = () => {
     intensity: 3,
     notes: '',
     duration: 0
+  });
+
+  const [formDrill, setFormDrill] = useState<Partial<DrillTemplate>>({
+    name: '',
+    type: 'technique',
+    defaultDuration: 15,
+    defaultIntensity: 3,
+    description: ''
   });
 
   const startCustomTraining = () => {
