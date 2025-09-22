@@ -13,13 +13,13 @@ interface Technique {
   createdAt: string;
   updatedAt: string;
   name: string;
-  category: 'throws' | 'grappling' | 'strikes' | 'submissions' | 'escapes' | 'combinations';
-  sport: 'judo' | 'karate' | 'boxing' | 'bjj' | 'mma' | 'general';
-  difficulty: 1 | 2 | 3 | 4 | 5;
   description: string;
-  steps: string[];
-  tips: string[];
-  videoUrl?: string;
+  category?: 'nage-waza' | 'katame-waza' | 'atemi-waza' | 'kata' | 'ukemi' | 'randori' | 'otros';
+  grade?: 'blanco' | 'amarillo' | 'naranja' | 'verde' | 'azul' | 'marron' | 'negro-1dan' | 'negro-2dan' | 'negro-3dan+';
+  keyPoints?: string[]; // Puntos clave
+  commonErrors?: string[]; // Errores comunes
+  videoUrl?: string; // Video de YouTube
+  videoFile?: string; // Video local
   isFavorite: boolean;
   timesLearned: number;
   lastPracticed?: string;
@@ -37,7 +37,7 @@ const TecnicasDeportivasScreen = () => {
   const [filteredTechniques, setFilteredTechniques] = useState<Technique[]>([]);
   const [activeTab, setActiveTab] = useState('explorar');
   const [selectedCategory, setSelectedCategory] = useState('all');
-  const [selectedSport, setSelectedSport] = useState('all');
+  const [selectedGrade, setSelectedGrade] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [techniqueDetailVisible, setTechniqueDetailVisible] = useState(false);
   const [selectedTechnique, setSelectedTechnique] = useState<Technique | null>(null);
@@ -47,35 +47,42 @@ const TecnicasDeportivasScreen = () => {
   const [editMode, setEditMode] = useState(false);
   const [formTechnique, setFormTechnique] = useState<Partial<Technique>>({
     name: '',
-    category: 'throws',
-    sport: 'judo',
-    difficulty: 1,
     description: '',
-    steps: [''],
-    tips: [''],
+    category: undefined,
+    grade: undefined,
+    keyPoints: [''],
+    commonErrors: [''],
+    videoUrl: '',
+    videoFile: '',
     isFavorite: false,
     timesLearned: 0,
     mastery: 1
   });
 
-  // Categories and sports
+  // Categories specific to Judo
   const categories = [
     { value: 'all', label: 'Todas' },
-    { value: 'throws', label: 'Proyecciones' },
-    { value: 'grappling', label: 'Agarre' },
-    { value: 'strikes', label: 'Golpes' },
-    { value: 'submissions', label: 'Finalizaciones' },
-    { value: 'escapes', label: 'Escapes' },
-    { value: 'combinations', label: 'Combinaciones' }
+    { value: 'nage-waza', label: 'Nage-waza (Técnicas de Proyección)' },
+    { value: 'katame-waza', label: 'Katame-waza (Técnicas de Control)' },
+    { value: 'atemi-waza', label: 'Atemi-waza (Golpes — solo en kata)' },
+    { value: 'kata', label: 'Kata (Formas preestablecidas)' },
+    { value: 'ukemi', label: 'Ukemi (Caídas)' },
+    { value: 'randori', label: 'Randori (Entrenamiento libre)' },
+    { value: 'otros', label: 'Otros' }
   ];
 
-  const sports = [
-    { value: 'all', label: 'Todos' },
-    { value: 'judo', label: 'Judo' },
-    { value: 'karate', label: 'Karate' },
-    { value: 'boxing', label: 'Boxeo' },
-    { value: 'bjj', label: 'BJJ' },
-    { value: 'mma', label: 'MMA' }
+  // Belt grades for Judo
+  const grades = [
+    { value: '', label: 'Seleccionar grado...' },
+    { value: 'blanco', label: 'Blanco' },
+    { value: 'amarillo', label: 'Amarillo' },
+    { value: 'naranja', label: 'Naranja' },
+    { value: 'verde', label: 'Verde' },
+    { value: 'azul', label: 'Azul' },
+    { value: 'marron', label: 'Marrón' },
+    { value: 'negro-1dan', label: 'Negro (1er Dan)' },
+    { value: 'negro-2dan', label: 'Negro (2do Dan)' },
+    { value: 'negro-3dan+', label: 'Negro (3er Dan+)' }
   ];
 
   // Initialize with sample techniques if empty
@@ -167,7 +174,7 @@ const TecnicasDeportivasScreen = () => {
 
   useEffect(() => {
     filterTechniques();
-  }, [techniques, selectedCategory, selectedSport, searchQuery]);
+  }, [techniques, selectedCategory, selectedGrade, searchQuery]);
 
   const filterTechniques = () => {
     let filtered = techniques;
@@ -176,8 +183,8 @@ const TecnicasDeportivasScreen = () => {
       filtered = filtered.filter(t => t.category === selectedCategory);
     }
 
-    if (selectedSport !== 'all') {
-      filtered = filtered.filter(t => t.sport === selectedSport);
+    if (selectedGrade !== 'all') {
+      filtered = filtered.filter(t => t.grade === selectedGrade);
     }
 
     if (searchQuery.trim()) {
