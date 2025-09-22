@@ -7,7 +7,7 @@ import { transformLegacyWorkoutSession } from '../utils/legacyTransformations';
 import EntryList from '../components/EntryList';
 import EntryFormModal from '../components/EntryFormModal';
 import ConfirmDeleteDialog from '../components/ConfirmDeleteDialog';
-import FloatingTimer from '../components/FloatingTimer';
+import { useTimerContext } from '../hooks/useTimerContext';
 
 interface Exercise {
   id: string;
@@ -81,8 +81,8 @@ const PreparacionFisicaScreen = () => {
   const [editMode, setEditMode] = useState(false);
   const [exerciseSelectorVisible, setExerciseSelectorVisible] = useState(false);
   
-  // Floating timer state
-  const [floatingTimerVisible, setFloatingTimerVisible] = useState(false);
+  // Access timer context for floating timer
+  const { actions: timerActions } = useTimerContext();
 
   // Form states
   const [formSession, setFormSession] = useState<Partial<WorkoutSession>>({
@@ -111,7 +111,7 @@ const PreparacionFisicaScreen = () => {
     setNewSessionVisible(true);
     
     // Show floating timer when starting workout
-    setFloatingTimerVisible(true);
+    timerActions.showFloatingTimer();
   };
 
   const editSession = (session: WorkoutSession) => {
@@ -217,7 +217,7 @@ const PreparacionFisicaScreen = () => {
       setNewSessionVisible(false);
       setEditMode(false);
       // Hide floating timer when workout is completed
-      setFloatingTimerVisible(false);
+      timerActions.hideFloatingTimer();
     } catch (error) {
       Alert.alert('Error', 'No se pudo guardar el entrenamiento. Inténtalo de nuevo.');
     }
@@ -401,7 +401,7 @@ const PreparacionFisicaScreen = () => {
           });
           setEditMode(false);
           // Hide floating timer when session is dismissed
-          setFloatingTimerVisible(false);
+          timerActions.hideFloatingTimer();
         }}
         onSubmit={saveWorkoutSession}
         title={editMode ? 'Editar Entrenamiento' : 'Nuevo Entrenamiento Personalizado'}
@@ -544,12 +544,6 @@ const PreparacionFisicaScreen = () => {
         </View>
         </Modal>
       </Portal>
-      
-      {/* Floating Timer - Rendered in Portal to appear above all modals */}
-      <FloatingTimer
-        visible={floatingTimerVisible}
-        onClose={() => setFloatingTimerVisible(false)}
-      />
     </View>
   );
 };

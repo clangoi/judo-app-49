@@ -43,6 +43,9 @@ interface TimerState {
   isSequenceMode: boolean;
   tabataSequence: TabataConfig[];
   currentTabataIndex: number;
+  
+  // Floating timer state
+  floatingTimerVisible: boolean;
 }
 
 type TimerAction = 
@@ -59,7 +62,9 @@ type TimerAction =
   | { type: 'UPDATE_TABATA_IN_SEQUENCE'; index: number; tabata: TabataConfig }
   | { type: 'CLEAR_TABATA_SEQUENCE' }
   | { type: 'ENABLE_SEQUENCE_MODE'; enabled: boolean }
-  | { type: 'SET_STATE'; state: TimerState };
+  | { type: 'SET_STATE'; state: TimerState }
+  | { type: 'SHOW_FLOATING_TIMER' }
+  | { type: 'HIDE_FLOATING_TIMER' };
 
 const defaultTabataConfig: TabataConfig = {
   workTime: 20,
@@ -91,6 +96,7 @@ const defaultState: TimerState = {
   isSequenceMode: false,
   tabataSequence: [],
   currentTabataIndex: 0,
+  floatingTimerVisible: false,
 };
 
 // Storage key
@@ -467,6 +473,12 @@ export const TimerProvider = ({ children }: { children: ReactNode }) => {
         
         return state;
       
+      case 'SHOW_FLOATING_TIMER':
+        return { ...state, floatingTimerVisible: true };
+      
+      case 'HIDE_FLOATING_TIMER':
+        return { ...state, floatingTimerVisible: false };
+      
       default:
         return state;
     }
@@ -531,6 +543,8 @@ export const TimerProvider = ({ children }: { children: ReactNode }) => {
     updateTabataInSequence: (index: number, tabata: TabataConfig) => dispatch({ type: 'UPDATE_TABATA_IN_SEQUENCE', index, tabata }),
     clearTabataSequence: () => dispatch({ type: 'CLEAR_TABATA_SEQUENCE' }),
     enableSequenceMode: (enabled: boolean) => dispatch({ type: 'ENABLE_SEQUENCE_MODE', enabled }),
+    showFloatingTimer: () => dispatch({ type: 'SHOW_FLOATING_TIMER' }),
+    hideFloatingTimer: () => dispatch({ type: 'HIDE_FLOATING_TIMER' }),
   };
 
   // ✅ CORREGIDO: state: reducerState
@@ -555,6 +569,8 @@ const TimerContext = createContext<{
     updateTabataInSequence: (index: number, tabata: TabataConfig) => void;
     clearTabataSequence: () => void;
     enableSequenceMode: (enabled: boolean) => void;
+    showFloatingTimer: () => void;
+    hideFloatingTimer: () => void;
   };
 } | null>(null);
 

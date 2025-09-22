@@ -1,0 +1,42 @@
+Objetivo General:
+Implementar y/o corregir la funcionalidad de “Check-in Rápido” para que todos los textos ingresados por el usuario durante este proceso queden registrados, almacenados y visibles en la sección de Analytics > Mental Check, permitiendo seguimiento, análisis y revisión histórica del estado mental/emocional del usuario. 
+
+Requisitos Específicos: 
+
+Funcionamiento del “Check-in Rápido”:
+El usuario debe poder realizar un check-in rápido (idealmente en 1 paso) donde pueda ingresar libremente un texto corto o extenso describiendo su estado mental, emocional o motivacional del momento.
+Ejemplo de interfaz:
+Campo de texto: “¿Cómo te sientes hoy?”
+Placeholder: “Ej: Estoy cansado pero motivado”, “Me siento ansioso por el partido”, etc.
+Botón: “Registrar Check-in”
+Registro automático en Analytics > Mental Check:
+Cada texto ingresado en el check-in rápido debe guardarse en la base de datos con los siguientes metadatos mínimos:
+Fecha y hora exacta del registro
+Texto completo ingresado (sin truncar)
+(Opcional) Estado de ánimo asociado (si se agrega selector de emojis o escala numérica en el futuro)
+Estos registros deben aparecer en la sección “Analytics > Mental Check” en forma de lista, cronológica (más reciente primero) o agrupada por día/semana.
+Visualización en Analytics:
+En la pantalla de “Mental Check” en la seccion analytics, debe existir una subsección clara titulada: “Historial de Check-ins” o “Registros de Estado Mental”.
+Cada entrada debe mostrar:
+Fecha y hora
+Texto completo (con opción de “Ver más” si es muy largo)
+(Opcional) Tag o ícono de estado si se implementa en el futuro
+Debe permitir:
+Scroll infinito o paginación
+Búsqueda por palabra clave dentro de los textos
+Filtro por rango de fechas
+Privacidad y permisos:
+Los registros deben ser privados por defecto (solo visibles para el usuario que los creó).
+Si la aplicación tiene roles (ej: entrenador, psicólogo), debe definirse en otro ticket qué registros pueden ser visibles para terceros autorizados.
+Validaciones y UX:
+No se debe permitir guardar check-ins vacíos (al menos 3 caracteres).
+Mostrar confirmación visual al guardar: “Check-in registrado ✅”.
+En Analytics, permitir exportar el historial como CSV o PDF (opcional, pero recomendado para seguimiento profesional).
+Resultado Esperado:
+El usuario realiza un check-in rápido ingresando un texto libre sobre su estado mental.
+Ese texto queda guardado automáticamente y es visible en la sección “Analytics > Mental Check”, donde puede revisar su evolución emocional en el tiempo, buscar patrones o compartirlo (si aplica) con su equipo de apoyo.
+El sistema garantiza que ningún registro se pierda y que la información esté accesible, organizada y útil para el autoconocimiento o intervención profesional. 
+
+Nota clave:
+Este registro textual es fundamental para el seguimiento cualitativo del bienestar mental. No es solo un campo de texto: es un diario emocional estructurado que alimenta el análisis personal y profesional.
+Su correcta implementación cierra un ciclo crítico entre la experiencia del usuario y la inteligencia de la aplicación. 

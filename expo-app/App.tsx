@@ -7,8 +7,9 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
 import { MaterialIcons } from '@expo/vector-icons';
-import { TimerProvider } from './src/hooks/useTimerContext';
+import { TimerProvider, useTimerContext } from './src/hooks/useTimerContext';
 import { SyncProvider } from './src/hooks/useSyncManager';
+import FloatingTimer from './src/components/FloatingTimer';
 import InicioScreen from './src/screens/InicioScreen';
 import DeporteScreen from './src/screens/DeporteScreen';
 import ConfiguracionScreen from './src/screens/ConfiguracionScreen';
@@ -203,7 +204,23 @@ export default function ExpoApp() {
         <SyncProvider>
           <TimerProvider>
             <NavigationContainer>
-              <Tab.Navigator
+              <MainAppContent />
+            </NavigationContainer>
+            <StatusBar style="auto" />
+          </TimerProvider>
+        </SyncProvider>
+      </PaperProvider>
+    </SafeAreaProvider>
+  );
+}
+
+// Main app content with timer context access
+function MainAppContent() {
+  const { state, actions } = useTimerContext();
+  
+  return (
+    <>
+      <Tab.Navigator
                 id="MainTabNavigator"
                 screenOptions={({ route }) => ({
                   tabBarIcon: ({ focused, color, size }) => {
@@ -257,11 +274,12 @@ export default function ExpoApp() {
                   }}
                 />
               </Tab.Navigator>
-            </NavigationContainer>
-            <StatusBar style="auto" />
-          </TimerProvider>
-        </SyncProvider>
-      </PaperProvider>
-    </SafeAreaProvider>
+      
+      {/* Global Floating Timer - Always on top */}
+      <FloatingTimer
+        visible={state.floatingTimerVisible}
+        onClose={actions.hideFloatingTimer}
+      />
+    </>
   );
 }

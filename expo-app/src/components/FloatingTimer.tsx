@@ -28,7 +28,10 @@ const FloatingTimer: React.FC<FloatingTimerProps> = ({ visible, onClose }) => {
   // Pan responder for dragging
   const panResponder = useRef(
     PanResponder.create({
-      onMoveShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder: (evt, gestureState) => {
+        // Only activate pan responder for actual drags, not taps
+        return Math.abs(gestureState.dx) > 5 || Math.abs(gestureState.dy) > 5;
+      },
       onPanResponderGrant: () => {
         pan.setOffset(currentPosition.current);
       },
