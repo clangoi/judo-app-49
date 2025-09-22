@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, Alert } from 'react-native';
-import { Button, Card, TextInput } from 'react-native-paper';
+import { View, Text, StyleSheet, ScrollView, Alert, Dimensions } from 'react-native';
+import { Button, Card, TextInput, Snackbar } from 'react-native-paper';
 import { MaterialIcons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -8,79 +8,48 @@ interface CheckinRapidoScreenProps {
   navigation: any;
 }
 
-interface EmojiRatingProps {
-  value: number;
-  onChange: (value: number) => void;
-  emojis: string[];
-  labels: string[];
-  title: string;
-  description: string;
-}
-
-const EmojiRating: React.FC<EmojiRatingProps> = ({ 
-  value, 
-  onChange, 
-  emojis, 
-  labels, 
-  title, 
-  description 
-}) => (
-  <View style={styles.ratingContainer}>
-    <Text style={styles.ratingTitle}>{title}</Text>
-    <Text style={styles.ratingDescription}>{description}</Text>
-    
-    <View style={styles.emojisContainer}>
-      {emojis.map((emoji, index) => {
-        const rating = index + 1;
-        return (
-          <View key={index} style={styles.emojiItem}>
-            <Button
-              mode={value === rating ? 'contained' : 'outlined'}
-              onPress={() => onChange(rating)}
-              style={[
-                styles.emojiButton,
-                value === rating ? { backgroundColor: '#283750' } : { borderColor: '#E0E0E0' }
-              ]}
-              contentStyle={styles.emojiButtonContent}
-              data-testid={`emoji-${title.toLowerCase().replace(/\s+/g, '-')}-${rating}`}
-            >
-              <Text style={styles.emojiText}>{emoji}</Text>
-            </Button>
-            <Text style={[
-              styles.emojiLabel,
-              value === rating ? { color: '#283750', fontWeight: 'bold' } : { color: '#666666' }
-            ]}>
-              {labels[index]}
-            </Text>
-          </View>
-        );
-      })}
-    </View>
-  </View>
-);
-
 const CheckinRapidoScreen: React.FC<CheckinRapidoScreenProps> = ({ navigation }) => {
-  const [currentMood, setCurrentMood] = useState<number>(3);
-  const [energyLevel, setEnergyLevel] = useState<number>(3);
-  const [stressLevel, setStressLevel] = useState<number>(3);
-  const [protectiveFactors, setProtectiveFactors] = useState<number>(3);
-  const [quickNote, setQuickNote] = useState<string>('');
-  const [contextNote, setContextNote] = useState<string>('');
+  const [mentalStateText, setMentalStateText] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [showSuccessSnackbar, setShowSuccessSnackbar] = useState<boolean>(false);
+  const [validationError, setValidationError] = useState<string>('');
+
+  const validateInput = (): boolean => {
+    setValidationError('');
+    
+    if (!mentalStateText.trim()) {
+      setValidationError('Por favor, describe cómo te sientes');
+      return false;
+    }
+    
+    if (mentalStateText.trim().length < 3) {
+      setValidationError('El mensaje debe tener al menos 3 caracteres');
+      return false;
+    }
+    
+    return true;
+  };
 
   const saveCheckIn = async () => {
+    if (!validateInput()) {
+      return;
+    }
+    
     setIsSubmitting(true);
     
     try {
       const checkInData = {
         id: Date.now().toString(),
         timestamp: new Date().toISOString(),
-        currentMood,
-        energyLevel,
-        stressLevel,
-        protectiveFactors,
-        quickNote,
-        contextNote,
+        mentalStateText: mentalStateText.trim(),
+        type: 'quick_text', // Nuevo campo para identificar check-ins de texto libre
+        // Mantener compatibilidad con sistema anterior (valores neutros)
+        currentMood: 3,
+        energyLevel: 3,
+        stressLevel: 3,
+        protectiveFactors: 3,
+        quickNote: mentalStateText.trim(), // Usar el texto principal también aquí para compatibilidad
+        contextNote: '',
         timeOfDay: getTimeOfDay(),
         dayOfWeek: getDayOfWeek(),
       };
@@ -92,35 +61,38 @@ const CheckinRapidoScreen: React.FC<CheckinRapidoScreenProps> = ({ navigation })
       // Agregar nuevo check-in
       checkIns.push(checkInData);
       
-      // Mantener solo los últimos 50 check-ins
-      if (checkIns.length > 50) {
-        checkIns.splice(0, checkIns.length - 50);
+      // Mantener solo los últimos 100 check-ins
+      if (checkIns.length > 100) {
+        checkIns.splice(0, checkIns.length - 100);
       }
       
       // Guardar en AsyncStorage
       await AsyncStorage.setItem('mentalcheck_checkins', JSON.stringify(checkIns));
 
-      Alert.alert(
-        "¡Check-in Completado!",
-        "Gracias por registrar cómo te sientes. Tu bienestar es importante.",
-        [
-          { 
-            text: 'Ver Resumen', 
-            onPress: () => navigation.navigate('MentalCheck') 
-          },
-          { 
-            text: 'Hacer Otro', 
-            onPress: () => {
-              setCurrentMood(3);
-              setEnergyLevel(3);
-              setStressLevel(3);
-              setProtectiveFactors(3);
-              setQuickNote('');
-              setContextNote('');
+      // Mostrar confirmación visual
+      setShowSuccessSnackbar(true);
+      
+      // Limpiar el campo después de guardar exitosamente
+      setMentalStateText('');
+      
+      setTimeout(() => {
+        Alert.alert(
+          "¡Check-in Registrado! ✅",
+          "Gracias por compartir cómo te sientes. Tu bienestar es importante para nosotros.",
+          [
+            { 
+              text: 'Ver Historial', 
+              onPress: () => navigation.navigate('MentalCheck', { initialTab: 'analytics' })
+            },
+            { 
+              text: 'Hacer Otro Check-in', 
+              onPress: () => {
+                // Campo ya limpiado arriba
+              }
             }
-          }
-        ]
-      );
+          ]
+        );
+      }, 1000);
       
     } catch (error) {
       Alert.alert(
@@ -146,9 +118,30 @@ const CheckinRapidoScreen: React.FC<CheckinRapidoScreenProps> = ({ navigation })
     return days[new Date().getDay()];
   };
 
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return "Buenos días";
+    if (hour < 18) return "Buenas tardes";
+    return "Buenas noches";
+  };
+
+  const getRandomPlaceholder = () => {
+    const placeholders = [
+      "Ej: Estoy cansado pero motivado para entrenar",
+      "Ej: Me siento ansioso por el partido de mañana",
+      "Ej: Hoy me levanté con mucha energía y optimismo",
+      "Ej: Estoy algo estresado por los exámenes",
+      "Ej: Me siento relajado después del entrenamiento",
+      "Ej: Tengo ganas de mejorar mi técnica hoy",
+      "Ej: Estoy emocionado por la competencia",
+      "Ej: Me siento un poco agobiado pero enfocado"
+    ];
+    return placeholders[Math.floor(Math.random() * placeholders.length)];
+  };
+
   return (
     <View style={styles.container}>
-      <ScrollView style={styles.scrollContainer}>
+      <ScrollView style={styles.scrollContainer} keyboardShouldPersistTaps="handled">
         {/* Header */}
         <View style={styles.header}>
           <Button
@@ -161,105 +154,57 @@ const CheckinRapidoScreen: React.FC<CheckinRapidoScreenProps> = ({ navigation })
             Atrás
           </Button>
           <Text style={styles.title}>Check-in Rápido</Text>
-          <Text style={styles.subtitle}>Solo toma 30 segundos registrar cómo te sientes</Text>
+          <Text style={styles.subtitle}>{getGreeting()}, solo toma 30 segundos</Text>
         </View>
 
-        {/* Quick Questions */}
-        <Card style={styles.card}>
-          <Card.Content style={styles.cardContent}>
-            <EmojiRating
-              value={currentMood}
-              onChange={setCurrentMood}
-              emojis={['😭', '😞', '😐', '🙂', '😄']}
-              labels={['Muy mal', 'Mal', 'Normal', 'Bien', 'Excelente']}
-              title="¿Cómo te sientes ahora?"
-              description="Tu estado de ánimo en este momento"
-            />
-          </Card.Content>
-        </Card>
-
-        <Card style={styles.card}>
-          <Card.Content style={styles.cardContent}>
-            <EmojiRating
-              value={energyLevel}
-              onChange={setEnergyLevel}
-              emojis={['😴', '🥱', '😐', '😊', '⚡']}
-              labels={['Sin energía', 'Poca', 'Normal', 'Buena', 'Mucha energía']}
-              title="¿Cuál es tu nivel de energía?"
-              description="Qué tan activo te sientes"
-            />
-          </Card.Content>
-        </Card>
-
-        <Card style={styles.card}>
-          <Card.Content style={styles.cardContent}>
-            <EmojiRating
-              value={stressLevel}
-              onChange={setStressLevel}
-              emojis={['😌', '🙂', '😕', '😰', '🤯']}
-              labels={['Muy relajado', 'Relajado', 'Normal', 'Estresado', 'Muy estresado']}
-              title="¿Qué tan estresado estás?"
-              description="Tu nivel de estrés actual"
-            />
-          </Card.Content>
-        </Card>
-
-        {/* Factores Protectores */}
-        <Card style={styles.card}>
-          <Card.Content style={styles.cardContent}>
-            <EmojiRating
-              value={protectiveFactors}
-              onChange={setProtectiveFactors}
-              emojis={['🌧️', '⛅', '🌤️', '☀️', '🌈']}
-              labels={['Muy débiles', 'Débiles', 'Normales', 'Fuertes', 'Muy fuertes']}
-              title="¿Qué tan fuertes sientes tus recursos internos?"
-              description="Tu capacidad de afrontar situaciones difíciles"
-            />
-          </Card.Content>
-        </Card>
-
-        {/* Contexto - Tres preguntas */}
-        <Card style={styles.card}>
-          <Card.Content style={styles.cardContent}>
-            <Text style={styles.noteTitle}>Contexto (opcional)</Text>
-            <Text style={styles.noteDescription}>
-              Reflexiona sobre estas preguntas:{'\n'}
-              • ¿Qué eventos o situaciones han influido en cómo te sientes hoy?{'\n'}
-              • ¿Hay algo específico que te preocupa o te motiva en este momento?{'\n'}
-              • ¿Cómo ha sido tu día hasta ahora en general?
+        {/* Main Text Input Card */}
+        <Card style={styles.mainCard}>
+          <Card.Content style={styles.mainCardContent}>
+            <View style={styles.questionHeader}>
+              <MaterialIcons name="psychology" size={32} color="#283750" />
+              <Text style={styles.mainQuestion}>¿Cómo te sientes hoy?</Text>
+            </View>
+            
+            <Text style={styles.mainDescription}>
+              Describe libremente tu estado mental, emocional o motivacional del momento
             </Text>
+            
             <TextInput
               mode="outlined"
-              value={contextNote}
-              onChangeText={setContextNote}
-              placeholder="Ej: Tuve una reunión importante que me puso nervioso, pero salió mejor de lo esperado..."
+              value={mentalStateText}
+              onChangeText={setMentalStateText}
+              placeholder={getRandomPlaceholder()}
               multiline
               numberOfLines={4}
-              style={styles.noteInput}
-              maxLength={200}
-              data-testid="input-context-note"
+              style={styles.mainTextInput}
+              outlineColor="#E0E0E0"
+              activeOutlineColor="#283750"
+              error={!!validationError}
+              data-testid="input-mental-state"
             />
-            <Text style={styles.characterCount}>{contextNote.length}/200 caracteres</Text>
+            
+            {validationError && (
+              <Text style={styles.errorText}>{validationError}</Text>
+            )}
+            
+            <View style={styles.characterCountContainer}>
+              <Text style={styles.characterCountText}>
+                {mentalStateText.length} caracteres
+              </Text>
+            </View>
           </Card.Content>
         </Card>
 
-        {/* Optional Quick Note */}
-        <Card style={styles.card}>
-          <Card.Content style={styles.cardContent}>
-            <Text style={styles.noteTitle}>Reflexión rápida (opcional)</Text>
-            <Text style={styles.noteDescription}>¿Hay algo específico en tu mente ahora?</Text>
-            <TextInput
-              mode="outlined"
-              value={quickNote}
-              onChangeText={setQuickNote}
-              placeholder="Ej: Me siento cansado por el trabajo..."
-              multiline
-              numberOfLines={3}
-              style={styles.noteInput}
-              maxLength={100}
-              data-testid="input-quick-note"
-            />
-            <Text style={styles.characterCount}>{quickNote.length}/100 caracteres</Text>
+        {/* Quick Tips Card */}
+        <Card style={styles.tipsCard}>
+          <Card.Content>
+            <Text style={styles.tipsTitle}>💡 Sugerencias:</Text>
+            <Text style={styles.tipsText}>
+              • Describe emociones específicas{'\n'}
+              • Menciona qué te motiva o preocupa{'\n'}
+              • Comparte tu nivel de energía o cansancio{'\n'}
+              • Es completamente privado y confidencial
+            </Text>
           </Card.Content>
         </Card>
 
@@ -268,7 +213,7 @@ const CheckinRapidoScreen: React.FC<CheckinRapidoScreenProps> = ({ navigation })
           mode="contained"
           onPress={saveCheckIn}
           loading={isSubmitting}
-          disabled={isSubmitting}
+          disabled={isSubmitting || mentalStateText.trim().length < 3}
           style={styles.submitButton}
           buttonColor="#283750"
           contentStyle={styles.submitButtonContent}
@@ -276,12 +221,22 @@ const CheckinRapidoScreen: React.FC<CheckinRapidoScreenProps> = ({ navigation })
         >
           <MaterialIcons name="check-circle" size={20} color="#FFFFFF" />
           <Text style={styles.submitButtonText}>
-            {isSubmitting ? 'Guardando...' : 'Completar Check-in'}
+            {isSubmitting ? 'Guardando...' : 'Registrar Check-in'}
           </Text>
         </Button>
         
         <View style={styles.bottomSpacing} />
       </ScrollView>
+
+      {/* Success Snackbar */}
+      <Snackbar
+        visible={showSuccessSnackbar}
+        onDismiss={() => setShowSuccessSnackbar(false)}
+        duration={3000}
+        style={styles.snackbar}
+      >
+        Check-in registrado exitosamente ✅
+      </Snackbar>
     </View>
   );
 };
@@ -314,81 +269,72 @@ const styles = StyleSheet.create({
     color: '#666666',
     lineHeight: 20,
   },
-  card: {
+  mainCard: {
     marginHorizontal: 16,
     marginBottom: 16,
     backgroundColor: '#FFFFFF',
     borderRadius: 12,
+    elevation: 3,
   },
-  cardContent: {
+  mainCardContent: {
     padding: 20,
   },
-  ratingContainer: {
+  questionHeader: {
+    flexDirection: 'row',
     alignItems: 'center',
+    marginBottom: 12,
   },
-  ratingTitle: {
-    fontSize: 18,
+  mainQuestion: {
+    fontSize: 20,
     fontWeight: '600',
     color: '#283750',
-    textAlign: 'center',
-    marginBottom: 8,
+    marginLeft: 12,
+    flex: 1,
   },
-  ratingDescription: {
+  mainDescription: {
     fontSize: 14,
     color: '#666666',
-    textAlign: 'center',
-    marginBottom: 20,
+    marginBottom: 16,
+    lineHeight: 20,
   },
-  emojisContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    width: '100%',
+  mainTextInput: {
+    minHeight: 100,
+    textAlignVertical: 'top',
+    fontSize: 16,
   },
-  emojiItem: {
-    alignItems: 'center',
-    flex: 1,
-    marginHorizontal: 4,
+  errorText: {
+    color: '#D32F2F',
+    fontSize: 12,
+    marginTop: 4,
   },
-  emojiButton: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    marginBottom: 8,
+  characterCountContainer: {
+    alignItems: 'flex-end',
+    marginTop: 8,
   },
-  emojiButtonContent: {
-    width: 56,
-    height: 56,
+  characterCountText: {
+    fontSize: 12,
+    color: '#666666',
   },
-  emojiText: {
-    fontSize: 24,
+  tipsCard: {
+    marginHorizontal: 16,
+    marginBottom: 16,
+    backgroundColor: '#F8F9FA',
+    borderRadius: 12,
   },
-  emojiLabel: {
-    fontSize: 10,
-    textAlign: 'center',
-    lineHeight: 12,
-  },
-  noteTitle: {
+  tipsTitle: {
     fontSize: 16,
     fontWeight: '600',
     color: '#283750',
     marginBottom: 8,
   },
-  noteDescription: {
+  tipsText: {
     fontSize: 14,
     color: '#666666',
-    marginBottom: 16,
-  },
-  noteInput: {
-    backgroundColor: '#FFFFFF',
-    marginBottom: 8,
-  },
-  characterCount: {
-    fontSize: 12,
-    color: '#888888',
-    textAlign: 'right',
+    lineHeight: 20,
   },
   submitButton: {
     marginHorizontal: 16,
+    marginTop: 8,
     borderRadius: 8,
     elevation: 2,
   },
@@ -405,6 +351,13 @@ const styles = StyleSheet.create({
   },
   bottomSpacing: {
     height: 32,
+  },
+  snackbar: {
+    backgroundColor: '#10B981',
+    position: 'absolute',
+    bottom: 16,
+    left: 16,
+    right: 16,
   },
 });
 
