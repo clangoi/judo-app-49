@@ -3,12 +3,10 @@ import { View, Text, StyleSheet, ScrollView, Alert, Dimensions } from 'react-nat
 import { Card, Button, TextInput, Dialog, Portal, SegmentedButtons, Chip, IconButton, FAB, RadioButton } from 'react-native-paper';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useCrudStorage } from '../hooks/useCrudStorage';
-import { useCustomTemplates, TrainingTemplate } from '../hooks/useCustomTemplates';
 import { transformLegacySportsSession } from '../utils/legacyTransformations';
 import EntryList from '../components/EntryList';
 import EntryFormModal from '../components/EntryFormModal';
 import ConfirmDeleteDialog from '../components/ConfirmDeleteDialog';
-import CustomTemplateManager from '../components/CustomTemplateManager';
 
 interface TrainingDrill {
   id: string;
@@ -36,8 +34,6 @@ interface SportsSession {
   result?: 'win' | 'loss' | 'draw';
   notes?: string;
   injuries?: string[];
-  templateId?: string;
-  templateName?: string;
 }
 
 // Sports types
@@ -50,39 +46,31 @@ const sportsTypes = [
   { label: 'Otro', value: 'other' }
 ];
 
-// Default training templates (used for initialization) - MOVED BEFORE COMPONENT
-const defaultTrainingTemplates = {
-    judo: {
-      name: 'Entrenamiento de Judo',
-      drills: [
-        { name: 'Calentamiento y Ukemi', type: 'conditioning', duration: 10, intensity: 2, description: 'Caídas y acondicionamiento básico' },
-        { name: 'Uchi-komi (Repetición técnica)', type: 'technique', duration: 15, intensity: 3, description: 'Práctica de entrada de técnicas' },
-        { name: 'Nage-komi (Técnicas de proyección)', type: 'technique', duration: 20, intensity: 4, description: 'Proyecciones completas' },
-        { name: 'Randori (Combate libre)', type: 'sparring', duration: 15, intensity: 5, description: 'Combate libre controlado' },
-        { name: 'Ne-waza (Técnicas de suelo)', type: 'technique', duration: 10, intensity: 3, description: 'Trabajo en el suelo' },
-      ]
-    },
-    karate: {
-      name: 'Entrenamiento de Karate',
-      drills: [
-        { name: 'Calentamiento', type: 'conditioning', duration: 10, intensity: 2, description: 'Estiramiento y movilidad articular' },
-        { name: 'Kihon (Técnicas básicas)', type: 'technique', duration: 20, intensity: 3, description: 'Práctica de técnicas fundamentales' },
-        { name: 'Kata', type: 'technique', duration: 15, intensity: 3, description: 'Formas y secuencias técnicas' },
-        { name: 'Kumite (Combate)', type: 'sparring', duration: 15, intensity: 4, description: 'Combate controlado' },
-        { name: 'Acondicionamiento', type: 'conditioning', duration: 10, intensity: 4, description: 'Fortalecimiento específico' },
-      ]
-    },
-    boxing: {
-      name: 'Entrenamiento de Boxeo',
-      drills: [
-        { name: 'Calentamiento', type: 'conditioning', duration: 10, intensity: 2, description: 'Cuerda y movilidad' },
-        { name: 'Shadow Boxing', type: 'technique', duration: 15, intensity: 3, description: 'Boxeo contra la sombra' },
-        { name: 'Trabajo de Pads', type: 'technique', duration: 20, intensity: 4, description: 'Entrenamiento con manoplas' },
-        { name: 'Sparring', type: 'sparring', duration: 15, intensity: 5, description: 'Combate controlado' },
-        { name: 'Acondicionamiento', type: 'conditioning', duration: 10, intensity: 4, description: 'Fortalecimiento y resistencia' },
-      ]
-    }
-  };
+// Available training drills library
+const availableDrills = [
+  // Conditioning drills
+  { name: 'Calentamiento general', type: 'conditioning', intensity: 2, description: 'Estiramiento y movilidad articular' },
+  { name: 'Cardio', type: 'conditioning', intensity: 4, description: 'Ejercicios cardiovasculares' },
+  { name: 'Fuerza funcional', type: 'conditioning', intensity: 3, description: 'Ejercicios de fortalecimiento corporal' },
+  { name: 'Flexibilidad', type: 'conditioning', intensity: 2, description: 'Ejercicios de estiramiento y flexibilidad' },
+  
+  // Technique drills
+  { name: 'Técnicas básicas', type: 'technique', intensity: 3, description: 'Práctica de movimientos fundamentales' },
+  { name: 'Combinaciones', type: 'technique', intensity: 4, description: 'Secuencias de técnicas encadenadas' },
+  { name: 'Defensa personal', type: 'technique', intensity: 3, description: 'Técnicas de defensa y contraataque' },
+  { name: 'Trabajo de precisión', type: 'technique', intensity: 3, description: 'Ejercicios de precisión y control' },
+  
+  // Sparring drills
+  { name: 'Sparring ligero', type: 'sparring', intensity: 4, description: 'Combate controlado de baja intensidad' },
+  { name: 'Sparring completo', type: 'sparring', intensity: 5, description: 'Combate libre de alta intensidad' },
+  { name: 'Sparring por puntos', type: 'sparring', intensity: 4, description: 'Combate con sistema de puntuación' },
+  
+  // Tactical drills
+  { name: 'Estrategia de combate', type: 'tactical', intensity: 3, description: 'Planificación y táctica de enfrentamiento' },
+  { name: 'Análisis de oponente', type: 'tactical', intensity: 2, description: 'Estudio de estilos y debilidades del rival' },
+  { name: 'Situaciones específicas', type: 'tactical', intensity: 3, description: 'Práctica de escenarios tácticos específicos' }
+];
+
 
 const EntrenamientoDeportivoScreen = () => {
   const { items: sessions, isLoading, create, update, remove } = useCrudStorage<SportsSession>({
@@ -91,25 +79,6 @@ const EntrenamientoDeportivoScreen = () => {
     transformLegacyItem: transformLegacySportsSession
   });
 
-  // Custom templates hook
-  const { 
-    templates: trainingTemplates, 
-    isLoading: templatesLoading,
-    createTemplate,
-    updateTemplate,
-    deleteTemplate
-  } = useCustomTemplates<TrainingTemplate>({
-    storageKey: 'expo:deportivo:templates',
-    templateType: 'training',
-    defaultTemplates: Object.entries(defaultTrainingTemplates).map(([key, template]) => ({
-      name: template.name,
-      type: 'training' as const,
-      sport: key,
-      category: 'technique' as any,
-      drills: template.drills,
-      description: `Template predefinido de ${template.name.toLowerCase()}`
-    }))
-  });
   
   const [activeTab, setActiveTab] = useState('entrenamientos');
   const [newSessionVisible, setNewSessionVisible] = useState(false);
@@ -117,7 +86,7 @@ const EntrenamientoDeportivoScreen = () => {
   const [deleteDialogVisible, setDeleteDialogVisible] = useState(false);
   const [sessionToDelete, setSessionToDelete] = useState<SportsSession | null>(null);
   const [editMode, setEditMode] = useState(false);
-  const [templatesManagerVisible, setTemplatesManagerVisible] = useState(false);
+  const [showDrillSelector, setShowDrillSelector] = useState(false);
 
   // Form states
   const [formSession, setFormSession] = useState<Partial<SportsSession>>({
@@ -129,28 +98,63 @@ const EntrenamientoDeportivoScreen = () => {
     duration: 0
   });
 
-  const startTrainingSession = (template: TrainingTemplate) => {
-    const drills: TrainingDrill[] = template.drills.map((drill, index) => ({
-      id: `${Date.now()}-${index}`,
-      ...drill,
-      completed: false
-    } as TrainingDrill));
-
+  const startCustomTraining = () => {
     const newSession: Partial<SportsSession> = {
       date: new Date().toISOString(),
       sessionType: 'training',
-      sport: template.sport,
-      drills,
+      sport: 'judo',
+      drills: [],
       duration: 0,
-      intensity: 3,
-      templateId: template.id,
-      templateName: template.name
+      intensity: 3
     };
 
     setFormSession(newSession);
     setSelectedSession(newSession as SportsSession);
-    setEditMode(false);
+    setEditMode(true); // Always in edit mode for custom training
     setNewSessionVisible(true);
+  };
+
+  const addDrillToSession = (drill: any) => {
+    if (!selectedSession || !formSession) return;
+
+    const newDrill: TrainingDrill = {
+      id: `${Date.now()}-${Math.random()}`,
+      name: drill.name,
+      type: drill.type,
+      duration: 15, // Default duration
+      intensity: drill.intensity,
+      description: drill.description,
+      completed: false
+    };
+
+    const updatedDrills = [...selectedSession.drills, newDrill];
+    const updatedSession = {
+      ...selectedSession,
+      drills: updatedDrills
+    };
+
+    setSelectedSession(updatedSession);
+    setFormSession({
+      ...formSession,
+      drills: updatedDrills
+    });
+    setShowDrillSelector(false);
+  };
+
+  const removeDrillFromSession = (drillId: string) => {
+    if (!selectedSession || !formSession) return;
+
+    const updatedDrills = selectedSession.drills.filter(drill => drill.id !== drillId);
+    const updatedSession = {
+      ...selectedSession,
+      drills: updatedDrills
+    };
+
+    setSelectedSession(updatedSession);
+    setFormSession({
+      ...formSession,
+      drills: updatedDrills
+    });
   };
 
   const editSession = (session: SportsSession) => {
@@ -209,10 +213,9 @@ const EntrenamientoDeportivoScreen = () => {
         );
       } else {
         await create(sessionData);
-        const templateName = sessionData.templateName || trainingTemplates.find(t => t.sport === sessionData.sport)?.name || sessionData.sport;
         Alert.alert(
           '¡Entrenamiento Completado!',
-          `Has completado tu sesión de ${templateName}.`,
+          `Has completado tu sesión de entrenamiento deportivo.`,
           [{ text: 'Excelente!', style: 'default' }]
         );
       }
@@ -252,7 +255,7 @@ const EntrenamientoDeportivoScreen = () => {
     };
   };
 
-  const renderTrainingTemplates = () => {
+  const renderTrainingView = () => {
     const stats = getSessionStats();
 
     return (
@@ -282,53 +285,74 @@ const EntrenamientoDeportivoScreen = () => {
           </Card.Content>
         </Card>
 
-        {/* Training Templates */}
-        {Object.entries(trainingTemplates).map(([key, template]) => (
-          <Card key={key} style={styles.card}>
+        {/* Create New Training */}
+        <Card style={styles.card}>
+          <Card.Content>
+            <View style={styles.cardHeader}>
+              <MaterialIcons name="add-circle" size={24} color="#283750" />
+              <Text style={styles.cardTitle}>Crear Entrenamiento Personalizado</Text>
+            </View>
+            
+            <Text style={styles.createDescription}>
+              Diseña tu entrenamiento desde cero seleccionando ejercicios de nuestra biblioteca.
+            </Text>
+
+            <Button
+              mode="contained"
+              style={styles.startButton}
+              buttonColor="#283750"
+              onPress={startCustomTraining}
+              icon={({ size, color }) => (
+                <MaterialIcons name="fitness-center" size={size} color={color} />
+              )}
+            >
+              Crear Nuevo Entrenamiento
+            </Button>
+          </Card.Content>
+        </Card>
+
+        {/* Recent Sessions Preview */}
+        {sessions.length > 0 && (
+          <Card style={styles.card}>
             <Card.Content>
               <View style={styles.cardHeader}>
-                <MaterialIcons 
-                  name={key === 'judo' ? 'sports-martial-arts' : key === 'karate' ? 'sports' : 'sports'} 
-                  size={24} 
-                  color="#283750" 
-                />
-                <Text style={styles.cardTitle}>{template.name}</Text>
+                <MaterialIcons name="history" size={24} color="#283750" />
+                <Text style={styles.cardTitle}>Entrenamientos Recientes</Text>
               </View>
               
-              <View style={styles.drillsList}>
-                {template.drills.slice(0, 3).map((drill, index) => (
-                  <Text key={index} style={styles.drillText}>
-                    • {drill.name} ({drill.duration} min)
+              {sessions.slice(0, 3).map((session) => (
+                <View key={session.id} style={styles.recentSessionItem}>
+                  <Text style={styles.recentSessionTitle}>
+                    Entrenamiento de {session.sport}
                   </Text>
-                ))}
-                {template.drills.length > 3 && (
-                  <Text style={styles.moreText}>+{template.drills.length - 3} ejercicios más</Text>
-                )}
-              </View>
-
-              <View style={styles.templateStats}>
-                <Chip style={styles.chip}>
-                  <Text>{template.drills.reduce((sum, drill) => sum + drill.duration, 0)} min total</Text>
-                </Chip>
-                <Chip style={styles.chip}>
-                  <Text>{template.drills.length} ejercicios</Text>
-                </Chip>
-              </View>
-
+                  <Text style={styles.recentSessionDetails}>
+                    {new Date(session.date).toLocaleDateString()} • {session.duration} min • {session.drills.length} ejercicios
+                  </Text>
+                </View>
+              ))}
+              
               <Button
-                mode="contained"
-                style={styles.startButton}
-                buttonColor="#283750"
-                onPress={() => startTrainingSession(template)}
-                icon={({ size, color }) => (
-                  <MaterialIcons name="play-arrow" size={size} color={color} />
-                )}
+                mode="outlined"
+                style={styles.viewAllButton}
+                onPress={() => setActiveTab('historial')}
               >
-                Comenzar Entrenamiento
+                Ver Todos los Entrenamientos
               </Button>
             </Card.Content>
           </Card>
-        ))}
+        )}
+
+        {/* Empty State */}
+        {sessions.length === 0 && (
+          <Card style={styles.emptyCard}>
+            <Card.Content>
+              <Text style={styles.emptyText}>No tienes entrenamientos aún</Text>
+              <Text style={styles.emptySubtext}>
+                Crea tu primer entrenamiento deportivo personalizado usando el botón de arriba.
+              </Text>
+            </Card.Content>
+          </Card>
+        )}
       </View>
     );
   };
@@ -336,7 +360,7 @@ const EntrenamientoDeportivoScreen = () => {
   const renderHistory = () => {
     const listItems = sessions.map(session => ({
       id: session.id,
-      title: session.templateName || trainingTemplates.find(t => t.sport === session.sport)?.name || `Entrenamiento de ${session.sport}`,
+      title: `Entrenamiento de ${session.sport}`,
       subtitle: new Date(session.date).toLocaleDateString(),
       description: `${session.duration} min • Intensidad ${session.intensity}/5 • ${session.drills.filter(d => d.completed).length}/${session.drills.length} ejercicios${session.sessionType === 'sparring' ? ' • Sparring' : ''}${session.partner ? ` • Con: ${session.partner}` : ''}${session.notes ? ` • ${session.notes}` : ''}`,
       leftIcon: session.sport === 'judo' ? 'sports-martial-arts' : session.sport === 'karate' ? 'sports' : 'sports',
@@ -395,7 +419,7 @@ const EntrenamientoDeportivoScreen = () => {
       </View>
 
       <ScrollView style={styles.scrollContainer}>
-        {activeTab === 'entrenamientos' && renderTrainingTemplates()}
+        {activeTab === 'entrenamientos' && renderTrainingView()}
         {activeTab === 'historial' && renderHistory()}
       </ScrollView>
 
@@ -416,11 +440,24 @@ const EntrenamientoDeportivoScreen = () => {
           setEditMode(false);
         }}
         onSubmit={saveSession}
-        title={editMode ? 'Editar Entrenamiento' : (selectedSession ? (selectedSession.templateName || trainingTemplates.find(t => t.sport === selectedSession.sport)?.name || 'Entrenamiento') : 'Entrenamiento')}
-        submitText={editMode ? 'Actualizar' : 'Finalizar'}
-        submitDisabled={!selectedSession?.drills.some(d => d.completed)}
+        title={editMode ? 'Editar Entrenamiento' : 'Entrenamiento Deportivo'}
+        submitText={editMode ? 'Guardar Entrenamiento' : 'Finalizar'}
+        submitDisabled={!selectedSession?.drills || selectedSession.drills.length === 0}
       >
         <ScrollView style={styles.formScrollView}>
+          {/* Add Exercise Button */}
+          <Button
+            mode="outlined"
+            style={styles.addDrillButton}
+            onPress={() => setShowDrillSelector(true)}
+            icon={({ size, color }) => (
+              <MaterialIcons name="add" size={size} color={color} />
+            )}
+          >
+            Agregar Ejercicio
+          </Button>
+
+          {/* Selected Drills */}
           {selectedSession?.drills.map((drill) => (
             <View key={drill.id} style={styles.drillItem}>
               <View style={styles.drillHeader}>
@@ -443,9 +480,22 @@ const EntrenamientoDeportivoScreen = () => {
                     {drill.description}
                   </Text>
                 </View>
+                <IconButton
+                  icon="delete"
+                  iconColor="#EF4444"
+                  onPress={() => removeDrillFromSession(drill.id)}
+                />
               </View>
             </View>
           ))}
+
+          {/* Empty state for drills */}
+          {(!selectedSession?.drills || selectedSession.drills.length === 0) && (
+            <View style={styles.emptyDrills}>
+              <Text style={styles.emptyDrillsText}>No hay ejercicios aún</Text>
+              <Text style={styles.emptyDrillsSubtext}>Agrega ejercicios usando el botón de arriba</Text>
+            </View>
+          )}
           
           {editMode && (
             <View style={styles.formFields}>
@@ -480,37 +530,65 @@ const EntrenamientoDeportivoScreen = () => {
         </ScrollView>
       </EntryFormModal>
 
+      {/* Drill Selector Modal */}
+      <Portal>
+        <Dialog
+          visible={showDrillSelector}
+          onDismiss={() => setShowDrillSelector(false)}
+          style={styles.drillSelectorDialog}
+        >
+          <Dialog.Title>Seleccionar Ejercicio</Dialog.Title>
+          <Dialog.ScrollArea>
+            <ScrollView style={styles.drillSelectorContent}>
+              {availableDrills.map((drill, index) => (
+                <Card key={index} style={styles.drillSelectorCard}>
+                  <Card.Content>
+                    <View style={styles.drillSelectorHeader}>
+                      <Text style={styles.drillSelectorName}>{drill.name}</Text>
+                      <Chip style={{
+                        backgroundColor: drill.type === 'technique' ? '#E0F2FE' :
+                                       drill.type === 'sparring' ? '#FEF3C7' :
+                                       drill.type === 'conditioning' ? '#F0FDF4' : '#F3E8FF'
+                      }}>
+                        <Text style={{
+                          color: drill.type === 'technique' ? '#0369A1' :
+                                drill.type === 'sparring' ? '#92400E' :
+                                drill.type === 'conditioning' ? '#166534' : '#7C3AED'
+                        }}>{drill.type}</Text>
+                      </Chip>
+                    </View>
+                    <Text style={styles.drillSelectorDescription}>{drill.description}</Text>
+                    <View style={styles.drillSelectorStats}>
+                      <Text style={styles.drillSelectorIntensity}>Intensidad: {drill.intensity}/5</Text>
+                    </View>
+                    <Button
+                      mode="contained"
+                      style={styles.addButton}
+                      buttonColor="#283750"
+                      onPress={() => addDrillToSession(drill)}
+                    >
+                      Agregar
+                    </Button>
+                  </Card.Content>
+                </Card>
+              ))}
+            </ScrollView>
+          </Dialog.ScrollArea>
+          <Dialog.Actions>
+            <Button onPress={() => setShowDrillSelector(false)}>Cerrar</Button>
+          </Dialog.Actions>
+        </Dialog>
+      </Portal>
+
       {/* Delete Confirmation Dialog */}
       <ConfirmDeleteDialog
         visible={deleteDialogVisible}
         onDismiss={() => setDeleteDialogVisible(false)}
         onConfirm={confirmDelete}
         title="Eliminar Entrenamiento"
-        message={`¿Estás seguro de que quieres eliminar el entrenamiento "${sessionToDelete ? (sessionToDelete.templateName || trainingTemplates.find(t => t.sport === sessionToDelete.sport)?.name || sessionToDelete.sport) : ''}"? Esta acción no se puede deshacer.`}
+        message={`¿Estás seguro de que quieres eliminar este entrenamiento? Esta acción no se puede deshacer.`}
       />
 
-      {/* FAB */}
-      <FAB
-        icon="sports-martial-arts"
-        style={styles.fab}
-        onPress={() => {
-          const availableTemplates = trainingTemplates.slice(0, 3);
-          const buttons = [
-            { text: "Cancelar", style: "cancel" as const },
-            ...availableTemplates.map(template => ({
-              text: template.name,
-              onPress: () => startTrainingSession(template)
-            }))
-          ];
-          
-          Alert.alert(
-            "Nuevo Entrenamiento",
-            "Selecciona el tipo de entrenamiento deportivo:",
-            buttons
-          );
-        }}
-        label="Entrenar"
-      />
     </View>
   );
 };
@@ -698,13 +776,6 @@ const styles = StyleSheet.create({
     color: '#374151',
     lineHeight: 18,
   },
-  fab: {
-    position: 'absolute',
-    margin: 16,
-    right: 0,
-    bottom: 0,
-    backgroundColor: '#283750',
-  },
   formScrollView: {
     maxHeight: 350,
   },
@@ -714,6 +785,88 @@ const styles = StyleSheet.create({
   },
   formInput: {
     marginBottom: 8,
+  },
+  createDescription: {
+    fontSize: 14,
+    color: '#6B7280',
+    marginBottom: 16,
+    lineHeight: 20,
+  },
+  recentSessionItem: {
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F3F4F6',
+  },
+  recentSessionTitle: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#283750',
+  },
+  recentSessionDetails: {
+    fontSize: 12,
+    color: '#6B7280',
+    marginTop: 2,
+  },
+  viewAllButton: {
+    marginTop: 12,
+    borderColor: '#283750',
+  },
+  addDrillButton: {
+    marginBottom: 16,
+    borderColor: '#283750',
+  },
+  emptyDrills: {
+    padding: 24,
+    alignItems: 'center',
+  },
+  emptyDrillsText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#6B7280',
+    marginBottom: 4,
+  },
+  emptyDrillsSubtext: {
+    fontSize: 14,
+    color: '#9CA3AF',
+    textAlign: 'center',
+  },
+  drillSelectorDialog: {
+    maxHeight: '80%',
+  },
+  drillSelectorContent: {
+    maxHeight: 400,
+  },
+  drillSelectorCard: {
+    marginBottom: 8,
+    backgroundColor: '#FFFFFF',
+  },
+  drillSelectorHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  drillSelectorName: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#283750',
+    flex: 1,
+    marginRight: 8,
+  },
+  drillSelectorDescription: {
+    fontSize: 14,
+    color: '#6B7280',
+    marginBottom: 8,
+  },
+  drillSelectorStats: {
+    marginBottom: 12,
+  },
+  drillSelectorIntensity: {
+    fontSize: 12,
+    color: '#374151',
+  },
+  addButton: {
+    borderRadius: 6,
   },
 });
 
