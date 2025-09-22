@@ -14,12 +14,17 @@ interface TacticalPlan {
   updatedAt: string;
   name: string;
   sport: 'judo' | 'karate' | 'boxing' | 'mma' | 'general';
-  type: 'offensive' | 'defensive' | 'counter' | 'conditioning';
+  type: 'offensive' | 'defensive' | 'counter' | 'conditioning' | 'season' | 'preseason' | 'development';
   description: string;
   objectives: string[];
   strategies: string[];
   keyPoints: string[];
+  duration?: string;
+  period?: string;
+  associatedDrills?: string[];
+  additionalNotes?: string;
   lastUsed?: string;
+  dateCreated?: string;
   effectiveness: 1 | 2 | 3 | 4 | 5;
   isFavorite: boolean;
 }
@@ -30,12 +35,17 @@ interface OpponentAnalysis {
   updatedAt: string;
   name: string;
   sport: string;
-  height: string;
-  weight: string;
-  style: string;
+  height?: string;
+  weight?: string;
+  style?: string;
   strengths: string[];
   weaknesses: string[];
-  notes: string;
+  preferredTechniques: string[];
+  tacticalNotes: string;
+  gameplan: string;
+  notes?: string;
+  result?: 'win' | 'loss' | 'draw';
+  dateAnalyzed?: string;
   isFavorite: boolean;
 }
 
@@ -45,12 +55,16 @@ interface TrainingDrill {
   updatedAt: string;
   name: string;
   category: 'tactical' | 'technical' | 'conditioning' | 'mental';
+  type?: 'offensive' | 'defensive' | 'transition' | 'positional' | 'counter' | 'setplay';
   description: string;
   duration: number; // en minutos
   intensity: 1 | 2 | 3 | 4 | 5;
   equipment: string[];
+  materials: string[];
   instructions: string[];
-  notes: string;
+  notes?: string;
+  videoUrl?: string;
+  youtubeUrl?: string;
 }
 
 const TacticaDeportivaScreen = () => {
@@ -104,6 +118,9 @@ const TacticaDeportivaScreen = () => {
     style: '',
     strengths: [''],
     weaknesses: [''],
+    preferredTechniques: [''],
+    tacticalNotes: '',
+    gameplan: '',
     notes: '',
     isFavorite: false
   });
@@ -111,12 +128,16 @@ const TacticaDeportivaScreen = () => {
   const [formDrill, setFormDrill] = useState<Partial<TrainingDrill>>({
     name: '',
     category: 'tactical',
+    type: 'offensive',
     description: '',
     duration: 15,
     intensity: 3,
     equipment: [''],
+    materials: [''],
     instructions: [''],
-    notes: ''
+    notes: '',
+    videoUrl: '',
+    youtubeUrl: ''
   });
 
   // Initialize sample data
@@ -515,6 +536,92 @@ const TacticaDeportivaScreen = () => {
           </Card.Content>
         </Card>
 
+        {/* Quick Actions for Plans */}
+        <Card style={styles.actionsCard}>
+          <Card.Content>
+            <Text style={styles.sectionTitle}>Registrar Planes Generales</Text>
+            <View style={styles.actionButtonsGrid}>
+              <Button
+                mode="contained"
+                style={[styles.actionButton, { backgroundColor: '#3B82F6' }]}
+                onPress={() => {
+                  setFormPlan({
+                    name: '',
+                    sport: 'general',
+                    type: 'season',
+                    description: '',
+                    objectives: [''],
+                    strategies: [''],
+                    keyPoints: [''],
+                    effectiveness: 3,
+                    isFavorite: false
+                  });
+                  setEditMode(false);
+                  setEditingItem({} as TacticalPlan);
+                  setFormVisible(true);
+                }}
+                icon={({ size, color }) => (
+                  <MaterialIcons name="calendar-today" size={size} color={color} />
+                )}
+              >
+                Plan de Temporada
+              </Button>
+              
+              <Button
+                mode="contained"
+                style={[styles.actionButton, { backgroundColor: '#10B981' }]}
+                onPress={() => {
+                  setFormPlan({
+                    name: '',
+                    sport: 'general',
+                    type: 'preseason',
+                    description: '',
+                    objectives: [''],
+                    strategies: [''],
+                    keyPoints: [''],
+                    effectiveness: 3,
+                    isFavorite: false
+                  });
+                  setEditMode(false);
+                  setEditingItem({} as TacticalPlan);
+                  setFormVisible(true);
+                }}
+                icon={({ size, color }) => (
+                  <MaterialIcons name="fitness-center" size={size} color={color} />
+                )}
+              >
+                Plan de Pretemporada
+              </Button>
+              
+              <Button
+                mode="contained"
+                style={[styles.actionButton, { backgroundColor: '#8B5CF6' }]}
+                onPress={() => {
+                  setFormPlan({
+                    name: '',
+                    sport: 'general',
+                    type: 'development',
+                    description: '',
+                    objectives: [''],
+                    strategies: [''],
+                    keyPoints: [''],
+                    effectiveness: 3,
+                    isFavorite: false
+                  });
+                  setEditMode(false);
+                  setEditingItem({} as TacticalPlan);
+                  setFormVisible(true);
+                }}
+                icon={({ size, color }) => (
+                  <MaterialIcons name="trending-up" size={size} color={color} />
+                )}
+              >
+                Plan de Desarrollo Táctico
+              </Button>
+            </View>
+          </Card.Content>
+        </Card>
+
         {/* Plans List */}
         <FlatList
           data={tacticalPlans}
@@ -538,27 +645,95 @@ const TacticaDeportivaScreen = () => {
     }));
 
     return (
-      <EntryList
-        items={listItems}
-        onItemPress={(item) => {
-          const opponent = opponentAnalyses.find(o => o.id === item.id);
-          if (opponent) {
-            setSelectedItem(opponent);
-            setDetailDialogVisible(true);
-          }
-        }}
-        onEdit={(item) => {
-          const opponent = opponentAnalyses.find(o => o.id === item.id);
-          if (opponent) handleEdit(opponent);
-        }}
-        onDelete={(item) => {
-          const opponent = opponentAnalyses.find(o => o.id === item.id);
-          if (opponent) handleDelete(opponent);
-        }}
-        emptyStateText="No hay análisis de rivales"
-        emptyStateSubtext="Agrega análisis de oponentes para mejorar tu estrategia"
-        loading={opponentsLoading}
-      />
+      <View>
+        {/* Quick Actions for Rivals */}
+        <Card style={styles.actionsCard}>
+          <Card.Content>
+            <Text style={styles.sectionTitle}>Registrar Planes por Rivales</Text>
+            <View style={styles.rivalActionButtons}>
+              <Button
+                mode="contained"
+                style={[styles.actionButton, { backgroundColor: '#EF4444', flex: 1 }]}
+                onPress={() => {
+                  setFormOpponent({
+                    name: '',
+                    sport: '',
+                    height: '',
+                    weight: '',
+                    style: '',
+                    strengths: [''],
+                    weaknesses: [''],
+                    preferredTechniques: [''],
+                    tacticalNotes: '',
+                    gameplan: '',
+                    notes: '',
+                    isFavorite: false
+                  });
+                  setEditMode(false);
+                  setEditingItem({} as OpponentAnalysis);
+                  setFormVisible(true);
+                }}
+                icon={({ size, color }) => (
+                  <MaterialIcons name="person-add" size={size} color={color} />
+                )}
+              >
+                Analizar Nuevo Rival
+              </Button>
+              
+              <Button
+                mode="outlined"
+                style={[styles.actionButton, { borderColor: '#6B7280', flex: 1 }]}
+                onPress={() => {
+                  setFormOpponent({
+                    name: 'Próximo Oponente',
+                    sport: '',
+                    height: '',
+                    weight: '',
+                    style: '',
+                    strengths: [''],
+                    weaknesses: [''],
+                    preferredTechniques: [''],
+                    tacticalNotes: '',
+                    gameplan: '',
+                    notes: '',
+                    isFavorite: false
+                  });
+                  setEditMode(false);
+                  setEditingItem({} as OpponentAnalysis);
+                  setFormVisible(true);
+                }}
+                icon={({ size, color }) => (
+                  <MaterialIcons name="schedule" size={size} color={color} />
+                )}
+              >
+                Plan vs. Próximo Rival
+              </Button>
+            </View>
+          </Card.Content>
+        </Card>
+        
+        <EntryList
+          items={listItems}
+          onItemPress={(item) => {
+            const opponent = opponentAnalyses.find(o => o.id === item.id);
+            if (opponent) {
+              setSelectedItem(opponent);
+              setDetailDialogVisible(true);
+            }
+          }}
+          onEdit={(item) => {
+            const opponent = opponentAnalyses.find(o => o.id === item.id);
+            if (opponent) handleEdit(opponent);
+          }}
+          onDelete={(item) => {
+            const opponent = opponentAnalyses.find(o => o.id === item.id);
+            if (opponent) handleDelete(opponent);
+          }}
+          emptyStateText="No hay análisis de rivales"
+          emptyStateSubtext="Agrega análisis de oponentes para mejorar tu estrategia"
+          loading={opponentsLoading}
+        />
+      </View>
     );
   };
 
@@ -573,27 +748,70 @@ const TacticaDeportivaScreen = () => {
     }));
 
     return (
-      <EntryList
-        items={listItems}
-        onItemPress={(item) => {
-          const drill = trainingDrills.find(d => d.id === item.id);
-          if (drill) {
-            setSelectedItem(drill as any);
-            setDetailDialogVisible(true);
-          }
-        }}
-        onEdit={(item) => {
-          const drill = trainingDrills.find(d => d.id === item.id);
-          if (drill) handleEdit(drill);
-        }}
-        onDelete={(item) => {
-          const drill = trainingDrills.find(d => d.id === item.id);
-          if (drill) handleDelete(drill);
-        }}
-        emptyStateText="No hay ejercicios tácticos"
-        emptyStateSubtext="Agrega ejercicios específicos para mejorar tu táctica"
-        loading={drillsLoading}
-      />
+      <View>
+        {/* Quick Actions for Tactical Exercises */}
+        <Card style={styles.actionsCard}>
+          <Card.Content>
+            <Text style={styles.sectionTitle}>Crear Ejercicios Tácticos</Text>
+            <View style={styles.tacticalExerciseButtons}>
+              <Button
+                mode="contained"
+                style={[styles.actionButton, { backgroundColor: '#F59E0B', flex: 1 }]}
+                onPress={() => {
+                  setFormDrill({
+                    name: '',
+                    category: 'tactical',
+                    type: 'offensive',
+                    description: '',
+                    duration: 15,
+                    intensity: 3,
+                    equipment: [''],
+                    materials: [''],
+                    instructions: [''],
+                    notes: '',
+                    videoUrl: '',
+                    youtubeUrl: ''
+                  });
+                  setEditMode(false);
+                  setEditingItem({} as TrainingDrill);
+                  setFormVisible(true);
+                }}
+                icon={({ size, color }) => (
+                  <MaterialIcons name="add-circle" size={size} color={color} />
+                )}
+              >
+                + Crear Nuevo Ejercicio Táctico
+              </Button>
+            </View>
+            
+            <Text style={styles.exerciseTypeHint}>
+              Tipos disponibles: Ofensivo • Defensivo • Transición • Posicional • Contraataque • Set Play
+            </Text>
+          </Card.Content>
+        </Card>
+        
+        <EntryList
+          items={listItems}
+          onItemPress={(item) => {
+            const drill = trainingDrills.find(d => d.id === item.id);
+            if (drill) {
+              setSelectedItem(drill as any);
+              setDetailDialogVisible(true);
+            }
+          }}
+          onEdit={(item) => {
+            const drill = trainingDrills.find(d => d.id === item.id);
+            if (drill) handleEdit(drill);
+          }}
+          onDelete={(item) => {
+            const drill = trainingDrills.find(d => d.id === item.id);
+            if (drill) handleDelete(drill);
+          }}
+          emptyStateText="No hay ejercicios tácticos"
+          emptyStateSubtext="Agrega ejercicios específicos para mejorar tu táctica"
+          loading={drillsLoading}
+        />
+      </View>
     );
   };
 
@@ -1418,6 +1636,36 @@ const styles = StyleSheet.create({
   },
   addButton: {
     marginVertical: 8,
+  },
+  actionsCard: {
+    margin: 8,
+    backgroundColor: '#FFFFFF',
+    elevation: 3,
+    marginBottom: 16,
+  },
+  actionButtonsGrid: {
+    flexDirection: 'row',
+    gap: 8,
+    flexWrap: 'wrap',
+  },
+  rivalActionButtons: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  tacticalExerciseButtons: {
+    flexDirection: 'column',
+    gap: 8,
+  },
+  actionButton: {
+    marginVertical: 4,
+    borderRadius: 8,
+  },
+  exerciseTypeHint: {
+    fontSize: 12,
+    color: '#6B7280',
+    textAlign: 'center',
+    marginTop: 8,
+    fontStyle: 'italic',
   },
 });
 
