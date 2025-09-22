@@ -1,0 +1,31 @@
+Objetivo General:
+Reestructurar completamente la sección de “Templates de Entrenamiento Deportivo” para transformarla en un módulo 100% centrado en la creación por parte del usuario, eliminando toda lógica, interfaz o contenido predefinido, y corrigiendo errores críticos de funcionalidad. 
+
+Requisitos Específicos: 
+
+Eliminar todos los templates predefinidos:
+No debe existir ni un solo entrenamiento deportivo preconfigurado, ni como sugerencia, ni como plantilla, ni en listas ocultas.
+Toda referencia visual o funcional a “templates”, “plantillas” o “entrenamientos prediseñados” debe ser removida de la interfaz y la base de datos (si aplica en frontend).
+El usuario debe partir siempre de cero al crear un entrenamiento.
+Todos los entrenamientos son creados por el usuario:
+La única forma de tener un entrenamiento deportivo en el sistema es que el usuario lo cree manualmente.
+Debe existir un flujo claro, intuitivo y funcional para que el usuario inicie la creación de un nuevo entrenamiento desde un botón o acción explícita (ej: “+ Nuevo Entrenamiento”).
+Implementar sección de creación de entrenamientos (¡Actualmente faltante!):
+Actualmente no existe la sección para crear entrenamientos, lo cual es un error crítico.
+Se debe desarrollar e integrar una interfaz donde el usuario pueda:
+Asignar nombre, duración, objetivo y notas al entrenamiento.
+Agregar ejercicios o actividades (ya existentes en la base de datos) mediante selector o buscador.
+Visualizar en tiempo real los componentes del entrenamiento (orden, series, descansos, etc.).
+Guardar el entrenamiento como propio en su biblioteca personal.
+Esta sección debe ser accesible desde el menú principal o pantalla inicial de la categoría “Entrenamiento Deportivo”.
+Eliminar botón “Entrenar” en esquina inferior derecha:
+Este botón no tiene sentido en el nuevo flujo centrado en creación personalizada.
+Debe ser removido completamente de la interfaz en todas las pantallas relacionadas con entrenamientos deportivos.
+No debe reemplazarse por otro botón similar a menos que se defina explícitamente en un nuevo requerimiento.
+Resultado Esperado:
+Al ingresar a la sección de “Entrenamiento Deportivo”, el usuario ve únicamente sus entrenamientos creados (o una pantalla vacía con un botón para crear el primero).
+Puede crear nuevos entrenamientos desde cero, sin plantillas, sin sugerencias predefinidas, y sin botones confusos.
+La experiencia es limpia, funcional y totalmente controlada por el usuario. 
+
+Nota clave:
+Este cambio implica una transición de modelo: de “elegir entre plantillas” → a “crear todo desde cero”. La interfaz, los mensajes y las acciones deben reflejar esta nueva filosofía sin ambigüedades. 
