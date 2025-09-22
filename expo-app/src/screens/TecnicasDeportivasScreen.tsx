@@ -85,27 +85,27 @@ const TecnicasDeportivasScreen = () => {
     { value: 'negro-3dan+', label: 'Negro (3er Dan+)' }
   ];
 
-  // Initialize with sample techniques if empty
+  // Initialize with sample Judo techniques if empty
   const initializeSampleTechniques = async () => {
     if (techniques.length === 0 && !isLoading) {
       const sampleTechniques: Omit<Technique, 'id' | 'createdAt' | 'updatedAt'>[] = [
         {
-          name: 'Seoi Nage (Carga de hombros)',
-          category: 'throws',
-          sport: 'judo',
-          difficulty: 3,
-          description: 'Técnica clásica de proyección donde se carga al oponente sobre el hombro',
-          steps: [
-            'Agarra la solapa y manga del oponente',
-            'Da un paso hacia adelante con el pie derecho',
-            'Gira el cuerpo metiendo el hombro bajo el brazo del oponente',
-            'Flexiona las rodillas y levanta al oponente sobre tu espalda',
-            'Proyecta hacia adelante con un movimiento explosivo'
+          name: 'O-soto-gari',
+          description: 'Técnica fundamental de proyección que utiliza la pierna para barrer al oponente hacia atrás',
+          category: 'nage-waza',
+          grade: 'amarillo',
+          keyPoints: [
+            'Agarre firme en solapa y manga',
+            'Paso profundo con pie exterior',
+            'Contacto de la pierna con la pierna del oponente',
+            'Acción de barrido hacia arriba y atrás',
+            'Proyección con control del cuerpo'
           ],
-          tips: [
-            'Mantén el contacto cercano durante toda la técnica',
-            'El timing es crucial - aprovecha cuando el oponente se inclina hacia adelante',
-            'Practica la entrada sin proyección primero'
+          commonErrors: [
+            'No dar paso suficientemente profundo',
+            'Barrer demasiado bajo en la pierna del oponente',
+            'Perder el equilibrio durante la ejecución',
+            'No mantener el agarre firme'
           ],
           isFavorite: true,
           timesLearned: 25,
@@ -114,22 +114,22 @@ const TecnicasDeportivasScreen = () => {
           isDefault: true
         },
         {
-          name: 'Jab Cross',
-          category: 'strikes',
-          sport: 'boxing',
-          difficulty: 2,
-          description: 'Combinación básica de golpes directos en boxeo',
-          steps: [
-            'Posición de guardia básica',
-            'Lanza jab directo con la mano adelantada',
-            'Inmediatamente sigue con cross de la mano trasera',
-            'Rota la cadera en el cross para más potencia',
-            'Regresa a guardia'
+          name: 'Seoi-nage',
+          description: 'Técnica de proyección por encima del hombro, una de las más emblemáticas del Judo',
+          category: 'nage-waza',
+          grade: 'naranja',
+          keyPoints: [
+            'Entrada rápida y baja',
+            'Colocación correcta del hombro bajo el brazo del oponente',
+            'Flexión de rodillas para cargar al oponente',
+            'Extensión explosiva de piernas',
+            'Proyección hacia adelante manteniendo el control'
           ],
-          tips: [
-            'Mantén el mentón protegido',
-            'No telegrafíes los golpes',
-            'Practica en el saco primero'
+          commonErrors: [
+            'Entrada demasiado alta',
+            'No flexionar suficiente las rodillas',
+            'Perder el agarre durante la proyección',
+            'No sincronizar brazos y piernas'
           ],
           isFavorite: false,
           timesLearned: 15,
@@ -137,26 +137,26 @@ const TecnicasDeportivasScreen = () => {
           isDefault: true
         },
         {
-          name: 'Armbar desde guardia',
-          category: 'submissions',
-          sport: 'bjj',
-          difficulty: 4,
-          description: 'Finalización básica de Brazilian Jiu-Jitsu desde la guardia cerrada',
-          steps: [
-            'Desde guardia cerrada, controla el brazo del oponente',
-            'Abre la guardia y coloca el pie en la cadera',
-            'Pivota la cadera hacia el brazo objetivo',
-            'Pasa la pierna sobre la cabeza del oponente',
-            'Controla la muñeca y extiende la cadera para finalizar'
+          name: 'Kesa-gatame',
+          description: 'Inmovilización lateral fundamental donde se controla al oponente desde el costado',
+          category: 'katame-waza',
+          grade: 'verde',
+          keyPoints: [
+            'Posición lateral al oponente',
+            'Control de cabeza y brazo',
+            'Peso distribuido sobre el oponente',
+            'Piernas abiertas para estabilidad',
+            'Pegado al cuerpo del oponente'
           ],
-          tips: [
-            'Control del brazo es fundamental',
-            'Mantén las rodillas juntas',
-            'Practica lentamente primero'
+          commonErrors: [
+            'Dejar espacio entre los cuerpos',
+            'No controlar bien la cabeza',
+            'Piernas demasiado juntas',
+            'Levantarse demasiado del oponente'
           ],
           isFavorite: true,
-          timesLearned: 8,
-          mastery: 2,
+          timesLearned: 20,
+          mastery: 4,
           isDefault: true
         }
       ];
@@ -227,12 +227,13 @@ const TecnicasDeportivasScreen = () => {
   const createTechnique = () => {
     setFormTechnique({
       name: '',
-      category: 'throws',
-      sport: 'judo',
-      difficulty: 1,
       description: '',
-      steps: [''],
-      tips: [''],
+      category: undefined,
+      grade: undefined,
+      keyPoints: [''],
+      commonErrors: [''],
+      videoUrl: '',
+      videoFile: '',
       isFavorite: false,
       timesLearned: 0,
       mastery: 1
@@ -272,8 +273,8 @@ const TecnicasDeportivasScreen = () => {
     try {
       const techniqueData = {
         ...formTechnique,
-        steps: formTechnique.steps?.filter(step => step.trim() !== '') || [],
-        tips: formTechnique.tips?.filter(tip => tip.trim() !== '') || []
+        keyPoints: formTechnique.keyPoints?.filter(point => point.trim() !== '') || [],
+        commonErrors: formTechnique.commonErrors?.filter(error => error.trim() !== '') || []
       };
 
       if (editMode && selectedTechnique?.id) {
@@ -287,12 +288,13 @@ const TecnicasDeportivasScreen = () => {
       setNewTechniqueVisible(false);
       setFormTechnique({
         name: '',
-        category: 'throws',
-        sport: 'judo',
-        difficulty: 1,
         description: '',
-        steps: [''],
-        tips: [''],
+        category: undefined,
+        grade: undefined,
+        keyPoints: [''],
+        commonErrors: [''],
+        videoUrl: '',
+        videoFile: '',
         isFavorite: false,
         timesLearned: 0,
         mastery: 1
@@ -331,7 +333,7 @@ const TecnicasDeportivasScreen = () => {
           <View style={styles.techniqueInfo}>
             <Text style={styles.techniqueName}>{item.name}</Text>
             <Text style={styles.techniqueCategory}>
-              {categories.find(c => c.value === item.category)?.label} • {sports.find(s => s.value === item.sport)?.label}
+              {categories.find(c => c.value === item.category)?.label || 'Sin categoría'}
             </Text>
           </View>
           <IconButton
@@ -429,14 +431,14 @@ const TecnicasDeportivasScreen = () => {
           </ScrollView>
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
             <View style={styles.filterRow}>
-              {sports.map((sport) => (
+              {[{ value: 'all', label: 'Todos los grados' }, ...grades.slice(1)].map((grade) => (
                 <Chip
-                  key={sport.value}
-                  selected={selectedSport === sport.value}
-                  onPress={() => setSelectedSport(sport.value)}
+                  key={grade.value}
+                  selected={selectedGrade === grade.value}
+                  onPress={() => setSelectedGrade(grade.value)}
                   style={styles.filterChip}
                 >
-                  {sport.label}
+                  {grade.label}
                 </Chip>
               ))}
             </View>
@@ -462,9 +464,9 @@ const TecnicasDeportivasScreen = () => {
     const listItems = favorites.map(technique => ({
       id: technique.id,
       title: technique.name,
-      subtitle: `${categories.find(c => c.value === technique.category)?.label} • ${sports.find(s => s.value === technique.sport)?.label}`,
-      description: `${technique.description} • Dificultad ${technique.difficulty}/5 • ${getMasteryLabel(technique.mastery)} • ${technique.timesLearned} prácticas`,
-      leftIcon: technique.category === 'throws' ? 'sports-martial-arts' : technique.category === 'strikes' ? 'sports-handball' : 'fitness-center',
+      subtitle: `${categories.find(c => c.value === technique.category)?.label || 'Sin categoría'}${technique.grade ? ` • ${grades.find(g => g.value === technique.grade)?.label}` : ''}`,
+      description: `${technique.description} • ${getMasteryLabel(technique.mastery)} • ${technique.timesLearned} prácticas`,
+      leftIcon: technique.category === 'nage-waza' ? 'sports-martial-arts' : technique.category === 'katame-waza' ? 'fitness-center' : 'sports',
       rightText: `${technique.mastery}/5`
     }));
 
@@ -540,19 +542,36 @@ const TecnicasDeportivasScreen = () => {
                     </Chip>
                   </View>
 
-                  <Text style={styles.sectionSubtitle}>Pasos:</Text>
-                  {selectedTechnique.steps.map((step, index) => (
-                    <Text key={index} style={styles.stepText}>
-                      {index + 1}. {step}
-                    </Text>
-                  ))}
+                  {selectedTechnique.keyPoints && selectedTechnique.keyPoints.length > 0 && (
+                    <>
+                      <Text style={styles.sectionSubtitle}>Puntos Clave:</Text>
+                      {selectedTechnique.keyPoints.map((point, index) => (
+                        <Text key={index} style={styles.stepText}>
+                          • {point}
+                        </Text>
+                      ))}
+                    </>
+                  )}
 
-                  <Text style={styles.sectionSubtitle}>Consejos:</Text>
-                  {selectedTechnique.tips.map((tip, index) => (
-                    <Text key={index} style={styles.tipText}>
-                      • {tip}
-                    </Text>
-                  ))}
+                  {selectedTechnique.commonErrors && selectedTechnique.commonErrors.length > 0 && (
+                    <>
+                      <Text style={styles.sectionSubtitle}>Errores Comunes:</Text>
+                      {selectedTechnique.commonErrors.map((error, index) => (
+                        <Text key={index} style={styles.tipText}>
+                          • {error}
+                        </Text>
+                      ))}
+                    </>
+                  )}
+
+                  {selectedTechnique.grade && (
+                    <>
+                      <Text style={styles.sectionSubtitle}>Grado Recomendado:</Text>
+                      <Text style={styles.gradeText}>
+                        {grades.find(g => g.value === selectedTechnique.grade)?.label}
+                      </Text>
+                    </>
+                  )}
 
                   <View style={styles.practiceInfo}>
                     <Text style={styles.practiceInfoText}>
@@ -592,12 +611,13 @@ const TecnicasDeportivasScreen = () => {
           setNewTechniqueVisible(false);
           setFormTechnique({
             name: '',
-            category: 'throws',
-            sport: 'judo',
-            difficulty: 1,
             description: '',
-            steps: [''],
-            tips: [''],
+            category: undefined,
+            grade: undefined,
+            keyPoints: [''],
+            commonErrors: [''],
+            videoUrl: '',
+            videoFile: '',
             isFavorite: false,
             timesLearned: 0,
             mastery: 1
@@ -631,7 +651,7 @@ const TecnicasDeportivasScreen = () => {
 
             <View style={styles.row}>
               <View style={styles.halfWidth}>
-                <Text style={styles.fieldLabel}>Categoría</Text>
+                <Text style={styles.fieldLabel}>Tipo (opcional)</Text>
                 <ScrollView horizontal style={styles.chipContainer}>
                   {categories.slice(1).map((category) => (
                     <Chip
@@ -647,56 +667,43 @@ const TecnicasDeportivasScreen = () => {
               </View>
               
               <View style={styles.halfWidth}>
-                <Text style={styles.fieldLabel}>Deporte</Text>
+                <Text style={styles.fieldLabel}>Grado (Cinturón) (opcional)</Text>
                 <ScrollView horizontal style={styles.chipContainer}>
-                  {sports.slice(1).map((sport) => (
+                  {grades.slice(1).map((grade) => (
                     <Chip
-                      key={sport.value}
-                      selected={formTechnique.sport === sport.value}
-                      onPress={() => setFormTechnique(prev => ({ ...prev, sport: sport.value as any }))}
+                      key={grade.value}
+                      selected={formTechnique.grade === grade.value}
+                      onPress={() => setFormTechnique(prev => ({ ...prev, grade: grade.value as any }))}
                       style={styles.selectionChip}
                     >
-                      {sport.label}
+                      {grade.label}
                     </Chip>
                   ))}
                 </ScrollView>
               </View>
             </View>
 
-            <Text style={styles.fieldLabel}>Dificultad: {formTechnique.difficulty}/5</Text>
-            <View style={styles.difficultyContainer}>
-              {[1, 2, 3, 4, 5].map((level) => (
-                <Chip
-                  key={level}
-                  selected={formTechnique.difficulty === level}
-                  onPress={() => setFormTechnique(prev => ({ ...prev, difficulty: level as any }))}
-                  style={styles.difficultyChip}
-                >
-                  {level}
-                </Chip>
-              ))}
-            </View>
 
-            <Text style={styles.fieldLabel}>Pasos</Text>
-            {formTechnique.steps?.map((step, index) => (
+            <Text style={styles.fieldLabel}>Puntos Clave (opcional)</Text>
+            {formTechnique.keyPoints?.map((point, index) => (
               <View key={index} style={styles.stepInputContainer}>
                 <TextInput
                   mode="outlined"
-                  label={`Paso ${index + 1}`}
-                  value={step}
+                  label={`Punto Clave ${index + 1}`}
+                  value={point}
                   onChangeText={(text) => {
-                    const newSteps = [...(formTechnique.steps || [])];
-                    newSteps[index] = text;
-                    setFormTechnique(prev => ({ ...prev, steps: newSteps }));
+                    const newPoints = [...(formTechnique.keyPoints || [])];
+                    newPoints[index] = text;
+                    setFormTechnique(prev => ({ ...prev, keyPoints: newPoints }));
                   }}
                   style={styles.stepInput}
                 />
-                {formTechnique.steps && formTechnique.steps.length > 1 && (
+                {formTechnique.keyPoints && formTechnique.keyPoints.length > 1 && (
                   <IconButton
                     icon="delete"
                     onPress={() => {
-                      const newSteps = formTechnique.steps?.filter((_, i) => i !== index);
-                      setFormTechnique(prev => ({ ...prev, steps: newSteps }));
+                      const newPoints = formTechnique.keyPoints?.filter((_, i) => i !== index);
+                      setFormTechnique(prev => ({ ...prev, keyPoints: newPoints }));
                     }}
                   />
                 )}
@@ -705,34 +712,34 @@ const TecnicasDeportivasScreen = () => {
             <Button
               mode="outlined"
               onPress={() => {
-                const newSteps = [...(formTechnique.steps || []), ''];
-                setFormTechnique(prev => ({ ...prev, steps: newSteps }));
+                const newPoints = [...(formTechnique.keyPoints || []), ''];
+                setFormTechnique(prev => ({ ...prev, keyPoints: newPoints }));
               }}
               style={styles.addButton}
             >
-              Agregar Paso
+              Agregar Punto Clave
             </Button>
 
-            <Text style={styles.fieldLabel}>Consejos</Text>
-            {formTechnique.tips?.map((tip, index) => (
+            <Text style={styles.fieldLabel}>Errores Comunes (opcional)</Text>
+            {formTechnique.commonErrors?.map((error, index) => (
               <View key={index} style={styles.stepInputContainer}>
                 <TextInput
                   mode="outlined"
-                  label={`Consejo ${index + 1}`}
-                  value={tip}
+                  label={`Error Común ${index + 1}`}
+                  value={error}
                   onChangeText={(text) => {
-                    const newTips = [...(formTechnique.tips || [])];
-                    newTips[index] = text;
-                    setFormTechnique(prev => ({ ...prev, tips: newTips }));
+                    const newErrors = [...(formTechnique.commonErrors || [])];
+                    newErrors[index] = text;
+                    setFormTechnique(prev => ({ ...prev, commonErrors: newErrors }));
                   }}
                   style={styles.stepInput}
                 />
-                {formTechnique.tips && formTechnique.tips.length > 1 && (
+                {formTechnique.commonErrors && formTechnique.commonErrors.length > 1 && (
                   <IconButton
                     icon="delete"
                     onPress={() => {
-                      const newTips = formTechnique.tips?.filter((_, i) => i !== index);
-                      setFormTechnique(prev => ({ ...prev, tips: newTips }));
+                      const newErrors = formTechnique.commonErrors?.filter((_, i) => i !== index);
+                      setFormTechnique(prev => ({ ...prev, commonErrors: newErrors }));
                     }}
                   />
                 )}
@@ -741,13 +748,31 @@ const TecnicasDeportivasScreen = () => {
             <Button
               mode="outlined"
               onPress={() => {
-                const newTips = [...(formTechnique.tips || []), ''];
-                setFormTechnique(prev => ({ ...prev, tips: newTips }));
+                const newErrors = [...(formTechnique.commonErrors || []), ''];
+                setFormTechnique(prev => ({ ...prev, commonErrors: newErrors }));
               }}
               style={styles.addButton}
             >
-              Agregar Consejo
+              Agregar Error Común
             </Button>
+            
+            <TextInput
+              mode="outlined"
+              label="Video de YouTube (opcional)"
+              value={formTechnique.videoUrl || ''}
+              onChangeText={(text) => setFormTechnique(prev => ({ ...prev, videoUrl: text }))}
+              style={styles.formInput}
+              placeholder="https://youtube.com/watch?v=..."
+            />
+            
+            <TextInput
+              mode="outlined"
+              label="Video local (opcional)"
+              value={formTechnique.videoFile || ''}
+              onChangeText={(text) => setFormTechnique(prev => ({ ...prev, videoFile: text }))}
+              style={styles.formInput}
+              placeholder="Ruta del archivo de video local"
+            />
           </View>
         </ScrollView>
       </EntryFormModal>
@@ -1021,6 +1046,12 @@ const styles = StyleSheet.create({
   },
   addButton: {
     marginVertical: 8,
+  },
+  gradeText: {
+    fontSize: 14,
+    color: '#283750',
+    fontWeight: '500',
+    paddingVertical: 4,
   },
 });
 
