@@ -175,6 +175,7 @@ const PreparacionFisicaScreen = () => {
     try {
       const sessionData = {
         ...formSession,
+        date: formSession.date || new Date().toISOString(),
         duration: formSession.duration || Math.floor(Math.random() * 60) + 30 // Placeholder duration
       };
 
