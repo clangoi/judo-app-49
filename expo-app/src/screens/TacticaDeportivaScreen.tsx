@@ -858,7 +858,7 @@ const TacticaDeportivaScreen = () => {
         submitText={editMode ? 'Actualizar' : 'Crear'}
         submitDisabled={
           (editingItem && 'objectives' in editingItem && (!formPlan.name || !formPlan.description)) ||
-          (editingItem && 'strengths' in editingItem && (!formOpponent.name || !formOpponent.sport)) ||
+          (editingItem && 'strengths' in editingItem && (!formOpponent.name || !formOpponent.sport || !formOpponent.tacticalNotes || !formOpponent.gameplan)) ||
           (editingItem && !('objectives' in editingItem) && !('strengths' in editingItem) && (!formDrill.name || !formDrill.description))
         }
       >
@@ -871,16 +871,43 @@ const TacticaDeportivaScreen = () => {
                 value={formPlan.name || ''}
                 onChangeText={(text) => setFormPlan(prev => ({ ...prev, name: text }))}
                 style={styles.formInput}
+                error={!formPlan.name}
+                left={<TextInput.Icon icon="file-document-outline" />}
               />
               
               <TextInput
                 mode="outlined"
-                label="Descripción *"
+                label="Objetivo general *"
                 value={formPlan.description || ''}
                 onChangeText={(text) => setFormPlan(prev => ({ ...prev, description: text }))}
                 multiline
+                numberOfLines={4}
+                style={styles.formInput}
+                error={!formPlan.description}
+                placeholder="Describe el objetivo principal de este plan táctico..."
+                left={<TextInput.Icon icon="target" />}
+              />
+              
+              <TextInput
+                mode="outlined"
+                label="Duración o período"
+                value={formPlan.duration || ''}
+                onChangeText={(text) => setFormPlan(prev => ({ ...prev, duration: text }))}
+                style={styles.formInput}
+                placeholder="Ej: 4 semanas, Temporada 2024, etc."
+                left={<TextInput.Icon icon="calendar-range" />}
+              />
+              
+              <TextInput
+                mode="outlined"
+                label="Notas adicionales"
+                value={formPlan.additionalNotes || ''}
+                onChangeText={(text) => setFormPlan(prev => ({ ...prev, additionalNotes: text }))}
+                multiline
                 numberOfLines={3}
                 style={styles.formInput}
+                placeholder="Observaciones, consideraciones especiales..."
+                left={<TextInput.Icon icon="note-text" />}
               />
 
               <View style={styles.row}>
@@ -1049,6 +1076,8 @@ const TacticaDeportivaScreen = () => {
                 value={formOpponent.name || ''}
                 onChangeText={(text) => setFormOpponent(prev => ({ ...prev, name: text }))}
                 style={styles.formInput}
+                error={!formOpponent.name}
+                left={<TextInput.Icon icon="account" />}
               />
               
               <TextInput
@@ -1057,6 +1086,44 @@ const TacticaDeportivaScreen = () => {
                 value={formOpponent.sport || ''}
                 onChangeText={(text) => setFormOpponent(prev => ({ ...prev, sport: text }))}
                 style={styles.formInput}
+                error={!formOpponent.sport}
+                left={<TextInput.Icon icon="medal" />}
+              />
+              
+              <TextInput
+                mode="outlined"
+                label="Análisis del rival *"
+                value={formOpponent.tacticalNotes || ''}
+                onChangeText={(text) => setFormOpponent(prev => ({ ...prev, tacticalNotes: text }))}
+                multiline
+                numberOfLines={4}
+                style={styles.formInput}
+                error={!formOpponent.tacticalNotes}
+                placeholder="Fortalezas, debilidades, patrones de juego, estilo preferido..."
+                left={<TextInput.Icon icon="clipboard-text" />}
+              />
+              
+              <TextInput
+                mode="outlined"
+                label="Estrategias propuestas *"
+                value={formOpponent.gameplan || ''}
+                onChangeText={(text) => setFormOpponent(prev => ({ ...prev, gameplan: text }))}
+                multiline
+                numberOfLines={3}
+                style={styles.formInput}
+                error={!formOpponent.gameplan}
+                placeholder="Plan de juego específico contra este rival..."
+                left={<TextInput.Icon icon="strategy" />}
+              />
+              
+              <TextInput
+                mode="outlined"
+                label="Fecha del encuentro"
+                value={formOpponent.dateAnalyzed || ''}
+                onChangeText={(text) => setFormOpponent(prev => ({ ...prev, dateAnalyzed: text }))}
+                style={styles.formInput}
+                placeholder="Fecha programada del encuentro"
+                left={<TextInput.Icon icon="calendar" />}
               />
 
               <TextInput
@@ -1161,17 +1228,59 @@ const TacticaDeportivaScreen = () => {
                 value={formDrill.name || ''}
                 onChangeText={(text) => setFormDrill(prev => ({ ...prev, name: text }))}
                 style={styles.formInput}
+                error={!formDrill.name}
+                left={<TextInput.Icon icon="dumbbell" />}
               />
               
               <TextInput
                 mode="outlined"
-                label="Descripción *"
+                label="Descripción detallada *"
                 value={formDrill.description || ''}
                 onChangeText={(text) => setFormDrill(prev => ({ ...prev, description: text }))}
                 multiline
-                numberOfLines={3}
+                numberOfLines={4}
                 style={styles.formInput}
+                error={!formDrill.description}
+                placeholder="Incluye objetivos, roles, movimientos, técnicas específicas..."
+                left={<TextInput.Icon icon="clipboard-text" />}
               />
+              
+              <View style={styles.row}>
+                <View style={styles.halfWidth}>
+                  <Text style={styles.fieldLabel}>Tipo de Ejercicio</Text>
+                  <View style={styles.chipContainer}>
+                    {[
+                      { key: 'offensive', label: 'Ofensivo' },
+                      { key: 'defensive', label: 'Defensivo' },
+                      { key: 'transition', label: 'Transición' },
+                      { key: 'positional', label: 'Posicional' },
+                      { key: 'counter', label: 'Contraataque' },
+                      { key: 'setplay', label: 'Set Play' }
+                    ].map((type) => (
+                      <Chip
+                        key={type.key}
+                        selected={formDrill.type === type.key}
+                        onPress={() => setFormDrill(prev => ({ ...prev, type: type.key as any }))}
+                        style={styles.selectionChip}
+                      >
+                        {type.label}
+                      </Chip>
+                    ))}
+                  </View>
+                </View>
+                
+                <View style={styles.halfWidth}>
+                  <TextInput
+                    mode="outlined"
+                    label="URL de video (YouTube)"
+                    value={formDrill.youtubeUrl || ''}
+                    onChangeText={(text) => setFormDrill(prev => ({ ...prev, youtubeUrl: text }))}
+                    style={styles.formInput}
+                    placeholder="https://youtube.com/watch?v=..."
+                    left={<TextInput.Icon icon="youtube" />}
+                  />
+                </View>
+              </View>
 
               <View style={styles.row}>
                 <View style={styles.halfWidth}>
