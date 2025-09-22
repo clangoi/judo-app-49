@@ -96,6 +96,7 @@ const TacticaDeportivaScreen = () => {
   const [itemToDelete, setItemToDelete] = useState<{ id: string; type: 'plan' | 'opponent' | 'drill'; name: string } | null>(null);
   const [editMode, setEditMode] = useState(false);
   const [editingItem, setEditingItem] = useState<TacticalPlan | OpponentAnalysis | TrainingDrill | null>(null);
+  const [formType, setFormType] = useState<'plan' | 'opponent' | 'drill'>('plan');
 
   // Form states
   const [formPlan, setFormPlan] = useState<Partial<TacticalPlan>>({
@@ -280,10 +281,13 @@ const TacticaDeportivaScreen = () => {
     setEditingItem(item);
     
     if ('objectives' in item) {
+      setFormType('plan');
       setFormPlan(item);
     } else if ('strengths' in item) {
+      setFormType('opponent');
       setFormOpponent(item);
     } else {
+      setFormType('drill');
       setFormDrill(item);
     }
     
@@ -312,7 +316,7 @@ const TacticaDeportivaScreen = () => {
 
   const handleSave = async () => {
     try {
-      if (editingItem && 'objectives' in editingItem) {
+      if (formType === 'plan') {
         // Tactical Plan
         if (!formPlan.name || !formPlan.description) {
           Alert.alert('Error', 'El nombre y descripción son obligatorios.');
@@ -326,17 +330,17 @@ const TacticaDeportivaScreen = () => {
           keyPoints: formPlan.keyPoints?.filter(kp => kp.trim() !== '') || []
         };
 
-        if (editMode && editingItem.id) {
+        if (editMode && editingItem?.id) {
           await updatePlan(editingItem.id, planData);
           Alert.alert('¡Plan Actualizado!', 'Los cambios han sido guardados exitosamente.');
         } else {
           await createPlan(planData);
           Alert.alert('¡Plan Creado!', 'El nuevo plan táctico ha sido agregado.');
         }
-      } else if (editingItem && 'strengths' in editingItem) {
+      } else if (formType === 'opponent') {
         // Opponent Analysis
-        if (!formOpponent.name || !formOpponent.sport) {
-          Alert.alert('Error', 'El nombre y deporte son obligatorios.');
+        if (!formOpponent.name || !formOpponent.sport || !formOpponent.tacticalNotes || !formOpponent.gameplan) {
+          Alert.alert('Error', 'El nombre, deporte, análisis del rival y estrategias propuestas son obligatorios.');
           return;
         }
 
@@ -347,14 +351,14 @@ const TacticaDeportivaScreen = () => {
           preferredTechniques: formOpponent.preferredTechniques?.filter(pt => pt.trim() !== '') || []
         };
 
-        if (editMode && editingItem.id) {
+        if (editMode && editingItem?.id) {
           await updateOpponent(editingItem.id, opponentData);
           Alert.alert('¡Análisis Actualizado!', 'Los cambios han sido guardados exitosamente.');
         } else {
           await createOpponent(opponentData);
           Alert.alert('¡Análisis Creado!', 'El nuevo análisis de oponente ha sido agregado.');
         }
-      } else {
+      } else if (formType === 'drill') {
         // Training Drill
         if (!formDrill.name || !formDrill.description) {
           Alert.alert('Error', 'El nombre y descripción son obligatorios.');
@@ -363,6 +367,7 @@ const TacticaDeportivaScreen = () => {
 
         const drillData = {
           ...formDrill,
+          equipment: formDrill.equipment?.filter(e => e.trim() !== '') || [],
           materials: formDrill.materials?.filter(m => m.trim() !== '') || [],
           instructions: formDrill.instructions?.filter(i => i.trim() !== '') || []
         };
@@ -428,9 +433,11 @@ const TacticaDeportivaScreen = () => {
           <Chip style={styles.effectivenessChip}>
             <Text>Efectividad {item.effectiveness}/5</Text>
           </Chip>
-          <Chip style={styles.dateChip}>
-            <Text>{new Date(item.dateCreated).toLocaleDateString()}</Text>
-          </Chip>
+          {(item.dateCreated || item.createdAt) && (
+            <Chip style={styles.dateChip}>
+              <Text>{new Date(item.dateCreated || item.createdAt).toLocaleDateString()}</Text>
+            </Chip>
+          )}
         </View>
       </Card.Content>
     </Card>
@@ -446,7 +453,7 @@ const TacticaDeportivaScreen = () => {
           <View style={styles.opponentInfo}>
             <Text style={styles.opponentName}>{item.name}</Text>
             <Text style={styles.opponentMeta}>
-              {item.sport} • {new Date(item.dateAnalyzed).toLocaleDateString()}
+              {item.sport}{(item.dateAnalyzed || item.createdAt) ? ` • ${new Date(item.dateAnalyzed || item.createdAt).toLocaleDateString()}` : ''}
             </Text>
           </View>
           {item.result && (
@@ -545,6 +552,7 @@ const TacticaDeportivaScreen = () => {
                 mode="contained"
                 style={[styles.actionButton, { backgroundColor: '#3B82F6' }]}
                 onPress={() => {
+                  setFormType('plan');
                   setFormPlan({
                     name: '',
                     sport: 'general',
@@ -557,7 +565,7 @@ const TacticaDeportivaScreen = () => {
                     isFavorite: false
                   });
                   setEditMode(false);
-                  setEditingItem({} as TacticalPlan);
+                  setEditingItem(null);
                   setFormVisible(true);
                 }}
                 icon={({ size, color }) => (
@@ -571,6 +579,7 @@ const TacticaDeportivaScreen = () => {
                 mode="contained"
                 style={[styles.actionButton, { backgroundColor: '#10B981' }]}
                 onPress={() => {
+                  setFormType('plan');
                   setFormPlan({
                     name: '',
                     sport: 'general',
@@ -583,7 +592,7 @@ const TacticaDeportivaScreen = () => {
                     isFavorite: false
                   });
                   setEditMode(false);
-                  setEditingItem({} as TacticalPlan);
+                  setEditingItem(null);
                   setFormVisible(true);
                 }}
                 icon={({ size, color }) => (
@@ -597,6 +606,7 @@ const TacticaDeportivaScreen = () => {
                 mode="contained"
                 style={[styles.actionButton, { backgroundColor: '#8B5CF6' }]}
                 onPress={() => {
+                  setFormType('plan');
                   setFormPlan({
                     name: '',
                     sport: 'general',
@@ -609,7 +619,7 @@ const TacticaDeportivaScreen = () => {
                     isFavorite: false
                   });
                   setEditMode(false);
-                  setEditingItem({} as TacticalPlan);
+                  setEditingItem(null);
                   setFormVisible(true);
                 }}
                 icon={({ size, color }) => (
@@ -655,6 +665,7 @@ const TacticaDeportivaScreen = () => {
                 mode="contained"
                 style={[styles.actionButton, { backgroundColor: '#EF4444', flex: 1 }]}
                 onPress={() => {
+                  setFormType('opponent');
                   setFormOpponent({
                     name: '',
                     sport: '',
@@ -670,7 +681,7 @@ const TacticaDeportivaScreen = () => {
                     isFavorite: false
                   });
                   setEditMode(false);
-                  setEditingItem({} as OpponentAnalysis);
+                  setEditingItem(null);
                   setFormVisible(true);
                 }}
                 icon={({ size, color }) => (
@@ -684,6 +695,7 @@ const TacticaDeportivaScreen = () => {
                 mode="outlined"
                 style={[styles.actionButton, { borderColor: '#6B7280', flex: 1 }]}
                 onPress={() => {
+                  setFormType('opponent');
                   setFormOpponent({
                     name: 'Próximo Oponente',
                     sport: '',
@@ -699,7 +711,7 @@ const TacticaDeportivaScreen = () => {
                     isFavorite: false
                   });
                   setEditMode(false);
-                  setEditingItem({} as OpponentAnalysis);
+                  setEditingItem(null);
                   setFormVisible(true);
                 }}
                 icon={({ size, color }) => (
@@ -742,7 +754,7 @@ const TacticaDeportivaScreen = () => {
       id: drill.id,
       title: drill.name,
       subtitle: drill.category,
-      description: `${drill.description} • ${drill.duration} min • Intensidad ${drill.intensity}/5 • ${drill.materials.length} materiales`,
+      description: `${drill.description} • ${drill.duration} min • Intensidad ${drill.intensity}/5 • ${drill.equipment?.length || 0} equipos • ${drill.materials?.length || 0} materiales`,
       leftIcon: 'dumbbell',
       rightText: `${drill.duration}min`
     }));
@@ -758,6 +770,7 @@ const TacticaDeportivaScreen = () => {
                 mode="contained"
                 style={[styles.actionButton, { backgroundColor: '#F59E0B', flex: 1 }]}
                 onPress={() => {
+                  setFormType('drill');
                   setFormDrill({
                     name: '',
                     category: 'tactical',
@@ -773,7 +786,7 @@ const TacticaDeportivaScreen = () => {
                     youtubeUrl: ''
                   });
                   setEditMode(false);
-                  setEditingItem({} as TrainingDrill);
+                  setEditingItem(null);
                   setFormVisible(true);
                 }}
                 icon={({ size, color }) => (
@@ -848,22 +861,22 @@ const TacticaDeportivaScreen = () => {
         onSubmit={handleSave}
         title={
           editMode 
-            ? editingItem && 'objectives' in editingItem ? 'Editar Plan Táctico'
-              : editingItem && 'strengths' in editingItem ? 'Editar Análisis de Rival'
+            ? formType === 'plan' ? 'Editar Plan Táctico'
+              : formType === 'opponent' ? 'Editar Análisis de Rival'
               : 'Editar Ejercicio Táctico'
-            : editingItem && 'objectives' in editingItem ? 'Nuevo Plan Táctico'
-              : editingItem && 'strengths' in editingItem ? 'Nuevo Análisis de Rival'
+            : formType === 'plan' ? 'Nuevo Plan Táctico'
+              : formType === 'opponent' ? 'Nuevo Análisis de Rival'
               : 'Nuevo Ejercicio Táctico'
         }
         submitText={editMode ? 'Actualizar' : 'Crear'}
         submitDisabled={
-          (editingItem && 'objectives' in editingItem && (!formPlan.name || !formPlan.description)) ||
-          (editingItem && 'strengths' in editingItem && (!formOpponent.name || !formOpponent.sport || !formOpponent.tacticalNotes || !formOpponent.gameplan)) ||
-          (editingItem && !('objectives' in editingItem) && !('strengths' in editingItem) && (!formDrill.name || !formDrill.description))
+          (formType === 'plan' && (!formPlan.name || !formPlan.description)) ||
+          (formType === 'opponent' && (!formOpponent.name || !formOpponent.sport || !formOpponent.tacticalNotes || !formOpponent.gameplan)) ||
+          (formType === 'drill' && (!formDrill.name || !formDrill.description))
         }
       >
         <ScrollView style={styles.formScrollView}>
-          {editingItem && 'objectives' in editingItem && (
+          {formType === 'plan' && (
             <View style={styles.formFields}>
               <TextInput
                 mode="outlined"
@@ -1068,7 +1081,7 @@ const TacticaDeportivaScreen = () => {
             </View>
           )}
 
-          {editingItem && 'strengths' in editingItem && (
+          {formType === 'opponent' && (
             <View style={styles.formFields}>
               <TextInput
                 mode="outlined"
@@ -1220,7 +1233,7 @@ const TacticaDeportivaScreen = () => {
             </View>
           )}
 
-          {editingItem && !('objectives' in editingItem) && !('strengths' in editingItem) && (
+          {formType === 'drill' && (
             <View style={styles.formFields}>
               <TextInput
                 mode="outlined"
