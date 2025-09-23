@@ -78,7 +78,7 @@ export const useCrudOperations = <T, CreateInput = Partial<T>, UpdateInput = Par
       return response.data || response;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: config.queryKey() });
+      queryClient.invalidateQueries({ queryKey: [config.queryKey(userId)?.[0]] });
       toast({
         title: "Éxito",
         description: messages.created,
@@ -106,7 +106,7 @@ export const useCrudOperations = <T, CreateInput = Partial<T>, UpdateInput = Par
       return response.data || response;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: config.queryKey() });
+      queryClient.invalidateQueries({ queryKey: [config.queryKey(userId)?.[0]] });
       toast({
         title: "Éxito",
         description: messages.updated,
@@ -129,7 +129,7 @@ export const useCrudOperations = <T, CreateInput = Partial<T>, UpdateInput = Par
       return response.data || response;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: config.queryKey() });
+      queryClient.invalidateQueries({ queryKey: [config.queryKey(userId)?.[0]] });
       toast({
         title: "Éxito",
         description: messages.deleted,
@@ -152,7 +152,7 @@ export const useCrudOperations = <T, CreateInput = Partial<T>, UpdateInput = Par
     updateMutation,
     deleteMutation,
     // Helper methods
-    refresh: () => queryClient.invalidateQueries({ queryKey: config.queryKey() }),
+    refresh: () => queryClient.invalidateQueries({ queryKey: [config.queryKey(userId)?.[0]] }),
     isAuthenticated: !!userId,
   };
 };
