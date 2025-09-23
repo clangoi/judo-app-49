@@ -99,14 +99,7 @@ const NavHeader = ({ title, subtitle }: NavHeaderProps) => {
               <Settings className="h-4 w-4" />
             </Button>
             
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleSignOut}
-              className="text-primary-foreground hover:bg-primary-foreground/20 p-2"
-            >
-              <LogOut className="h-4 w-4" />
-            </Button>
+            
           </div>
         </div>
       </div>
