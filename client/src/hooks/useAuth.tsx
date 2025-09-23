@@ -69,56 +69,36 @@ interface AuthProviderProps {
 }
 
 export const AuthProvider = ({ children }: AuthProviderProps) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
-  const [loading, setLoading] = useState(true);
+  // Default mock user - no authentication required
+  const defaultUser: User = {
+    id: '550e8400-e29b-41d4-a716-446655443322',
+    email: 'deportista@ejemplo.com',
+    fullName: 'Deportista',
+    avatarUrl: null,
+    genderPreference: null,
+    currentBelt: 'white',
+    gender: null,
+    competitionCategory: null,
+    injuries: null,
+    injuryDescription: null,
+    profileImageUrl: null,
+    createdAt: new Date(),
+    updatedAt: new Date()
+  };
 
-  // Computed property for authentication status
-  const isAuthenticated = !!user && !!session;
+  const [user, setUser] = useState<User | null>(defaultUser);
+  const [session, setSession] = useState<Session | null>({ user: defaultUser });
+  const [loading, setLoading] = useState(false);
 
-  // Enhanced session checking with better error handling
+  // Always authenticated - no checks needed
+  const isAuthenticated = true;
+
+  // No session checking needed - always authenticated
   const checkSession = useCallback(async (): Promise<void> => {
-    try {
-      const storedUser = localStorage.getItem(AUTH_STORAGE_KEY);
-      if (!storedUser) {
-        setLoading(false);
-        return;
-      }
-
-      const userData: User = JSON.parse(storedUser);
-      
-      // Verify session with backend with timeout
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
-      
-      const response = await fetch('/api/auth/user', {
-        headers: { 'x-user-id': userData.id },
-        signal: controller.signal
-      });
-      
-      clearTimeout(timeoutId);
-      
-      if (response.ok) {
-        const data = await response.json();
-        const validatedUser = data.user || userData;
-        setUser(validatedUser);
-        setSession({ 
-          user: validatedUser,
-          expiresAt: new Date(Date.now() + SESSION_CHECK_INTERVAL)
-        });
-      } else {
-        // Session invalid, clear storage
-        await clearAuthData();
-      }
-    } catch (error) {
-      console.warn('Session check failed:', error);
-      // Don't clear on network errors, user might be offline
-      if (error instanceof Error && error.name !== 'AbortError') {
-        await clearAuthData();
-      }
-    } finally {
-      setLoading(false);
-    }
+    // Always use default user - no backend verification
+    setUser(defaultUser);
+    setSession({ user: defaultUser });
+    setLoading(false);
   }, []);
 
   // Helper to clear authentication data

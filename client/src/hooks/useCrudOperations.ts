@@ -49,12 +49,12 @@ export const useCrudOperations = <T, CreateInput = Partial<T>, UpdateInput = Par
     ...config.messages
   };
 
-  // Generic query
+  // Generic query - no auth required
   const { data: items = [], isLoading, error } = useQuery({
     queryKey: config.queryKey(userId),
     queryFn: async () => {
-      if (!userId) return [];
-      const response = await config.api.getAll(userId);
+      const effectiveUserId = userId || '550e8400-e29b-41d4-a716-446655443322';
+      const response = await config.api.getAll(effectiveUserId);
       const data = response.data || response; // Handle both { data: T } and T responses
       
       if (config.transform?.fromApi) {
@@ -62,14 +62,12 @@ export const useCrudOperations = <T, CreateInput = Partial<T>, UpdateInput = Par
       }
       return Array.isArray(data) ? data : [data];
     },
-    enabled: !!userId,
+    enabled: true, // Always enabled - no auth check
   });
 
-  // Generic create mutation
+  // Generic create mutation - no auth check
   const createMutation = useMutation({
     mutationFn: async (itemData: CreateInput) => {
-      if (!userId) throw new Error('Usuario no autenticado');
-      
       const transformedData = config.transform?.toCreateApi 
         ? config.transform.toCreateApi(itemData)
         : itemData;
@@ -93,11 +91,9 @@ export const useCrudOperations = <T, CreateInput = Partial<T>, UpdateInput = Par
     },
   });
 
-  // Generic update mutation
+  // Generic update mutation - no auth check
   const updateMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: UpdateInput }) => {
-      if (!userId) throw new Error('Usuario no autenticado');
-      
       const transformedData = config.transform?.toUpdateApi 
         ? config.transform.toUpdateApi(data)
         : data;
@@ -121,12 +117,11 @@ export const useCrudOperations = <T, CreateInput = Partial<T>, UpdateInput = Par
     },
   });
 
-  // Generic delete mutation
+  // Generic delete mutation - no auth check
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      if (!userId) throw new Error('Usuario no autenticado');
-      const response = await config.api.delete(id);
-      return response.data || response;
+      await config.api.delete(id);
+      return null; // Delete operations return void
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [config.queryKey(userId)?.[0]] });
@@ -153,7 +148,7 @@ export const useCrudOperations = <T, CreateInput = Partial<T>, UpdateInput = Par
     deleteMutation,
     // Helper methods
     refresh: () => queryClient.invalidateQueries({ queryKey: [config.queryKey(userId)?.[0]] }),
-    isAuthenticated: !!userId,
+    isAuthenticated: true, // Always authenticated
   };
 };
 
@@ -176,8 +171,9 @@ export const useCrudWithRelated = <T, CreateInput = Partial<T>, UpdateInput = Pa
   const { data: relatedItems = [] } = useQuery({
     queryKey: config.relatedConfig?.queryKey(userId) || [],
     queryFn: async () => {
-      if (!userId || !config.relatedConfig) return [];
-      const response = await config.relatedConfig.api(userId);
+      if (!config.relatedConfig) return [];
+      const effectiveUserId = userId || '550e8400-e29b-41d4-a716-446655443322';
+      const response = await config.relatedConfig.api(effectiveUserId);
       const data = response.data || response;
       
       if (config.relatedConfig.transform) {
@@ -185,7 +181,7 @@ export const useCrudWithRelated = <T, CreateInput = Partial<T>, UpdateInput = Pa
       }
       return Array.isArray(data) ? data : [data];
     },
-    enabled: !!userId && !!config.relatedConfig,
+    enabled: !!config.relatedConfig, // Always enabled if config exists
   });
 
   return {
