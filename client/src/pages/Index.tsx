@@ -72,7 +72,7 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background">
       <NavHeader 
-        title={`${getGreeting()}, ${user?.email?.split('@')[0] || 'Deportista'}`}
+        title={`${getGreeting()}, ${user?.fullName || user?.email?.split('@')[0] || 'Deportista'}`}
         subtitle="¿Qué quieres hacer hoy?"
       />
 
