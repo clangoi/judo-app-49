@@ -42,7 +42,7 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
-      <BrowserRouter basename="/judo-app-49">
+      <BrowserRouter basename={import.meta.env.PROD && import.meta.env.VITE_DEPLOY_TARGET === "github-pages" ? "/judo-app-49" : ""}>
         <AuthProvider>
           <TimerProvider>
             <Routes>
