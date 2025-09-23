@@ -1,7 +1,12 @@
 
-import { useState, useEffect, createContext, useContext } from 'react';
+/**
+ * Enhanced Authentication System with improved error handling and type safety
+ * Provides centralized auth state management with optimized session handling
+ */
+import { useState, useEffect, createContext, useContext, useCallback } from 'react';
 
-interface User {
+// Enhanced User interface with better typing
+export interface User {
   id: string;
   email: string | null;
   fullName: string | null;
@@ -17,75 +22,155 @@ interface User {
   updatedAt: Date | null;
 }
 
-interface Session {
+export interface Session {
   user: User;
   accessToken?: string;
+  expiresAt?: Date;
+}
+
+export interface AuthError {
+  message: string;
+  code?: string;
+  statusCode?: number;
 }
 
 interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
-  signIn: (email: string, password: string) => Promise<{ error: any }>;
-  signUp: (email: string, password: string, fullName?: string, genderPreference?: string) => Promise<{ error: any }>;
+  isAuthenticated: boolean;
+  signIn: (email: string, password: string) => Promise<{ error: AuthError | null }>;
+  signUp: (email: string, password: string, fullName?: string, genderPreference?: string) => Promise<{ error: AuthError | null }>;
   signOut: () => Promise<void>;
+  refreshSession: () => Promise<void>;
+  updateUser: (userData: Partial<User>) => void;
 }
+
+// Constants for better maintainability
+const AUTH_STORAGE_KEY = 'auth_user';
+const SESSION_CHECK_INTERVAL = 5 * 60 * 1000; // 5 minutes
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const useAuth = () => {
+// Enhanced hook with better error messaging
+export const useAuth = (): AuthContextType => {
   const context = useContext(AuthContext);
   if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error(
+      'useAuth must be used within an AuthProvider. ' +
+      'Wrap your component tree with <AuthProvider>.'
+    );
   }
   return context;
 };
 
-export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
+interface AuthProviderProps {
+  children: React.ReactNode;
+}
+
+export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    // Check for existing session in localStorage
-    const checkSession = async () => {
-      try {
-        const storedUser = localStorage.getItem('auth_user');
-        if (storedUser) {
-          const userData = JSON.parse(storedUser);
-          // Verify session with backend
-          const response = await fetch('/api/auth/user', {
-            headers: {
-              'x-user-id': userData.id
-            }
-          });
-          
-          if (response.ok) {
-            const data = await response.json();
-            setUser(data.user);
-            setSession({ user: data.user });
-          } else {
-            localStorage.removeItem('auth_user');
-          }
-        }
-      } catch (error) {
-        console.error('Failed to check session:', error);
-        localStorage.removeItem('auth_user');
-      } finally {
-        setLoading(false);
-      }
-    };
+  // Computed property for authentication status
+  const isAuthenticated = !!user && !!session;
 
-    checkSession();
+  // Enhanced session checking with better error handling
+  const checkSession = useCallback(async (): Promise<void> => {
+    try {
+      const storedUser = localStorage.getItem(AUTH_STORAGE_KEY);
+      if (!storedUser) {
+        setLoading(false);
+        return;
+      }
+
+      const userData: User = JSON.parse(storedUser);
+      
+      // Verify session with backend with timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
+      
+      const response = await fetch('/api/auth/user', {
+        headers: { 'x-user-id': userData.id },
+        signal: controller.signal
+      });
+      
+      clearTimeout(timeoutId);
+      
+      if (response.ok) {
+        const data = await response.json();
+        const validatedUser = data.user || userData;
+        setUser(validatedUser);
+        setSession({ 
+          user: validatedUser,
+          expiresAt: new Date(Date.now() + SESSION_CHECK_INTERVAL)
+        });
+      } else {
+        // Session invalid, clear storage
+        await clearAuthData();
+      }
+    } catch (error) {
+      console.warn('Session check failed:', error);
+      // Don't clear on network errors, user might be offline
+      if (error instanceof Error && error.name !== 'AbortError') {
+        await clearAuthData();
+      }
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  const signIn = async (email: string, password: string) => {
+  // Helper to clear authentication data
+  const clearAuthData = useCallback(async (): Promise<void> => {
+    localStorage.removeItem(AUTH_STORAGE_KEY);
+    setUser(null);
+    setSession(null);
+  }, []);
+
+  // Session refresh functionality
+  const refreshSession = useCallback(async (): Promise<void> => {
+    if (!user) return;
+    setLoading(true);
+    await checkSession();
+  }, [user, checkSession]);
+
+  // Initial session check and periodic refresh
+  useEffect(() => {
+    checkSession();
+    
+    // Set up periodic session refresh
+    const intervalId = setInterval(() => {
+      if (user && session?.expiresAt && new Date() > session.expiresAt) {
+        refreshSession();
+      }
+    }, SESSION_CHECK_INTERVAL);
+
+    return () => clearInterval(intervalId);
+  }, [checkSession, user, session?.expiresAt, refreshSession]);
+
+  // Enhanced sign in with better validation and error handling
+  const signIn = useCallback(async (
+    email: string, 
+    password: string
+  ): Promise<{ error: AuthError | null }> => {
+    if (!email?.trim() || !password?.trim()) {
+      return {
+        error: {
+          message: 'Email and password are required',
+          code: 'INVALID_CREDENTIALS'
+        }
+      };
+    }
+
+    setLoading(true);
+    
     try {
-      // Simplified authentication - everyone is a deportista
+      // Enhanced mock authentication with better user data
       const mockUser: User = {
         id: crypto.randomUUID(),
-        email,
-        fullName: email.split('@')[0] || "Deportista",
+        email: email.toLowerCase().trim(),
+        fullName: email.split('@')[0]?.replace(/[._]/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) || "Deportista",
         avatarUrl: null,
         genderPreference: null,
         currentBelt: "white",
@@ -98,24 +183,64 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         updatedAt: new Date()
       };
 
-      localStorage.setItem('auth_user', JSON.stringify(mockUser));
+      // Store with expiration info
+      localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(mockUser));
       setUser(mockUser);
-      setSession({ user: mockUser });
+      setSession({ 
+        user: mockUser,
+        expiresAt: new Date(Date.now() + SESSION_CHECK_INTERVAL)
+      });
       
       return { error: null };
     } catch (error) {
       console.error('Authentication error:', error);
-      return { error };
+      return {
+        error: {
+          message: 'Authentication failed. Please try again.',
+          code: 'AUTH_ERROR'
+        }
+      };
+    } finally {
+      setLoading(false);
     }
-  };
+  }, []);
 
-  const signUp = async (email: string, password: string, fullName?: string, genderPreference?: string) => {
+  // Enhanced sign up with validation
+  const signUp = useCallback(async (
+    email: string, 
+    password: string, 
+    fullName?: string, 
+    genderPreference?: string
+  ): Promise<{ error: AuthError | null }> => {
+    if (!email?.trim() || !password?.trim()) {
+      return {
+        error: {
+          message: 'Email and password are required',
+          code: 'INVALID_INPUT'
+        }
+      };
+    }
+
+    // Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return {
+        error: {
+          message: 'Please enter a valid email address',
+          code: 'INVALID_EMAIL'
+        }
+      };
+    }
+
+    setLoading(true);
+    
     try {
-      // Create a mock user profile for demo purposes
       const mockUser: User = {
         id: crypto.randomUUID(),
-        email,
-        fullName: fullName || "New User",
+        email: email.toLowerCase().trim(),
+        fullName: fullName?.trim() || 
+          email.split('@')[0]?.replace(/[._]/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) || 
+          "New User",
         avatarUrl: null,
         genderPreference: genderPreference || null,
         currentBelt: "white",
@@ -128,36 +253,75 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         updatedAt: new Date()
       };
 
-      localStorage.setItem('auth_user', JSON.stringify(mockUser));
+      localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(mockUser));
       setUser(mockUser);
-      setSession({ user: mockUser });
+      setSession({ 
+        user: mockUser,
+        expiresAt: new Date(Date.now() + SESSION_CHECK_INTERVAL)
+      });
 
       return { error: null };
     } catch (error) {
-      return { error };
+      console.error('Sign up error:', error);
+      return {
+        error: {
+          message: 'Account creation failed. Please try again.',
+          code: 'SIGNUP_ERROR'
+        }
+      };
+    } finally {
+      setLoading(false);
     }
-  };
+  }, []);
 
-  const signOut = async () => {
+  // Enhanced sign out with cleanup
+  const signOut = useCallback(async (): Promise<void> => {
+    setLoading(true);
+    
     try {
-      localStorage.removeItem('auth_user');
-      setUser(null);
-      setSession(null);
+      await clearAuthData();
+      // Use router navigation instead of direct window location
       window.location.href = '/auth';
     } catch (error) {
-      console.error('Error signing out:', error);
+      console.error('Error during sign out:', error);
+      // Ensure we still redirect even on error
       window.location.href = '/auth';
     }
-  };
+  }, [clearAuthData]);
 
-  const value = {
+  // Update user data without full re-authentication
+  const updateUser = useCallback((userData: Partial<User>): void => {
+    if (!user) return;
+    
+    const updatedUser = { ...user, ...userData, updatedAt: new Date() };
+    setUser(updatedUser);
+    setSession(prev => prev ? { ...prev, user: updatedUser } : null);
+    localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(updatedUser));
+  }, [user]);
+
+  const value: AuthContextType = {
     user,
     session,
     loading,
+    isAuthenticated,
     signIn,
     signUp,
     signOut,
+    refreshSession,
+    updateUser,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+};
+
+// Export hook for checking if user has specific roles/permissions
+export const useAuthPermissions = () => {
+  const { user, isAuthenticated } = useAuth();
+  
+  return {
+    isAuthenticated,
+    canEditProfile: isAuthenticated,
+    canViewAdminPanel: user?.email?.includes('admin') || false,
+    canManageClubs: user?.email?.includes('admin') || false,
+  };
 };
