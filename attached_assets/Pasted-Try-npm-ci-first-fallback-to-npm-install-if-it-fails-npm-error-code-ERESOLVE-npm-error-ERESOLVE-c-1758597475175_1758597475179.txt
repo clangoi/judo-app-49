@@ -1,0 +1,61 @@
+Try npm ci first, fallback to npm install if it fails
+npm error code ERESOLVE
+npm error ERESOLVE could not resolve
+npm error
+npm error While resolving: @types/react-dom@19.1.9
+npm error Found: @types/react@18.3.24
+npm error node_modules/@types/react
+npm error   dev @types/react@"^18.3.0" from the root project
+npm error   peerOptional @types/react@"*" from @radix-ui/react-accordion@1.2.12
+npm error   node_modules/@radix-ui/react-accordion
+npm error     @radix-ui/react-accordion@"^1.2.4" from the root project
+npm error   56 more (@radix-ui/react-alert-dialog, @radix-ui/react-arrow, ...)
+npm error
+npm error Could not resolve dependency:
+npm error peer @types/react@"^19.0.0" from @types/react-dom@19.1.9
+npm error node_modules/@types/react-dom
+npm error   dev @types/react-dom@"^19.0.0" from the root project
+npm error   peerOptional @types/react-dom@"*" from @radix-ui/react-accordion@1.2.12
+npm error   node_modules/@radix-ui/react-accordion
+npm error     @radix-ui/react-accordion@"^1.2.4" from the root project
+npm error   36 more (@radix-ui/react-alert-dialog, @radix-ui/react-arrow, ...)
+npm error
+npm error Conflicting peer dependency: @types/react@19.1.13
+npm error node_modules/@types/react
+npm error   peer @types/react@"^19.0.0" from @types/react-dom@19.1.9
+npm error   node_modules/@types/react-dom
+npm error     dev @types/react-dom@"^19.0.0" from the root project
+npm error     peerOptional @types/react-dom@"*" from @radix-ui/react-accordion@1.2.12
+npm error     node_modules/@radix-ui/react-accordion
+npm error       @radix-ui/react-accordion@"^1.2.4" from the root project
+npm error     36 more (@radix-ui/react-alert-dialog, @radix-ui/react-arrow, ...)
+npm error
+npm error Fix the upstream dependency conflict, or retry
+npm error this command with --force or --legacy-peer-deps
+npm error to accept an incorrect (and potentially broken) dependency resolution.
+npm error
+npm error
+npm error For a full report see:
+npm error /home/runner/.npm/_logs/2025-09-23T03_16_42_029Z-eresolve-report.txt
+npm error A complete log of this run can be found in: /home/runner/.npm/_logs/2025-09-23T03_16_42_029Z-debug-0.log
+npm ci failed, trying npm install instead...
+npm error code ERESOLVE
+npm error ERESOLVE unable to resolve dependency tree
+npm error
+npm error While resolving: rest-express@1.0.0
+npm error Found: @types/react@18.3.24
+npm error node_modules/@types/react
+npm error   dev @types/react@"^18.3.0" from the root project
+npm error
+npm error Could not resolve dependency:
+npm error peer @types/react@"^19.0.0" from @types/react-dom@19.1.9
+npm error node_modules/@types/react-dom
+npm error   dev @types/react-dom@"^19.0.0" from the root project
+npm error
+npm error Fix the upstream dependency conflict, or retry
+npm error this command with --force or --legacy-peer-deps
+npm error to accept an incorrect (and potentially broken) dependency resolution.
+npm error
+npm error
+npm error For a full report see:
+npm error /home/runner/.npm/_logs/2025-09-23T03_16_44_305Z-eresolve-report.txt

@@ -32,11 +32,11 @@ jobs:
         
     - name: Install dependencies
       run: |
-        # Try npm ci first, fallback to npm install if it fails
+        # Try npm ci first, fallback to npm install with legacy peer deps
         npm ci || {
-          echo "npm ci failed, trying npm install instead..."
+          echo "npm ci failed, trying npm install with legacy peer deps..."
           rm -rf node_modules package-lock.json
-          npm install
+          npm install --legacy-peer-deps
         }
       
     - name: Build frontend for GitHub Pages

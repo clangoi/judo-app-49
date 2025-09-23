@@ -36,11 +36,11 @@ if [ -z "$REPO_URL" ]; then
 fi
 
 echo -e "${YELLOW}📦 Installing dependencies...${NC}"
-# Try npm ci first, fallback to npm install if it fails
+# Try npm ci first, fallback to npm install with legacy peer deps
 npm ci || {
-    echo -e "${YELLOW}⚠️  npm ci failed, trying npm install instead...${NC}"
+    echo -e "${YELLOW}⚠️  npm ci failed, trying npm install with legacy peer deps...${NC}"
     rm -rf node_modules package-lock.json
-    npm install
+    npm install --legacy-peer-deps
 }
 
 echo -e "${YELLOW}🏗️  Building application for GitHub Pages...${NC}"
