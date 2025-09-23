@@ -43,6 +43,7 @@ jobs:
       env:
         GITHUB_PAGES: 'true'
         NODE_ENV: 'production'
+        VITE_DEPLOY_TARGET: 'github-pages'
       run: |
         # Build using the specialized configuration for GitHub Pages
         npx vite build --config vite.config.pages.ts

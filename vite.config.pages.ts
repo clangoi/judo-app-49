@@ -16,6 +16,12 @@ export default defineConfig({
     outDir: path.resolve(import.meta.dirname, "dist/public"),
     emptyOutDir: true,
     assetsDir: 'assets',
+    rollupOptions: {
+      input: {
+        main: path.resolve(import.meta.dirname, "client/index.html"),
+        404: path.resolve(import.meta.dirname, "client/public/404.html")
+      }
+    }
   },
   // GitHub Pages specific configuration
   base: '/judo-app-49/',
