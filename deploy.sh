@@ -36,10 +36,15 @@ if [ -z "$REPO_URL" ]; then
 fi
 
 echo -e "${YELLOW}📦 Installing dependencies...${NC}"
-npm ci
+# Try npm ci first, fallback to npm install if it fails
+npm ci || {
+    echo -e "${YELLOW}⚠️  npm ci failed, trying npm install instead...${NC}"
+    rm -rf node_modules package-lock.json
+    npm install
+}
 
 echo -e "${YELLOW}🏗️  Building application for GitHub Pages...${NC}"
-GITHUB_PAGES=true NODE_ENV=production npm run build:pages
+GITHUB_PAGES=true NODE_ENV=production npx vite build --config vite.config.pages.ts
 
 # Check if build directory exists
 if [ ! -d "$BUILD_DIR" ]; then
