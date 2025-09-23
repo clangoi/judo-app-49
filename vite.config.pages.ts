@@ -18,7 +18,7 @@ export default defineConfig({
     assetsDir: 'assets',
   },
   // GitHub Pages specific configuration
-  base: '/mentalcheck-sports-training/',
+  base: '/judo-app-49/',
   define: {
     __GITHUB_PAGES__: true,
   },

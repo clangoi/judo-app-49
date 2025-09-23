@@ -42,7 +42,7 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
-      <BrowserRouter>
+      <BrowserRouter basename="/judo-app-49">
         <AuthProvider>
           <TimerProvider>
             <Routes>

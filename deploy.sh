@@ -12,7 +12,7 @@ YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
 # Configuration
-REPO_NAME="mentalcheck-sports-training"
+REPO_NAME="judo-app-49"
 BRANCH="gh-pages"
 BUILD_DIR="dist/public"
 
