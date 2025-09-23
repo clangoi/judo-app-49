@@ -86,17 +86,18 @@ const Configuracion = () => {
   };
 
   useEffect(() => {
-    if (userProfile) {
+    if (userProfile?.data) {
+      const profile = userProfile.data;
       setProfileData({
-        fullName: userProfile.fullName || "",
-        email: userProfile.email || "",
-        gender: userProfile.gender || "",
-        currentBelt: userProfile.currentBelt || "",
-        competitionCategory: userProfile.competitionCategory || "",
-        injuryDescription: userProfile.injuryDescription || "",
-        profileImageUrl: userProfile.profileImageUrl || "",
-        birthDate: userProfile.birthDate || "",
-        injuries: userProfile.injuries || [],
+        fullName: profile.fullName || "",
+        email: profile.email || "",
+        gender: profile.gender || "",
+        currentBelt: profile.currentBelt || "",
+        competitionCategory: profile.competitionCategory || "",
+        injuryDescription: profile.injuryDescription || "",
+        profileImageUrl: profile.profileImageUrl || "",
+        birthDate: profile.birthDate || "",
+        injuries: profile.injuries || [],
       });
     }
   }, [userProfile]);
